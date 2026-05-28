@@ -127,5 +127,5 @@ dd,
 
 /*-- scss:defaults --*/
 $grid-sidebar-width: 350px !default;
-$grid-margin-width: 200px !default;
 $grid-body-width: 900px !default;
+$grid-margin-width: 350px !default;  /* 오른쪽도 같은 너비로 맞추면 본문이 시각적으로 가운데로 */
