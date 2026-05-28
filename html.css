@@ -109,12 +109,3 @@ dd,
   justify-content: center;
 }
 
-
-
-/*-- scss:defaults --*/
-$grid-sidebar-width: 350px 
-$grid-body-width: 900px;
-$grid-margin-width: 350px; 
-/* $grid-margin-width: 350px;  /* 오른쪽도 같은 너비로 맞추면 본문이 시각적으로 가운데로 */ */
-
-
