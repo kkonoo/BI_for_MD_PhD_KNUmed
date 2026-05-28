@@ -110,22 +110,9 @@ dd,
 }
 
 
-/* 왼쪽 사이드바 (목차 네비게이션) */
-.sidebar {
-  width: 340px !important;  /* 기본값: 250px */
-}
-
-/* 오른쪽 사이드바 (On this page)*/
-.sidebar-navigation {
-  width: 300px !important;
-}
-
-#quarto-margin-sidebar {
-  width: 220px !important;  /* 기본값: 200px */
-}
-
 
 /*-- scss:defaults --*/
 $grid-sidebar-width: 350px !default;
 $grid-body-width: 900px !default;
 $grid-margin-width: 350px !default;  /* 오른쪽도 같은 너비로 맞추면 본문이 시각적으로 가운데로 */
+
