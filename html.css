@@ -108,3 +108,18 @@ dd,
   display: flex;
   justify-content: center;
 }
+
+
+/* 왼쪽 사이드바 (목차 네비게이션) */
+.sidebar {
+  width: 340px !important;  /* 기본값: 250px */
+}
+
+/* 오른쪽 사이드바 (On this page)*/
+.sidebar-navigation {
+  width: 300px !important;
+}
+
+#quarto-margin-sidebar {
+  width: 220px !important;  /* 기본값: 200px */
+}
