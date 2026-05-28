@@ -123,3 +123,9 @@ dd,
 #quarto-margin-sidebar {
   width: 220px !important;  /* 기본값: 200px */
 }
+
+
+/*-- scss:defaults --*/
+$grid-sidebar-width: 350px !default;
+$grid-margin-width: 200px !default;
+$grid-body-width: 900px !default;
