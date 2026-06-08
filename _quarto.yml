@@ -1,0 +1,100 @@
+project:
+  type: website
+  execute-dir: project
+  resources:
+    - _extensions/ai-chat/ai-chat.js
+
+website:
+  favicon: assets/img/logo.ico
+  navbar:
+    logo: images/logo.jpg
+    left:
+      - href: index.qmd
+        text: Home
+      - href: chapters/part1/W1_intro.qmd
+        text: 1. Intro and R Basics
+      - href: chapters/part2/W5_QC.qmd
+        text: 2. DEG analysis
+      - href: chapters/part3/W8_DEG Results Processing.qmd
+        text: 3. Result interpretation
+      - href: chapters/part4/W11_Rscript_vibe_coding.qmd
+        text: 4. Practice and wrap-up
+
+  sidebar:
+    style: "floating"
+    search: true
+    contents:
+      - text: "Home"
+        href: index.qmd
+      - section: "1. R basics"
+        contents: chapters/part1/*.qmd
+      - section: "2. DEG analysis"
+        contents: chapters/part2/*.qmd
+      - section: "3. Result interpretation"
+        contents:
+          - chapters/part3/W8_DEG Results Processing.qmd
+          - chapters/part3/W9_ORA.qmd
+          - chapters/part3/W10_GSEA.qmd
+      - section: "4. Practice and wrap-up"
+        contents: chapters/part4/*.qmd
+          
+  page-footer:
+    left: "Copyright 2026, Eunji"
+
+format:
+  html:
+    theme:
+      light: cosmo
+    css: assets/html.css
+    toc: true
+    toc-depth: 4
+    toc-title: "Contents"
+    toc-float: true
+    page-layout: full
+
+    code-fold: false  
+    code-copy: true
+    highlight-style: github 
+
+    number-sections: false
+    smooth-scroll: true
+
+    grid:                       
+      sidebar-width: 350px
+      body-width: 1000px
+      margin-width: 250px # toc
+
+    # AI 채팅 위젯 전역 설정
+    include-after-body: assets/ai-chat-init.html
+
+  revealjs:
+    css: assets/revealjs.css    # 슬라이드용
+    scrollable: true
+
+execute:
+  freeze: auto          # 코드 실행 결과 캐시 (빠른 빌드)
+  echo: true
+  eval: false
+  warning: false
+  message: false
+
+    # right:
+    #   - text: "EN"
+    #     href: en/index.qmd
+    #   - text: "KO"
+    #     href: ko/index.qmd
+
+
+  #     background: dark
+    # pdf:
+    # mainfont: "KoPubWorldDotum"
+    # mainfontoptions:
+    #   - Path=C:/Windows/Fonts/
+    #   - Extension=.ttf
+    #   - UprightFont=KoPubWorld Dotum Medium
+    #   - BoldFont=KoPubWorld Dotum Bold
+    # pdf-engine: xelatex
+    # include-in-header:
+    #   text: |
+    #     \usepackage{emoji}
+    #     \setemojifont{Segoe UI Emoji}

@@ -1,0 +1,595 @@
+---
+title: "W2. R Fundamentals"
+subtitle: "Data structures and R programming"
+author: "Eunji Ha"
+date: last-modified
+format:
+  html:
+    theme: cosmo      
+    toc: true           
+    toc-depth: 5
+    toc-float: true    
+    code-fold: false  
+    code-copy: true    
+    highlight-style: github 
+    number-sections: false
+    css: ../html.css
+execute:
+  echo: true
+  eval: true
+---
+
+## 1. Data Types in R
+
+### 1) Vector (1D)
+
+-   The most fundamental data structure in R
+-   to store multiple values of the [same type]{.underline}: numeric, character, or logical
+
+```{r}
+# numeric vector
+my_vector <- c(1, 2, 3, 4, 5)
+1:5
+5:1
+seq(1, 5)
+rep(1, 5)
+seq(from = 1, to = 5, by = 1)
+seq(1, 5, 2)
+
+length(my_vector)
+
+# character vector
+gender <- c("M", "F", "F")
+gender; class(gender)
+
+# factor (categorical)
+factor_gender_vector <- factor(gender)
+factor_gender_vector; class(factor_gender_vector)
+
+# ordinal factor (ordered)
+factor_gender_vector <- factor(gender, order = T, levels = c('F', 'M'))
+factor_gender_vector; class(factor_gender_vector)
+
+# logical vector
+recur <- c(TRUE, FALSE, TRUE)
+recur; class(recur)
+```
+
+#### Checking and Converting Data Types
+
+```{r}
+#| eval: false
+# check: class(), is.XX()
+class(my_vector)    # "numeric"
+class(gender)       # "character"
+is.character(my_vector)  # FALSE
+is.numeric(my_vector)    # TRUE
+
+# convert: as.XX()
+as.character(my_vector)  # "1" "2" "3" "4" "5"
+as.numeric(gender)       # NA NA NA (warning)
+```
+
+------------------------------------------------------------------------
+
+### 2) Matrix (2D)
+
+A two-dimensional structure that holds only [a single data type]{.underline}
+
+```{r}
+# create
+matrix_a <- matrix(1:10, byrow = TRUE, nrow = 5)
+matrix_b <- matrix(1:10, byrow = FALSE, nrow = 5)
+matrix_a; matrix_b
+
+# check dimensions
+dim(matrix_a)
+nrow(matrix_a)
+ncol(matrix_a)
+
+# assign names
+rownames(matrix_a) <- c("Row 1", "Row 2", "Row 3", "Row 4", "Row 5")
+colnames(matrix_a) <- c("Col 1", "Col 2")
+
+# combine
+matrix_a1 <- cbind(matrix_a, 1:5)  # add column
+matrix_c <- rbind(matrix_a, 1:2) # add row
+```
+
+#### Matrix Indexing
+
+![](/assets/img/part1//W2_matrix.png){fig-align="center"}
+
+```{r}
+#| eval: false
+matrix_c[1, 2]     # row 1, col 2 (element)
+matrix_c[1, ]       # entire row 1
+matrix_c[, 1]       # entire col 1
+matrix_c[1:5, 1]  # subset selection
+matrix_c[-1, ]      # exclude row 1
+```
+
+------------------------------------------------------------------------
+
+### 3) Data Frame (2D)
+
+::::: columns
+::: {.column width="70%"}
+-   A two-dimensional structure that can hold [multiple data types]{.underline}
+-   Most commonly used in real-world analyses
+:::
+
+::: {.column width="30%"}
+![](/assets/img/part1//W2_df.png){fig-align="center"}
+:::
+:::::
+
+```{r}
+df <- data.frame(
+  x = c(35, 42, 50),
+  y = c("M", "F", "F"),
+  z = c(TRUE, FALSE, TRUE)
+)
+df
+
+# inspect structure
+str(df)
+dim(df)
+names(df) # = colnames
+
+# rename columns
+names(df) <- c('age', 'gender', 'recur')
+df
+```
+
+```{r}
+#| eval: false
+# indexing
+df[1, 2]      # row 1, col 2
+df[1:2, ]     # rows 1–2
+df$age        # age column ($ operator)
+```
+
+```{r}
+# add column
+BMI <- c(19, 35, 25)
+df$BMI <- BMI
+
+# subset
+subset(df, subset = BMI > 30)
+
+# sort
+df_order <- df[order(df$BMI), ]
+df_order
+
+df_order <- df[order(df$gender, df$BMI), ]
+df_order
+
+df_order <- df[order(-df$age, df$age), ]  # descending
+df_order
+```
+
+------------------------------------------------------------------------
+
+### 4) List
+
+A container that groups together data of different types and structures.
+
+```{r}
+vect <- 1:5
+mat  <- matrix(1:9, ncol = 3)
+df   <- iris[1:5, ]
+
+# create list
+my_list <- list(vect, mat, df)
+my_list
+
+# indexing: [[ ]]
+my_list[[2]]  # retrieve the matrix
+```
+
+------------------------------------------------------------------------
+
+## 2. Operations in R
+
+### 1) Arithmetic Operators
+
+| Operator    | Description    | Example        |
+|-------------|----------------|----------------|
+| `+`         | Addition       | `3 + 4`        |
+| `-`         | Subtraction    | `5 - 2`        |
+| `*`         | Multiplication | `3 * 5`        |
+| `/`         | Division       | `(5+5) / 2`    |
+| `^` or `**` | Exponentiation | `2^5`          |
+| `%%`        | Modulo         | `27 %% 6` → 3  |
+| `%/%`       | Integer divide | `27 %/% 6` → 4 |
+
+------------------------------------------------------------------------
+
+### 2) Logical Operators
+
+| Operator             | Description  |
+|----------------------|--------------|
+| `<`, `<=`, `>`, `>=` | Comparison   |
+| `==`                 | Equal to     |
+| `!=`                 | Not equal to |
+| `x | y`              | OR           |
+| `x & y`              | AND          |
+
+```{r}
+logical_vector <- 1:10
+logical_vector > 5
+
+# combining conditions
+logical_vector[(logical_vector > 4) & (logical_vector < 7)]
+
+# which: returns indices satisfying the condition
+slice_vector <- c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
+slice_vector[which(slice_vector %% 3 == 0)]  # multiples of 3
+```
+
+------------------------------------------------------------------------
+
+## 3. Basic Programming with R
+
+### 1) Functions
+
+#### Math Functions
+
+| Function         | Description                      |
+|------------------|----------------------------------|
+| `abs(x)`         | Absolute value                   |
+| `log(x, base=y)` | Logarithm (default: natural log) |
+| `exp(x)`         | $e^x$                            |
+| `sqrt(x)`        | $\sqrt{x}$                       |
+| `factorial(x)`   | $x!$                             |
+
+```{r}
+#| eval: false
+abs(-5)
+log(8)
+log(8, base=2)  # log2(8)
+exp(2)
+sqrt(9)
+factorial(4)
+```
+
+------------------------------------------------------------------------
+
+#### Statistical Functions
+
+| Function      | Description        |
+|---------------|--------------------|
+| `mean(x)`     | Mean               |
+| `median(x)`   | Median             |
+| `var(x)`      | Variance           |
+| `sd(x)`       | Standard deviation |
+| `scale(x)`    | Z-score            |
+| `quantile(x)` | Quantiles          |
+| `summary(x)`  | Summary statistics |
+
+```{r}
+speed <- cars$speed
+head(speed); length(speed)
+```
+
+```{r}
+#| eval: false
+mean(speed)
+median(speed)
+var(speed)
+sd(speed)
+head(scale(speed), 5)
+quantile(speed)
+summary(speed)
+```
+
+------------------------------------------------------------------------
+
+#### User-defined Functions
+
+```{r}
+# single argument
+square_function <- function(n) {
+  n^2
+}
+square_function(4)  # 16
+
+# multiple arguments
+times <- function(x, y) {
+  x * y
+}
+times(2, 4)  # 8
+```
+
+------------------------------------------------------------------------
+
+### 2) if / else
+
+```{r}
+quantity <- 25
+
+if (quantity > 20) {
+  print('You sold a lot!')
+} else {
+  print('Not enough for today')
+}
+
+# else if
+quantity <- 10
+
+if (quantity < 20) {
+  print('Not enough for today')
+} else if (quantity > 20 & quantity <= 30) {
+  print('Average day')
+} else {
+  print('What a great day!')
+}
+```
+
+------------------------------------------------------------------------
+
+### 3) for / while
+
+```{r}
+# for
+fruit <- c('Apple', 'Orange', 'Passion fruit', 'Banana')
+
+for (i in fruit) {
+  print(i)
+}
+
+# for + list
+list <- c()
+
+for (i in seq(1, 4, by = 1)) {
+  list[[i]] <- i * i
+}
+print(list)
+
+# while
+begin <- 1
+
+while (begin <= 10) {
+  cat('This is loop number', begin)
+  begin <- begin + 1
+  print(begin)
+}
+```
+
+------------------------------------------------------------------------
+
+### 4) apply family
+
+| Function                | Input            | Output              |
+|-------------------------|------------------|---------------------|
+| `apply(x, MARGIN, FUN)` | df / matrix      | vector, list, array |
+| `lapply(X, FUN)`        | list, vector, df | list                |
+| `sapply(X, FUN)`        | list, vector, df | vector / matrix     |
+| `tapply(X, INDEX, FUN)` | vector + factor  | measure             |
+
+```{r}
+m1 <- matrix(1:10, nrow = 5, ncol = 6)
+m1
+
+# apply: row-wise sum
+apply(m1, 1, sum)
+
+# apply: column-wise sum
+apply(m1, 2, sum)
+
+
+# lapply: uppercase → lowercase
+movies <- c("SPYDERMAN", "BATMAN", "VERTIGO", "CHINATOWN")
+lapply(movies, tolower)
+
+# sapply: returns a vector
+head(cars)
+sapply(cars, min)
+
+# tapply: group-wise summary
+head(iris)
+tapply(iris$Sepal.Width, iris$Species, median)
+```
+
+------------------------------------------------------------------------
+
+## 4. Packages
+
+a collection of pre-defined, reusable functions
+
+### CRAN (official app store)
+
+```{r}
+#| eval: false
+install.packages('package_name')
+```
+
+### Bioconductor (for omics analysis)
+
+```{r}
+#| eval: false
+if (!require("BiocManager", quietly = TRUE)) {
+  install.packages("BiocManager")
+} else {
+  BiocManager::install("DESeq2")
+}
+```
+
+------------------------------------------------------------------------
+
+## 5. Working Directory & File I/O
+
+### 1) Working Directory
+
+your current folder where R can read and write files
+
+![](/assets/img/part1//W2_directory.png){fig-align="center"}
+
+```{r}
+# check the current working directory 
+getwd()
+
+# change your working directory 
+setwd('C:\\Users\\USER\\BI_for_MD_PhD_KNUmed')
+
+# dir.create("your_path") # create directory
+# dir.exists("your_path") # check if the directory exists
+```
+
+------------------------------------------------------------------------
+
+### 2) R Project (.Rproj)
+
+R env file to fix your working directory
+
+#### how to create R project
+
+```         
+RStudio → File → New Project → New Directory (or Existing Directory)
+```
+
+![](/assets/img/part1//R%20project.png){fig-align="center"}
+
+------------------------------------------------------------------------
+
+#### recommended structure of folders
+
+```         
+my_project/
+├── my_project.Rproj  ← setting working directory where this file exists
+├── scripts/          ← R scripts (.R)
+│   ├── 1_table1.R
+│   ├── 2_preprocessing.R
+│   └── 3_figure.R
+├── rawdata/          ← raw data (never change)
+│   └── clinical_data.xlsx
+├── analysis/         ← preprocessed data
+│   ├── 1_cleaned_data.rds
+│   ├── 1_df_pt.rds
+│   ├── 1_table1.rds
+│   ├── 2_df_pt_processed.rds
+│   ├── 3_cox_model.rds
+│   ├── 3_cox_tidy.rds
+└── results/          ← final results
+│   ├── Table1.docx
+│   ├── KM_OS.tiff
+│   └── forest_OS.tiff
+└── logs/ or docs/     ← whatever
+```
+
+![](/assets/img/part1//folder_structure.png){fig-align="center"}
+
+::: callout-tip
+## when you need R Project
+
+|   | `setwd()` | R Project |
+|------------------------|------------------------|------------------------|
+| path compatibility | ❌ only in your computer ... need hard coding | ✅wherever |
+| reproducibility | ❌ low | ✅ high |
+| cowork, git | ❌ hard | ✅ easy |
+:::
+
+------------------------------------------------------------------------
+
+### 3) File Read & Write
+
+#### CSV / TSV
+
+```{r}
+#| eval: false
+# --- Read ---
+# CSV (Comma-Separated Values)
+df <- read.csv("examples/data/part1/my_data.csv")
+
+# TSV (Tab-Separated Values)
+df <- read.table("examples/data/part1/my_data.csv", sep = "\t", header = TRUE)
+
+# readr/bigreadr: faster and more options (recommended)
+library(readr)
+df <- read_csv("examples/data/part1/my_data.csv")    # CSV
+df <- read_tsv("examples/data/part1/my_data.tsv")    # TSV
+
+# --- Write ---
+write.csv(df, "examples/analysis/w2_my_data.csv", row.names = FALSE)
+
+library(readr)
+write_csv(df, "examples/analysis/w2_my_data.csv") 
+write_tsv(df, "examples/analysis/w2_my_data.tsv")
+```
+
+::: callout-note
+## `read.csv` vs `read_csv`
+
+|   | `read.csv` (base R) | `read_csv` (readr) |
+|----|----|----|
+| speed | normal | fast (better for large-scale data) |
+| character column | automatically convert to factor | keep character |
+| output | data.frame | tibble |
+| when recommended | simple task | real analysis (?) |
+:::
+
+#### Excel
+
+```{r}
+#| eval: false
+library(readxl)
+
+# set sheet
+df <- read_excel("examples/data/part1/my_data.xlsx", sheet = "Sheet1")
+
+# set range
+df <- read_excel("examples/data/part1/my_data.xlsx", range = "A1:D50")
+```
+
+------------------------------------------------------------------------
+
+### 4) RDS (R Data Serialization)
+
+for saving data (R objects; list, results, ...) in R
+
+```{r}
+#| eval: false
+# save your data
+saveRDS(df, "examples/analysis/w2_my_data.rds")
+
+# load your data
+df_loaded <- readRDS("examples/analysis/w2_my_data.rds")
+
+# 모델 결과 저장 예시
+fit <- lm(mpg ~ wt, data = mtcars)
+saveRDS(fit, "examples/analysis/w2_linear_model.rds")
+fit_loaded <- readRDS("examples/analysis/w2_linear_model.rds")
+```
+
+::: callout-tip
+## when **`rds`** helps
+
+| when                                      | recommended format             |
+|-----------------------------------------|-------------------------------|
+| sharing your data                         | `.csv` / `.tsv`                |
+| re-use after pre-processing of data       | `.rds`                         |
+| for large-scale data, list, model results | `.rds`                         |
+| for multiple R data                       | `.RData` (`save()` / `load()`) |
+:::
+
+```{r}
+#| eval: false
+save(df, fit, file = "examples/analysis/w2_my_workspace.RData")
+rm(list = ls())
+
+load("examples/analysis/w2_my_workspace.RData")  # df, fit
+ls()
+```
+
+------------------------------------------------------------------------
+
+## 📝 Week 2 Assignment
+
+1.  Store your age and height in a variable called `my_info`
+2.  Install `dplyr` and `ggplot2` using `install.packages()`
+3.  Create a `team_data` data frame with information about 3 colleagues (name, age, specialty)
+4.  Extract the specialty column from `team_data` using `$`
+5.  Extract the second person's information from `team_data` using `[,]`
+
+> Please submit a snapshot of your screen

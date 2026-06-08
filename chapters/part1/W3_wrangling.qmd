@@ -1,0 +1,494 @@
+---
+title: "W3. Data Wrangling & Visualization"
+subtitle: "using tidyverse (dplyr + ggplot2)"
+author: "Eunji Ha"
+date: last-modified
+format:
+  html
+execute:
+  eval: true
+---
+
+## Setup: Example Data
+
+All examples in this document use the `patients` dataset created below.
+
+```{r}
+#| message: false
+library(tidyverse)
+
+set.seed(42)
+
+n <- 40
+
+patients <- tibble(
+  pt_id     = paste0("P", sprintf("%03d", 1:n)),
+  gender    = sample(c("M", "F"), n, replace = TRUE),
+  height    = round(rnorm(n, mean = 168, sd = 10)),
+  weight    = round(rnorm(n, mean = 70,  sd = 15)),
+  Age       = round(runif(n, min = 30, max = 72)),
+  Diagnosis = sample(c("Diabetes", "Hypertension", "Healthy"),
+                     n, replace = TRUE, prob = c(0.35, 0.35, 0.30)),
+  disease   = Diagnosis,
+  HbA1c     = round(
+    case_when(
+      Diagnosis == "Diabetes"     ~ rnorm(n, mean = 8.0, sd = 1.0),
+      Diagnosis == "Hypertension" ~ rnorm(n, mean = 5.8, sd = 0.7),
+      TRUE                        ~ rnorm(n, mean = 5.2, sd = 0.5)
+    ), 1)
+)
+
+# data.frame version for comparison
+patients_df <- as.data.frame(patients)
+
+patients
+```
+
+------------------------------------------------------------------------
+
+## tidyverse
+
+`tidyverse` is a meta-package that includes useful packages such as `dplyr`, `ggplot2`, and `tidyr`.
+
+```{r}
+#| eval: false
+# install (once)
+install.packages("tidyverse")
+```
+
+```{r}
+#| message: false
+# load every session
+library(tidyverse)
+```
+
+### data.frame vs. tibble
+
+`tibble` is an improved version of `data.frame` that displays column types on print and handles large datasets cleanly.
+
+```{r}
+# data.frame: prints all rows, no type info
+patients_df
+
+# tibble: shows type tags (<chr>, <dbl>, ...) and caps output at 10 rows
+patients
+```
+
+------------------------------------------------------------------------
+
+### Chain operator (`%>%`)
+
+```{r}
+# traditional style
+head(patients)
+
+# chain style (Ctrl + Shift + M)
+patients %>% head()
+```
+
+------------------------------------------------------------------------
+
+## 1. Data Wrangling: dplyr
+
+### The 5 core dplyr verbs
+
+#### select(): select columns
+
+![](/assets/img/part1/W3_select.png){fig-align="center" width="164"}
+
+```{r}
+patients %>% select(pt_id, disease)
+```
+
+#### filter(): filter rows
+
+![](/assets/img/part1/W3_fjilter.png){fig-align="center" width="180"}
+
+```{r}
+patients %>% filter(disease == "Diabetes")
+```
+
+#### mutate(): create new columns
+
+![](/assets/img/part1/W3_mutate.png){fig-align="center" width="211"}
+
+```{r}
+patients %>% mutate(bmi = round(weight / (height / 100)^2, 1))
+```
+
+#### arrange(): sort rows
+
+![](/assets/img/part1/W3_arrange.png){fig-align="center" width="204"}
+
+```{r}
+patients %>% arrange(desc(weight))
+```
+
+#### group_by() & summarise(): group-wise summary
+
+![](/assets/img/part1/W3_group_by.png){fig-align="center" width="258"}
+
+```{r}
+patients %>%
+  group_by(disease) %>%
+  summarize(
+    n           = n(),
+    mean_weight = round(mean(weight), 1),
+    mean_HbA1c  = round(mean(HbA1c),  1)
+  )
+```
+
+### join: combining datasets
+
+![](/assets/img/part1/W3_join.png){fig-align="center" width="251"}
+
+```{r}
+# lab results — some patients missing, one external patient included
+lab_results <- tibble(
+  pt_id = c("P001", "P002", "P003", "P999"),
+  hba1c = c(7.5, 5.8, 6.2, 8.0)
+)
+```
+
+![](/assets/img/part1/W3_left.png){fig-align="center"}
+
+```{r}
+# left_join: keep all patients in the cohort
+patients %>%
+  select(pt_id, disease) %>%
+  left_join(lab_results, by = "pt_id")
+```
+
+![](/assets/img/part1/W3_right.png){fig-align="center" width="112"}
+
+```{r}
+# right_join: based on lab results
+patients %>%
+  select(pt_id, disease) %>%
+  right_join(lab_results, by = "pt_id")
+```
+
+![](/assets/img/part1/W3_inner.png){fig-align="center" width="123"}
+
+```{r}
+# inner_join: intersection (only patients with lab results)
+patients %>%
+  select(pt_id, disease) %>%
+  inner_join(lab_results, by = "pt_id")
+```
+
+![](/assets/img/part1/W3_full.png){fig-align="center"}
+
+```{r}
+# full_join: merge all data
+patients %>%
+  select(pt_id, disease) %>%
+  full_join(lab_results, by = "pt_id")
+```
+
+### Data Reshaping: tidyr
+
+#### pivot_longer(): Wide → Long
+
+![](/assets/img/part1/W3_pivet_long.png){fig-align="center" width="390"}
+
+```{r}
+bp_wide <- tibble(
+  pt_id      = c("P001", "P002", "P003"),
+  sbp_visit1 = c(120, 130, 110),
+  sbp_visit2 = c(118, 135, 115),
+  sbp_visit3 = c(115, 132, 112)
+)
+
+bp_wide
+
+bp_long <- bp_wide %>%
+  pivot_longer(
+    cols      = starts_with("sbp"),
+    names_to  = "visit",
+    values_to = "sbp"
+  )
+
+bp_long
+```
+
+#### pivot_wider(): Long → Wide
+
+![](/assets/img/part1/W3_pivot_wider.png){fig-align="center"}
+
+```{r}
+bp_long %>%
+  pivot_wider(
+    names_from  = visit,
+    values_from = sbp
+  )
+```
+
+#### separate(): split a column
+
+![](/assets/img/part1/W3_separate.png){fig-align="center" width="482"}
+
+```{r}
+bp_raw <- tibble(
+  pt_id   = c("P001", "P002"),
+  bp_full = c("120/80", "130/85")
+)
+
+bp_raw %>%
+  separate(bp_full, into = c("sbp", "dbp"), sep = "/", convert = TRUE)
+```
+
+#### unite(): merge columns
+
+![](/assets/img/part1/W3_unite.png){fig-align="center" width="351"}
+
+```{r}
+dates <- tibble(
+  pt_id = c("P001", "P002"),
+  year  = c("2024", "2025"),
+  month = c("12", "01"),
+  day   = c("25", "15")
+)
+
+dates %>%
+  unite(col = "exam_date", year, month, day, sep = "-")
+```
+
+------------------------------------------------------------------------
+
+## 2. Visualization: ggplot2
+
+ggplot2 is built on three components:
+
+1)  **data**: a data frame
+2)  **aes**: x-axis, y-axis, color, fill, group, etc.
+3)  **geom**: the type of plot
+
+```{r}
+#| eval: false
+dataframe %>%
+  ggplot(aes(x = xx, y = yy)) +
+  geom_function() +
+  ...
+```
+
+#### Aesthetics
+
+| Property         | Description       | Example                           |
+|------------------|-------------------|-----------------------------------|
+| `color` / `fill` | Color             | `"red"`, `"#RRGGBB"`              |
+| `linetype`       | Line type         | `"solid"`, `"dashed"`, `"dotted"` |
+| `size`           | Point / text size | in mm                             |
+| `linewidth`      | Line width        | in mm                             |
+| `shape`          | Point shape       | integer 0–25                      |
+| `alpha`          | Transparency      | 0 (transparent) – 1 (opaque)      |
+
+::: callout-tip
+**Inside `aes()`**: maps to a variable automatically → `aes(color = Diagnosis)`
+
+**Inside `geom_`**: fixed value → `geom_bar(color = 'black')`
+:::
+
+------------------------------------------------------------------------
+
+### ① Bar Plot: frequency of categorical data
+
+```{r}
+patients %>%
+  ggplot(aes(x = Diagnosis)) +
+  geom_bar(fill = "steelblue", width = 0.6) +
+  labs(title = "Number of Patients by Diagnosis",
+       x = "Diagnosis", y = "Count") +
+  theme_classic()
+```
+
+------------------------------------------------------------------------
+
+### ② Histogram: distribution of a continuous variable
+
+```{r}
+patients %>%
+  ggplot(aes(x = Age)) +
+  geom_histogram(binwidth = 10, fill = "lightgrey", color = "black") +
+  labs(title = "Age Distribution", x = "Age", y = "Count") +
+  theme_classic()
+```
+
+------------------------------------------------------------------------
+
+### ③ Box Plot: comparing continuous values across groups
+
+```{r}
+patients %>%
+  ggplot(aes(x = Diagnosis, y = HbA1c, fill = Diagnosis)) +
+  geom_boxplot() +
+  labs(title = "HbA1c by Diagnosis", x = "Diagnosis", y = "HbA1c (%)") +
+  theme_classic()
+```
+
+------------------------------------------------------------------------
+
+### ④ Scatter Plot: relationship between two continuous variables
+
+```{r}
+#| message: false
+patients %>%
+  ggplot(aes(x = Age, y = HbA1c)) +
+  geom_point(size = 3, color = 'darkblue') +
+  geom_smooth(method = "lm", formula = y ~ x, se = TRUE) +
+  labs(title = "Age vs HbA1c", x = "Age", y = "HbA1c (%)") +
+  theme_classic()
+```
+
+------------------------------------------------------------------------
+
+### ⑤ Line Plot: trends over time
+
+```{r}
+bp_long %>%
+  ggplot(aes(x = visit, y = sbp, group = pt_id, color = pt_id)) +
+  geom_line(linewidth = 1) +
+  geom_point(size = 3) +
+  labs(title = "Systolic BP Across Visits",
+       x = "Visit", y = "SBP (mmHg)", color = "Patient") +
+  theme_classic()
+```
+
+------------------------------------------------------------------------
+
+### Customizing Plots
+
+```{r}
+patients %>%
+  ggplot(aes(x = Diagnosis, y = HbA1c, fill = Diagnosis)) +
+  geom_boxplot(alpha = 0.5) +
+  scale_fill_brewer(palette = "Set2") +
+  labs(title = "HbA1c Levels by Diagnosis",
+       x = "Diagnosis", y = "HbA1c (%)") +
+  theme(legend.position = "none") +
+  theme_classic()
+```
+
+------------------------------------------------------------------------
+
+### Key Themes
+
+| Theme             | Description                   |
+|-------------------|-------------------------------|
+| `theme_classic()` | White background, axes only   |
+| `theme_bw()`      | White background + grid lines |
+| `theme_minimal()` | Minimal decoration            |
+| `theme_light()`   | Light tone                    |
+
+```{r}
+#| echo: false
+#| fig-height: 3
+#| message: false
+p <- patients %>%
+  ggplot(aes(x = Diagnosis, y = HbA1c, fill = Diagnosis)) +
+  geom_boxplot(alpha = 0.7) +
+  scale_fill_brewer(palette = "Set2") +
+  theme(legend.position = "none")
+
+library(patchwork)
+(p + theme_classic()  + ggtitle("theme_classic()")) +
+(p + theme_bw()       + ggtitle("theme_bw()")) +
+(p + theme_minimal()  + ggtitle("theme_minimal()")) +
+(p + theme_light()    + ggtitle("theme_light()"))
+```
+
+------------------------------------------------------------------------
+
+### Saving Plots
+
+```{r}
+#| eval: false
+# format determined automatically by file extension
+ggsave("results/w3_my_result.png")
+
+# high-resolution TIFF (for publication)
+ggsave("results/w3_Figure1.tiff",
+       width = 6, height = 4, units = "in", dpi = 300)
+
+# PDF (for presentations; scales without pixelation)
+ggsave("results/w3_Figure1.pdf", width = 6, height = 4)
+```
+
+------------------------------------------------------------------------
+
+## 📝 Week 3 Assignment
+
+Use the dataset provided below (`my_data`):
+
+```{r}
+set.seed(7)
+my_data <- tibble(
+  Sample_ID  = paste0("S", sprintf("%02d", 1:20)),
+  Group      = sample(c("Control", "Treatment"), 20, replace = TRUE),
+  Gender     = sample(c("Male", "Female"), 20, replace = TRUE),
+  Age        = round(runif(20, 25, 65)),
+  Gene_A     = round(rnorm(20, mean = 5, sd = 2), 2),
+  Gene_B     = round(rnorm(20, mean = 8, sd = 3), 2),
+  Gene_C     = round(rnorm(20, mean = 3, sd = 1), 2)
+)
+
+my_data %>% head
+```
+
+#### 1. Data Manipulation
+
+```{r}
+#| eval: false
+# 1. select: Sample_ID, Group, Gene_A
+my_data %>% select(___, ___, ___)
+
+# 2. filter: Gender == "Male"
+my_data %>% filter(___ == ___)
+
+# 3. arrange: Gene_A descending
+my_data %>% arrange(desc(___))
+
+# 4. group_by & summarize: mean Gene_A per Group
+my_data %>%
+  group_by(___) %>%
+  summarize(mean_GeneA = mean(___))
+
+# 5. pivot_longer: Gene_A, Gene_B, Gene_C → long format
+my_long <- my_data %>%
+  pivot_longer(
+    cols      = c(Gene_A, Gene_B, Gene_C),
+    names_to  = "___",
+    values_to = "___"
+  )
+```
+
+#### 2. Visualization
+
+```{r}
+#| eval: false
+# 1. Box Plot: x = Gene_Name, y = Expression, fill = Group
+my_long %>%
+  ggplot(aes(x = ___, y = ___, fill = ___)) +
+  geom_boxplot()
+
+# 2. Scatter Plot: Age vs Gene_A, color = Group
+my_data %>%
+  ggplot(aes(x = ___, y = ___, color = ___)) +
+  geom_point(size = 3)
+```
+
+> Please submit a screenshot of your screen.
+
+------------------------------------------------------------------------
+
+## References {.smaller}
+
+#### Data wrangling ... cheatsheets
+
+![](/assets/img/part1/cheatsheets.png){fig-align="center" width="591"}
+
+#### Visualization
+
+[From Data to Viz](https://www.data-to-viz.com/) — chart recommendations by data type\
+[The R Graph Gallery](https://r-graph-gallery.com/) — R chart examples\
+[R Gallery Book](https://bookdown.org/content/b298e479-b1ab-49fa-b83d-a57c2571571e/)

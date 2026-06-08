@@ -1,0 +1,51 @@
+---
+title: "bulk RNA-seq analysis (의사과학자 양성 사업)"
+sidebar: false
+author: "Eunji Ha"
+affiliation: 'School of Medicine, Kyungpook National Univ.'
+date: last-modified
+format: html
+editor: visual
+categories: [의학연구, bioinformatics, R, RNA-seq]
+---
+
+## Course overview
+
+-   **Acquisition of Practical Bioinformatics Analysis Skills**
+
+    ✅ What is RNA-seq data and how to analyze them
+
+    ✅ Understanding fundamental statistics
+
+    ✅ How to interpret and visualize the results
+
+-   **Enhanced Data Convergence Capability for Translational Research**
+
+    ✅ How to link omics data to clinical data
+
+    ✅ How to explore public data of interest
+
+    ✅ What would be promising targets
+
+## Syllabus
+
+| week | Contents                                    |
+|------|---------------------------------------------|
+| W1   | Introduction to Bioinformatics & R Setup    |
+| W2   | R Fundamentals: Data Structures & Packages  |
+| W3   | Data Wrangling & Visualization (dplyr)      |
+| W4   | Public Database Exploration (GEO & TCGA)    |
+| W5   | Pre-processing of RNA-seq Data              |
+| W6   | Exploratory Data Analysis (EDA)             |
+| W7   | Differential Expression Gene (DEG) Analysis |
+| W8   | (mid-term)                                  |
+| W9   | DEG Results Processing                      |
+| W10  | Over-representation analysis                |
+| W11  | Gene Set Enrichment Analysis (GSEA)         |
+| W12  | Rscript and vibe coding tips                |
+| W13  | Summary and Wrap-up                         |
+
+-   Part1: Intro and R Basics (W1-W4)
+-   Part2: DEG analysis (W5-W7)
+-   Part3: Result interpretation (W9-W11)
+-   Part4: Practice and wrap-up (W12-W14)

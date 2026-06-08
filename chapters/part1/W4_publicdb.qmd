@@ -1,0 +1,351 @@
+---
+title: "W4. Public Database Exploration"
+subtitle: "from GEO & TCGA"
+author: "Eunji Ha"
+date: last-modified
+format:
+  html
+execute:
+  eval: true
+---
+
+## 1. Public Databases
+
+Public databases are used for pilot studies or external validation.
+
+### Key Repositories (RNA-seq)
+
+| DB | Data Provided | Notes |
+|-----------------|---------------------------|----------------------------|
+| [**GEO**](https://www.ncbi.nlm.nih.gov/geo/) | count matrix + metadata | Most widely used |
+| [SRA](https://www.ncbi.nlm.nih.gov/sra) | raw FASTQ | Requires SRA Toolkit |
+| [EGA](https://ega-archive.org/) | raw FASTQ | European; access request + fee required |
+| [TCGA/GDC](https://portal.gdc.cancer.gov/) | multi-omics including count matrix | Cancer-specific |
+| [GTEx](https://gtexportal.org/) | count matrix | Normal tissue reference |
+
+------------------------------------------------------------------------
+
+::: callout-tip
+You can find GSE/SRA accession numbers in the **Data Availability** section of publications.
+
+![](/assets/img/part1//W4_data.png){fig-align="center" width="593"}
+:::
+
+#### Where we start
+
+GEO and TCGA provide [preprocessed]{.underline} **count matrices**, so you can skip the FASTQ → alignment step.
+
+![](/assets/img/part1//W4_geo.png){fig-align="center" width="699"}
+
+------------------------------------------------------------------------
+
+## 2. Browsing GEO
+
+### 1) How to Search
+
+① **Boolean operators**
+
+-   Lung Cancer **`AND`** RNA-seq
+-   NSCLC **`OR`** Adenocarcinoma
+-   **`NOT`** Cell line
+
+② **MeSH Terms**: "Lung Neoplasms"**`[MeSH Terms]`**
+
+![](/assets/img/part1//W4_geo_search.png){fig-align="center"}
+
+------------------------------------------------------------------------
+
+#### GEO Terminology
+
+| Prefix            | Meaning                        | Example    |
+|-------------------|--------------------------------|------------|
+| G[SE]{.underline} | Series (study/paper level)     | GSE159857  |
+| G[SM]{.underline} | Sample (individual tissue)     | GSM4839001 |
+| G[PL]{.underline} | Platform (sequencing platform) | GPL20301   |
+
+#### Criteria for a Good Dataset
+
+-   **Sample size**: sufficient N (minimum `30` recommended)
+-   **Experimental design**: comparable control vs. case groups
+-   **Metadata**: key variables available (e.g., duration, drug response, age, sex)
+
+------------------------------------------------------------------------
+
+## 2) Getting GEO Data: GEOquery
+
+### ① Load and Clean Metadata
+
+```{r}
+library(GEOquery)
+library(tidyverse)
+
+# 1. load data
+gse_id <- "GSE159857"
+gset <- getGEO(gse_id, GSEMatrix = TRUE)
+# str(gset) # check the structure
+length(gset)
+
+gset_data <- gset[[1]]
+class(gset_data)
+
+# 2. extract metadata
+meta_data <- pData(gset_data) %>% as_tibble()
+view(meta_data)
+names(meta_data)
+```
+
+------------------------------------------------------------------------
+
+```{r}
+# 3. select relevant columns
+clean_meta <- meta_data %>%
+  select(geo_accession, title,
+         `cancer subtype:ch1`,
+         `disease state:ch1`) %>%
+  transmute(geo_accession,
+            sample = title,
+            cancer_type = `cancer subtype:ch1`,
+            disease = `disease state:ch1`)
+clean_meta %>% head
+
+# check
+table(clean_meta$cancer_type)
+table(clean_meta$disease)
+table(clean_meta$cancer_type, clean_meta$disease)
+```
+
+------------------------------------------------------------------------
+
+### ② Retrieving Expression Data
+
+```{r}
+#| eval: false
+# Method 1: exprs() — often empty
+expr_matrix <- exprs(gset_data)
+dim(expr_matrix)
+
+# Method 2: getGEOSuppFiles() — download supplementary files
+getGEOSuppFiles(gse_id)
+```
+
+```{r}
+# Method 3: manual download (most reliable)
+file_path <- 'examples/data/part1/GSE159857_raw_counts_GRCh38.p13_NCBI.tsv.gz'
+raw_counts <- read.table(file_path, header = TRUE, sep = "\t", row.names = 1)
+dim(raw_counts)
+head(raw_counts[,1:5])
+```
+
+------------------------------------------------------------------------
+
+### ③ Matching Expression Data with Metadata (Important!)
+
+::: callout-important
+The row (sample) order in metadata must match the column (sample) order in the count matrix exactly.
+:::
+
+```{r}
+#| eval: false
+# find common samples
+common_samples <- intersect(colnames(raw_counts), clean_meta$geo_accession)
+length(common_samples)
+
+# align order
+clean_meta <- clean_meta[match(common_samples, clean_meta$geo_accession), ]
+raw_counts <- raw_counts[, match(common_samples, colnames(raw_counts))]
+
+# verify
+all(clean_meta$geo_accession == colnames(raw_counts))  # must be TRUE
+
+# save
+write.table(clean_meta, file = 'examples/analysis/part1/clean_meta.txt',
+            sep = "\t", quote = F, row.names = F, col.names = T)
+write.table(raw_counts, file = 'examples/analysis/part1/raw_counts.txt',
+            sep = "\t", quote = F, row.names = F, col.names = T)
+```
+
+------------------------------------------------------------------------
+
+## 3. Browsing TCGA
+
+### 1) [**GDC**](https://portal.gdc.cancer.gov/) Data Portal (GUI)
+
+#### ① Projects: browse by project (e.g., TCGA-LUAD)
+
+![](/assets/img/part1//W4_TCGA_check.png){fig-align="center" width="847"}
+
+------------------------------------------------------------------------
+
+#### ② Cohort Builder: build cohorts based on clinical variables
+
+![](/assets/img/part1//W4_cohort.png){fig-align="center" width="488"}
+
+------------------------------------------------------------------------
+
+#### ③ Analysis Center: survival analysis, clinical data visualization
+
+![](/assets/img/part1//W4_analysis.png){fig-align="center" width="474"}
+
+------------------------------------------------------------------------
+
+### 2) TCGAbiolinks (R package)
+
+#### ① Retrieving Clinical Data
+
+```{r}
+#| eval: false
+# install packages (once)
+BiocManager::install("TCGAbiolinks")
+BiocManager::install("SummarizedExperiment")
+
+```
+
+```{r}
+#| eval: false
+library(tidyverse)
+library(TCGAbiolinks)
+library(SummarizedExperiment)
+
+# metadata
+project_name <- "TCGA-LUAD"
+clinical_luad <- GDCquery_clinic(project = project_name, type = "clinical") %>%
+  as_tibble()
+
+names(clinical_luad)
+
+# select relevant columns
+clinical_luad_subset <- clinical_luad %>%
+  select(submitter_id, age_at_index, gender,
+         vital_status, days_to_death, ajcc_pathologic_stage)
+
+write.table(clinical_luad_subset, 'examples/analysis/part1/clinical_luad_subset.txt',
+            sep = "\t", quote = F, row.names = F, col.names = T)
+saveRDS(clinical_luad_subset, 'examples/analysis/part1/clinical_luad_subset.rds')
+```
+
+------------------------------------------------------------------------
+
+#### ② Retrieving Expression Data
+
+```{r}
+#| eval: false
+# set up query (may take time)
+query_luad <- GDCquery(
+  project = "TCGA-LUAD",
+  data.category = "Transcriptome Profiling",
+  experimental.strategy = "RNA-Seq",
+  workflow.type = "STAR - Counts"  # select Raw Counts for DESeq2
+)
+saveRDS(query_luad, 'examples/analysis/part1/query_luad.rds')
+
+# (for practice) use only the first 20 samples
+query_luad$results[[1]] <- query_luad$results[[1]] %>%
+  filter(access == 'open') %>% .[1:20, ]
+
+# download
+GDCdownload(query_luad)
+
+# prepare as SummarizedExperiment object
+luad_data <- GDCprepare(query_luad)
+class(luad_data)
+```
+
+------------------------------------------------------------------------
+
+#### ③ Matching Count Matrix with Metadata
+
+```{r}
+#| eval: false
+
+luad_data = readRDS('examples/analysis/part1/query_luad.rds')
+
+# Count Matrix
+count_matrix <- assay(luad_data)
+head(count_matrix)  # gene ID = Ensembl ID
+
+# Metadata
+meta_data <- colData(luad_data) %>% as_tibble
+names(meta_data) %>% head
+
+clean_meta <- meta_data %>%
+  select(patient, sample, definition, tissue_type,
+         ajcc_pathologic_stage, race, gender, age_at_index, days_to_birth)
+
+# check
+table(clean_meta$tissue_type)
+table(clean_meta$definition)
+```
+
+------------------------------------------------------------------------
+
+## Tips: Gene ID Conversion
+
+Common gene ID systems used in RNA-seq data:
+
+| ID Type | Example | Source | Use Case |
+|------------------|-------------------|------------------|------------------|
+| Gene Symbol | TP53, EGFR | HGNC | Human-readable (may have duplicates) |
+| Ensembl ID | ENSG00000141510 | EBI | RNA-seq aligner output; unique and stable |
+| Entrez ID | 7157 | NCBI | Gene set labels (KEGG, GO) |
+
+### Conversion Method: `org.Hs.eg.db` + `mapIds()`
+
+```{r}
+#| eval: false
+library(tidyverse)
+library(org.Hs.eg.db)
+library(AnnotationDbi)
+
+# remove version numbers from Ensembl IDs
+my_ids <- rownames(count_matrix)
+head(my_ids)  # ENSG00000141510.15
+
+my_ids <- sapply(my_ids, function(x) {
+  strsplit(x, '\\.') %>% unlist %>% .[[1]]
+})
+my_ids <- as.character(my_ids)
+
+# Ensembl → Symbol
+my_symbol <- mapIds(org.Hs.eg.db,
+                    keys = my_ids,
+                    column = "SYMBOL",
+                    keytype = "ENSEMBL",
+                    multiVals = "first")
+
+# Ensembl → Entrez ID (for GSEA/KEGG)
+my_entrez <- mapIds(org.Hs.eg.db,
+                    keys = my_ids,
+                    column = "ENTREZID",
+                    keytype = "ENSEMBL",
+                    multiVals = "first")
+
+# inspect
+my_genes <- tibble(ids = my_ids,
+                   symbol = my_symbol,
+                   entrez = my_entrez)
+
+# check for NAs (novel genes, pseudogenes, version mismatches, etc.)
+sum(is.na(my_genes$symbol))
+my_genes %>% filter(is.na(symbol))
+```
+
+------------------------------------------------------------------------
+
+## 📝 Week 4 Assignment
+
+#### 1. GEO Dataset for Pilot Study
+
+1.  Search GEO for a keyword related to your research interest
+2.  Evaluate the dataset using the following criteria:
+    -   Sample size (N \> 30?)
+    -   Experimental design (paired tissue?)
+    -   Metadata (at least 3 key variables?)
+3.  Load the data with `getGEO()` and inspect the metadata using `pData()`
+
+#### 2. GDC Data Portal
+
+1.  Select a project of interest
+2.  Draw a survival curve based on a specific variable in the Analysis Center
+3.  Check the Log-Rank Test P-value
+
+> Please submit a screenshot of your screen.
