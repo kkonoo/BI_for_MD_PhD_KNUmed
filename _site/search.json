@@ -1,0 +1,920 @@
+[
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "bulk RNA-seq analysis (의사과학자 양성 사업)",
+    "section": "",
+    "text": "Acquisition of Practical Bioinformatics Analysis Skills\n✅ What is RNA-seq data and how to analyze them\n✅ Understanding fundamental statistics\n✅ How to interpret and visualize the results\nEnhanced Data Convergence Capability for Translational Research\n✅ How to link omics data to clinical data\n✅ How to explore public data of interest\n✅ What would be promising targets",
+    "crumbs": [
+      "Home"
+    ]
+  },
+  {
+    "objectID": "index.html#course-overview",
+    "href": "index.html#course-overview",
+    "title": "bulk RNA-seq analysis (의사과학자 양성 사업)",
+    "section": "",
+    "text": "Acquisition of Practical Bioinformatics Analysis Skills\n✅ What is RNA-seq data and how to analyze them\n✅ Understanding fundamental statistics\n✅ How to interpret and visualize the results\nEnhanced Data Convergence Capability for Translational Research\n✅ How to link omics data to clinical data\n✅ How to explore public data of interest\n✅ What would be promising targets",
+    "crumbs": [
+      "Home"
+    ]
+  },
+  {
+    "objectID": "index.html#syllabus",
+    "href": "index.html#syllabus",
+    "title": "bulk RNA-seq analysis (의사과학자 양성 사업)",
+    "section": "Syllabus",
+    "text": "Syllabus\n\n\n\nweek\nContents\n\n\n\n\nW1\nIntroduction to Bioinformatics & R Setup\n\n\nW2\nR Fundamentals: Data Structures & Packages\n\n\nW3\nData Wrangling & Visualization (dplyr)\n\n\nW4\nPublic Database Exploration (GEO & TCGA)\n\n\nW5\nPre-processing of RNA-seq Data\n\n\nW6\nExploratory Data Analysis (EDA)\n\n\nW7\nDifferential Expression Gene (DEG) Analysis\n\n\nW8\n(mid-term)\n\n\nW9\nDEG Results Processing\n\n\nW10\nOver-representation analysis\n\n\nW11\nGene Set Enrichment Analysis (GSEA)\n\n\nW12\nRscript and vibe coding tips\n\n\nW13\nSummary and Wrap-up\n\n\n\n\nPart1: Intro and R Basics (W1-W4)\nPart2: DEG analysis (W5-W7)\nPart3: Result interpretation (W9-W11)\nPart4: Practice and wrap-up (W12-W14)",
+    "crumbs": [
+      "Home"
+    ]
+  },
+  {
+    "objectID": "chapters/part4/W11_Rscript_vibe_coding.html",
+    "href": "chapters/part4/W11_Rscript_vibe_coding.html",
+    "title": "W11. Vibe coding tips",
+    "section": "",
+    "text": "AI에게 자연어로 설명 → 코드 생성 → 실행 → 수정 반복 코드를 “외우는” 것이 아니라, AI에게 잘 시키는 법을 배우는 것입니다.\n\n\n\n바이브코딩을 시작하기 전에, AI가 어떤 패턴으로 코드를 만드는지 알아야 합니다.\nClaude에게 실제 분석을 요청하면 이 구조가 그대로 적용됩니다:\n\n# ============================================================\n# 0. library\n# ============================================================\nlibrary(dplyr)\nlibrary(survival)\nlibrary(gtsummary)\n\n# ============================================================\n# 1. function definition\n# ============================================================\nload_data &lt;- function(filepath) {\n  df &lt;- readxl::read_excel(filepath)\n  df &lt;- df |&gt;\n    mutate(\n      age_group = ifelse(Age_Tx &gt;= 65, \"elderly\", \"non-elderly\"),\n      Death = as.numeric(Death)\n    )\n  return(df)\n}\n\nmake_table1 &lt;- function(df, by_var) {\n  df |&gt;\n    tbl_summary(by = all_of(by_var), missing = \"no\") |&gt;\n    add_p() |&gt;\n    bold_p()\n}\n\nrun_survival &lt;- function(df, time_var, event_var, group_var) {\n  formula &lt;- as.formula(\n    paste0(\"Surv(\", time_var, \", \", event_var, \") ~ \", group_var)\n  )\n  fit &lt;- survfit(formula, data = df)\n  return(fit)\n}\n\nsave_results &lt;- function(tbl, fit, resdir) {\n  tbl |&gt; as_flex_table() |&gt;\n    flextable::save_as_docx(path = file.path(resdir, \"table1.docx\"))\n\n  p &lt;- survminer::ggsurvplot(fit, pval = TRUE, risk.table = TRUE)\n  tiff(file.path(resdir, \"KM_OS.tiff\"), width = 7, height = 5,\n       units = \"in\", res = 300)\n  print(p)\n  dev.off()\n}\n\n# ============================================================\n# 2. Main\n# ============================================================\nmain &lt;- function() {\n  indir  &lt;- \"rawdata/\"\n  resdir &lt;- \"results/\"\n\n  df  &lt;- load_data(file.path(indir, \"patient_data.xlsx\"))\n  tbl &lt;- make_table1(df, by_var = \"Multiplicity\")\n  fit &lt;- run_survival(df, \"OS\", \"Death\", \"Multiplicity\")\n  save_results(tbl, fit, resdir)\n\n  cat(\"Done!\\n\")\n}\n\nmain()\n\n\n\n\n\n\n\nTipAI 코드를 받으면 이렇게 읽으세요\n\n\n\n\nmain() 먼저 → 전체 흐름 파악 (데이터 로드 → Table 1 → 생존분석 → 저장)\n각 함수의 input/output → 인자와 return값 확인\n함수 하나씩 실행 → RStudio 콘솔에서 load_data()부터 순서대로\n에러나면 해당 함수만 디버깅 → 전체를 다시 돌릴 필요 없음",
+    "crumbs": [
+      "Home",
+      "4. Practice and wrap-up",
+      "W11. Vibe coding tips"
+    ]
+  },
+  {
+    "objectID": "chapters/part4/W11_Rscript_vibe_coding.html#vibe-coding",
+    "href": "chapters/part4/W11_Rscript_vibe_coding.html#vibe-coding",
+    "title": "W11. Vibe coding tips",
+    "section": "",
+    "text": "AI에게 자연어로 설명 → 코드 생성 → 실행 → 수정 반복 코드를 “외우는” 것이 아니라, AI에게 잘 시키는 법을 배우는 것입니다.\n\n\n\n바이브코딩을 시작하기 전에, AI가 어떤 패턴으로 코드를 만드는지 알아야 합니다.\nClaude에게 실제 분석을 요청하면 이 구조가 그대로 적용됩니다:\n\n# ============================================================\n# 0. library\n# ============================================================\nlibrary(dplyr)\nlibrary(survival)\nlibrary(gtsummary)\n\n# ============================================================\n# 1. function definition\n# ============================================================\nload_data &lt;- function(filepath) {\n  df &lt;- readxl::read_excel(filepath)\n  df &lt;- df |&gt;\n    mutate(\n      age_group = ifelse(Age_Tx &gt;= 65, \"elderly\", \"non-elderly\"),\n      Death = as.numeric(Death)\n    )\n  return(df)\n}\n\nmake_table1 &lt;- function(df, by_var) {\n  df |&gt;\n    tbl_summary(by = all_of(by_var), missing = \"no\") |&gt;\n    add_p() |&gt;\n    bold_p()\n}\n\nrun_survival &lt;- function(df, time_var, event_var, group_var) {\n  formula &lt;- as.formula(\n    paste0(\"Surv(\", time_var, \", \", event_var, \") ~ \", group_var)\n  )\n  fit &lt;- survfit(formula, data = df)\n  return(fit)\n}\n\nsave_results &lt;- function(tbl, fit, resdir) {\n  tbl |&gt; as_flex_table() |&gt;\n    flextable::save_as_docx(path = file.path(resdir, \"table1.docx\"))\n\n  p &lt;- survminer::ggsurvplot(fit, pval = TRUE, risk.table = TRUE)\n  tiff(file.path(resdir, \"KM_OS.tiff\"), width = 7, height = 5,\n       units = \"in\", res = 300)\n  print(p)\n  dev.off()\n}\n\n# ============================================================\n# 2. Main\n# ============================================================\nmain &lt;- function() {\n  indir  &lt;- \"rawdata/\"\n  resdir &lt;- \"results/\"\n\n  df  &lt;- load_data(file.path(indir, \"patient_data.xlsx\"))\n  tbl &lt;- make_table1(df, by_var = \"Multiplicity\")\n  fit &lt;- run_survival(df, \"OS\", \"Death\", \"Multiplicity\")\n  save_results(tbl, fit, resdir)\n\n  cat(\"Done!\\n\")\n}\n\nmain()\n\n\n\n\n\n\n\nTipAI 코드를 받으면 이렇게 읽으세요\n\n\n\n\nmain() 먼저 → 전체 흐름 파악 (데이터 로드 → Table 1 → 생존분석 → 저장)\n각 함수의 input/output → 인자와 return값 확인\n함수 하나씩 실행 → RStudio 콘솔에서 load_data()부터 순서대로\n에러나면 해당 함수만 디버깅 → 전체를 다시 돌릴 필요 없음",
+    "crumbs": [
+      "Home",
+      "4. Practice and wrap-up",
+      "W11. Vibe coding tips"
+    ]
+  },
+  {
+    "objectID": "chapters/part4/W11_Rscript_vibe_coding.html#프롬프트의-3요소",
+    "href": "chapters/part4/W11_Rscript_vibe_coding.html#프롬프트의-3요소",
+    "title": "W11. Vibe coding tips",
+    "section": "프롬프트의 3요소",
+    "text": "프롬프트의 3요소\n좋은 프롬프트 = 역할 + 맥락 + 구체적 요청\n\n나쁜 프롬프트\n통계 분석 해줘\n→ AI가 뭘 해야 할지 모름. 쓸모없는 결과가 나옴.\n\n\n좋은 프롬프트 (주기적인 프롬프트 엔지니어링 follow-up 필요!! 3~6개월)\n너는 임상통계 전문가야.\n\n나는 올리고전이 환자 대상 SBRT 논문을 쓰고 있어.\n데이터프레임 df_pt에 다음 변수가 있어:\n- Age_Tx: 치료 시 나이 (연속형)\n- Sex: 성별 (M/F)\n- Primary: 원발 부위 (Colon, Rectum, Lung 등)\n- Death: 사망 여부 (0/1)\n- OS: 전체 생존 기간 (개월)\n- size_cm: 종양 크기 (cm)\n- PTVmean_BED10: PTV 평균 BED10 (Gy)\n\n다음을 수행하는 R 코드를 작성해줘:\n1. gtsummary로 Table 1 생성 (Death 기준 그룹 비교, p-value 포함)\n2. 변수명은 논문용 라벨로 변환\n3. results/Table1.docx로 저장\n\n\n\n\n\n\nTip프롬프트 작성 팁\n\n\n\n\ncolnames(df) 결과를 붙여넣기 — AI가 변수명을 정확히 알아야 함\n변수 타입 명시 — 연속형/범주형/생존시간 구분\n원하는 출력 형태 지정 — “Word로 저장”, “tiff 300dpi”, “forest plot” 등\n패키지 지정 — “gtsummary로”, “survminer로” 등",
+    "crumbs": [
+      "Home",
+      "4. Practice and wrap-up",
+      "W11. Vibe coding tips"
+    ]
+  },
+  {
+    "objectID": "chapters/part4/W11_Rscript_vibe_coding.html#실전-워크플로우",
+    "href": "chapters/part4/W11_Rscript_vibe_coding.html#실전-워크플로우",
+    "title": "W11. Vibe coding tips",
+    "section": "실전 워크플로우",
+    "text": "실전 워크플로우\n바이브코딩의 현실적인 작업 흐름은 이렇습니다:\n1. RStudio에서 rds 로드\n2. AI가 만든 코드를 콘솔에 붙여넣기 & 실행\n3. 에러 → 에러 메시지를 AI에게 복붙 → 수정 코드 받기\n4. 중간 결과 확인 (head, str, plot 등)\n5. 만족하면 .R 파일로 저장\n6. input → output 구조의 스크립트 완성\n핵심은 처음부터 완벽한 스크립트를 만들려 하지 않는 것입니다. RStudio 콘솔에서 한 줄씩 돌려보고, 중간 과정을 계속 트러블슈팅해서 최종적으로 동작하는 코드가 완성되면 그때 파일로 저장합니다.\n\n\n① RStudio에서 데이터 로드 & 구조 파악\n\nlibrary(tidyverse)\n\nindir  &lt;- \"examples/analysis/\"\noutdir &lt;- \"examples/analysis/\"\nresdir &lt;- \"examples/results/\"\n\ndf_pt &lt;- readRDS(paste0(indir, \"w11_2_df_pt_processed.rds\"))\n\n# 이 결과를 복사해서 AI에게 붙여넣기\ncolnames(df_pt)\nstr(df_pt)\n\n\n\n\n② AI에게 프롬프트 작성\ncolnames()과 str() 결과를 붙여넣고, 원하는 분석을 요청합니다.\n위 데이터에서 생존분석을 해줘.\n\n- Kaplan-Meier curve: Death/OS 기준, Multiplicity(single vs multiple)로 그룹 비교\n- Log-rank test p-value를 그래프에 표시\n- Risk table 포함\n- survminer 패키지 사용\n- 300 dpi tiff로 저장\n\n\n\n③ AI가 준 코드를 콘솔에서 실행\nAI가 생성한 코드를 한 블록씩 RStudio 콘솔에 붙여넣어 실행합니다.\n이때 위에서 본 함수 + main 구조로 코드가 올 가능성이 높습니다.\n그 경우 main()을 바로 실행하지 말고, 함수 정의부를 먼저 실행한 뒤 함수를 하나씩 테스트하세요.\n\nlibrary(survival)\nlibrary(survminer)\n\n# Kaplan-Meier fit\nfit &lt;- survfit(Surv(OS, Death) ~ Multiplicity, data = df_pt)\n\n# KM curve\np &lt;- ggsurvplot(\n  fit,\n  data = df_pt,\n  pval = TRUE,\n  risk.table = TRUE,\n  xlab = \"Time (months)\",\n  ylab = \"Overall survival\",\n  palette = c(\"#2E86AB\", \"#A23B72\"),\n  ggtheme = theme_minimal()\n)\n\nprint(p)\n\n\n\n\n④ 에러가 나면?\n에러 메시지를 그대로 복붙해서 AI에게 주면 됩니다.\n이 코드를 실행했더니 다음 에러가 났어:\n\nError in data.frame(..., check.names = FALSE) : \n  arguments imply differing number of rows: 54, 0, 108\n\n고쳐줘.\n→ AI가 Death가 factor라서 Surv()에서 인식 못하는 걸 잡아줌\n이런 식으로 실행 → 에러 → AI에게 복붙 → 수정을 반복합니다.\n\n\n\n\n\n\nImportant무지성 에러 복붙의 함정\n\n\n\n에러가 나면 바로 AI에게 던지고 싶지만, 그 전에 30초만 직접 확인하면 훨씬 효율적입니다.\n왜? AI는 대화가 길어질수록 앞의 맥락을 잊습니다. 에러를 복붙하고 → AI가 부분 수정하고 → 또 에러 → 또 복붙… 이걸 반복하면 원래 깔끔했던 코드가 누더기가 됩니다. 한 번에 고칠 수 있는 걸 돌아돌아 가게 되는 거예요.\n에러가 났을 때 먼저 해볼 것:\n# 1. 모르는 함수가 나왔으면 도움말 보기\n?survfit\n?ggsurvplot\n?tbl_summary\n\n# 2. RStudio에서는 Help 탭에 함수 이름 검색해도 됨\n#    → Arguments 섹션에서 각 인자가 뭘 받는지 확인\n#    → Examples 섹션에서 실제 사용법 확인\n\n\n\n\n\n\n\n\n\n\n도움말의 Arguments 섹션만 훑어봐도 “아, 이 인자에 숫자를 넣어야 하는데 문자를 넣었구나” 같은 단서를 바로 잡을 수 있습니다.\n실전 예시:\n# AI가 만든 코드에서 에러 발생\nggsurvplot(fit, pval.coord = \"top-right\")  # Error!\n\n# ?ggsurvplot → pval.coord는 c(x, y) 숫자 벡터임을 확인\nggsurvplot(fit, pval.coord = c(0.1, 0.1))  # 해결 ✅\n이렇게 본인이 1차로 걸러낸 뒤 AI에게 물어보면, AI도 정확한 맥락에서 답을 주기 때문에 수정이 한 번에 끝납니다.\n\n\n\n\n\n\n\n\nTip에러 대응 순서\n\n\n\n\n에러 메시지 읽기 — 어떤 함수에서 터졌는지 확인\n?함수명으로 용법 확인 — 인자 타입, 필수/선택 여부\n그래도 모르겠으면 — 에러 + ?함수명에서 본 내용을 같이 AI에게 주기\n\n이 코드에서 에러가 났어:\n[에러 메시지]\n\n?ggsurvplot 도움말을 보니 pval.coord는 \nnumeric vector를 받는 것 같은데, \n어떻게 고쳐야 해?\n이렇게 주면 AI가 헛다리 짚을 확률이 크게 줄어듭니다.\n\n\n\n\n⑤ 동작 확인되면 스크립트로 저장\n콘솔에서 다 돌아가는 걸 확인했으면, 코드를 모아서 .R 파일로 저장합니다. 이때 상단에 input/output을 명시하고, 경로를 paste0()로 정리합니다.\n\n# ===== 03_KM_plot.R =====\n# Input:  analysis/2_df_pt_processed.rds\n# Output: results/KM_OS.tiff, results/KM_OS.pdf\n\n# ----- 디렉토리 -----\nindir  &lt;- \"examples/analysis/\"\nresdir &lt;- \"examples/results/\"\n\nlibrary(tidyverse)\nlibrary(survival)\nlibrary(survminer)\n\n# 1. 데이터 로드\ndf_pt &lt;- readRDS(paste0(indir, \"w11_2_df_pt_processed.rds\"))\n\n# 2. KM fit\nfit &lt;- survfit(Surv(OS, Death) ~ Multiplicity, data = df_pt)\n\n# 3. Plot\np &lt;- ggsurvplot(\n  fit,\n  data = df_pt,\n  pval = TRUE,\n  risk.table = TRUE,\n  xlab = \"Time (months)\",\n  ylab = \"Overall survival\",\n  palette = c(\"#2E86AB\", \"#A23B72\"),\n  ggtheme = theme_minimal()\n)\n\n# 4. 저장\ntiff(paste0(resdir, \"w11_KM_OS.tiff\"), width = 7, height = 5, units = \"in\", res = 300)\nprint(p)\ndev.off()\n\nggsave(paste0(resdir, \"w11_KM_OS.pdf\"), plot = print(p), width = 7, height = 5)\n\ncat(\"✅ KM plot saved!\\n\")\n\nRscript 03_KM_plot.R\n\n\n\n\n\n\nNote스크립트 상단에 Input/Output 적기\n\n\n\n# Input:  examples/analysis/w11_2_df_pt_processed.rds\n# Output: examples/results/w11_KM_OS.tiff, results/KM_OS.pdf\n이렇게 적어두면 나중에 파일만 봐도 이 스크립트가 뭘 읽고 뭘 만드는지 바로 알 수 있습니다.",
+    "crumbs": [
+      "Home",
+      "4. Practice and wrap-up",
+      "W11. Vibe coding tips"
+    ]
+  },
+  {
+    "objectID": "chapters/part4/W11_Rscript_vibe_coding.html#ai가-틀리기-쉬운-통계적-함정-사전-지식이-중요한-이유",
+    "href": "chapters/part4/W11_Rscript_vibe_coding.html#ai가-틀리기-쉬운-통계적-함정-사전-지식이-중요한-이유",
+    "title": "W11. Vibe coding tips",
+    "section": "AI가 틀리기 쉬운 통계적 함정 (사전 지식이 중요한 이유)",
+    "text": "AI가 틀리기 쉬운 통계적 함정 (사전 지식이 중요한 이유)\n\n\n\n\n\n\nWarning\n\n\n\n\nReference level 방향 — relevel(factor, ref = \"baseline\")을 빠뜨리는 경우 많음\n환자 vs 병변 단위 혼동 — OS는 환자 단위, LFFS는 병변 단위\n다중비교 보정 누락 — subgroup 여러 개 비교하면서 Bonferroni 안 하는 경우\n결측치 처리 — 기본값이 na.rm = FALSE라 결과가 NA로 나올 수 있음\n생존 시간/이벤트 뒤바꿈 — Surv(time, event) 순서 주의\n\n이것들은 사람이 알아야 합니다. 우리가 W2-W3에서 직접 R 문법을 배운 이유입니다.",
+    "crumbs": [
+      "Home",
+      "4. Practice and wrap-up",
+      "W11. Vibe coding tips"
+    ]
+  },
+  {
+    "objectID": "chapters/part4/W11_Rscript_vibe_coding.html#바이브코딩-체크리스트",
+    "href": "chapters/part4/W11_Rscript_vibe_coding.html#바이브코딩-체크리스트",
+    "title": "W11. Vibe coding tips",
+    "section": "바이브코딩 체크리스트",
+    "text": "바이브코딩 체크리스트\n✅ colnames()와 str() 결과를 AI에게 제공했는가?\n✅ 분석 단위(환자/병변)를 명시했는가?\n✅ 원하는 출력 형태를 지정했는가? (docx, tiff, html)\n✅ 사용할 패키지를 지정했는가?\n✅ AI 결과의 reference level, 단위, p-value를 직접 확인했는가?\n✅ 콘솔에서 동작 확인 후 .R 파일로 저장했는가?\n✅ 스크립트 상단에 Input/Output을 명시했는가?",
+    "crumbs": [
+      "Home",
+      "4. Practice and wrap-up",
+      "W11. Vibe coding tips"
+    ]
+  },
+  {
+    "objectID": "chapters/part3/W8_DEG Results Processing.html",
+    "href": "chapters/part3/W8_DEG Results Processing.html",
+    "title": "W8. DEG Results Processing",
+    "section": "",
+    "text": "p-value: the probability of observing the result by chance under the null hypothesis (H₀: no difference between groups)\nMultiple testing problem: testing 10,000 genes at p &lt; 0.05 would yield ~500 spuriously significant results → dramatic increase in false positives\n\n\n\n\n\nBonferroni: \\(\\alpha / n_{total}\\) → too conservative\nFDR (False Discovery Rate): \\(FDR = \\frac{FP}{FP + TP}\\)\n\n\n\n\n\n\n\n\n\n“Stricter for higher ranks, more lenient for lower ranks”\n\n\\[\nFDR \\leq \\frac{n_{total} \\cdot p_{cut}}{i} \\leq \\alpha(0.05)\n\\]\n\\[\np_{cut} \\leq \\frac{i}{n_{total}} \\cdot \\alpha\n\\]\n\nadjusted p-value (padj) … (with cumulative minimum applied) \\[\np \\times \\frac{n_{total}}{i}\n\\]\n\n\n# Manual implementation of the BH procedure\npvalues &lt;- c(0.04, 0.001, 0.05, 0.0001, 0.2)\ngenes &lt;- c(\"GeneA\", \"GeneB\", \"GeneC\", \"GeneD\", \"GeneE\")\ndf &lt;- data.frame(Gene = genes, P_raw = pvalues)\ndf &lt;- df[order(df$P_raw), ]\nm &lt;- nrow(df)\nalpha &lt;- 0.05\ndf$Rank &lt;- 1:m\ndf$BH_Threshold &lt;- (df$Rank / m) * alpha\ndf$Pass &lt;- df$P_raw &lt;= df$BH_Threshold\ndf$padj_calc &lt;- pmin(df$P_raw * (m / df$Rank), 1)\ndf$padj_final &lt;- rev(cummin(rev(df$padj_calc)))\n\n# Built-in R function\ndf$R_function &lt;- p.adjust(df$P_raw, method = \"BH\")\n\n\n\n\n\nLow-count genes → difficult to achieve statistical significance\nPre-filtering → reduces total number of tests n → increases statistical power\nCases where padj is NA in DESeq2::results():\n\nLow-count gene (excluded by independent filtering)\nOutlier gene (based on Cook’s distance)",
+    "crumbs": [
+      "Home",
+      "3. Result interpretation",
+      "W8. DEG Results Processing"
+    ]
+  },
+  {
+    "objectID": "chapters/part3/W8_DEG Results Processing.html#significance-of-deg-results",
+    "href": "chapters/part3/W8_DEG Results Processing.html#significance-of-deg-results",
+    "title": "W8. DEG Results Processing",
+    "section": "",
+    "text": "p-value: the probability of observing the result by chance under the null hypothesis (H₀: no difference between groups)\nMultiple testing problem: testing 10,000 genes at p &lt; 0.05 would yield ~500 spuriously significant results → dramatic increase in false positives\n\n\n\n\n\nBonferroni: \\(\\alpha / n_{total}\\) → too conservative\nFDR (False Discovery Rate): \\(FDR = \\frac{FP}{FP + TP}\\)\n\n\n\n\n\n\n\n\n\n“Stricter for higher ranks, more lenient for lower ranks”\n\n\\[\nFDR \\leq \\frac{n_{total} \\cdot p_{cut}}{i} \\leq \\alpha(0.05)\n\\]\n\\[\np_{cut} \\leq \\frac{i}{n_{total}} \\cdot \\alpha\n\\]\n\nadjusted p-value (padj) … (with cumulative minimum applied) \\[\np \\times \\frac{n_{total}}{i}\n\\]\n\n\n# Manual implementation of the BH procedure\npvalues &lt;- c(0.04, 0.001, 0.05, 0.0001, 0.2)\ngenes &lt;- c(\"GeneA\", \"GeneB\", \"GeneC\", \"GeneD\", \"GeneE\")\ndf &lt;- data.frame(Gene = genes, P_raw = pvalues)\ndf &lt;- df[order(df$P_raw), ]\nm &lt;- nrow(df)\nalpha &lt;- 0.05\ndf$Rank &lt;- 1:m\ndf$BH_Threshold &lt;- (df$Rank / m) * alpha\ndf$Pass &lt;- df$P_raw &lt;= df$BH_Threshold\ndf$padj_calc &lt;- pmin(df$P_raw * (m / df$Rank), 1)\ndf$padj_final &lt;- rev(cummin(rev(df$padj_calc)))\n\n# Built-in R function\ndf$R_function &lt;- p.adjust(df$P_raw, method = \"BH\")\n\n\n\n\n\nLow-count genes → difficult to achieve statistical significance\nPre-filtering → reduces total number of tests n → increases statistical power\nCases where padj is NA in DESeq2::results():\n\nLow-count gene (excluded by independent filtering)\nOutlier gene (based on Cook’s distance)",
+    "crumbs": [
+      "Home",
+      "3. Result interpretation",
+      "W8. DEG Results Processing"
+    ]
+  },
+  {
+    "objectID": "chapters/part3/W8_DEG Results Processing.html#visualization-of-deg-results",
+    "href": "chapters/part3/W8_DEG Results Processing.html#visualization-of-deg-results",
+    "title": "W8. DEG Results Processing",
+    "section": "2. Visualization of DEG Results",
+    "text": "2. Visualization of DEG Results\n\nMA Plot (Global View)\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nX-axis: Mean Average (A), Y-axis: Log Ratio (M = log₂FC)\nCheck for data bias and LFC inflation in low-count genes\nShould be symmetric around Y=0\napeglm::lfcShrink(): controls LFC in low-count genes (recommended)\n\n\ndds &lt;- readRDS('data_w7/dds_DESeq2.rds')\nres &lt;- results(dds, contrast = c(\"condition\", \"Tumor\", \"Normal\"),\n               lfcThreshold = 0.25, alpha = 0.05)\n\n# MA plot\nplotMA(res, ylim = c(-10, 10), main = \"Before Shrinkage\")\n\n# LFC shrinkage (apeglm)\nlibrary(apeglm)\nresLFC &lt;- lfcShrink(dds, coef = \"condition_Tumor_vs_Normal\", type = \"apeglm\")\n\npar(mfrow = c(1, 2))\nplotMA(res, main = \"Before Shrinkage\", ylim = c(-5, 5))\nplotMA(resLFC, main = \"After Shrinkage (Recommended)\", ylim = c(-5, 5))\npar(mfrow = c(1, 1))\n\n\n\nVolcano Plot (Gene Selection)\n\n\n\n\n\n\nX-axis: log₂(Fold Change), Y-axis: −log₁₀(adjusted p-value)\nIdentify genes with large |LFC| and low p-value\n\n\nlibrary(ggrepel)\n\nres_df &lt;- as.data.frame(resLFC) %&gt;%\n  rownames_to_column(\"gene_id\") %&gt;%\n  mutate(is_significant = padj &lt; 0.05 & abs(log2FoldChange) &gt; 1)\n\np_thr &lt;- 0.05; lfc_thr &lt;- 1\nvol_data &lt;- res_df %&gt;%\n  mutate(diffexpressed = case_when(\n    log2FoldChange &gt; lfc_thr & padj &lt; p_thr ~ \"UP\",\n    log2FoldChange &lt; -lfc_thr & padj &lt; p_thr ~ \"DOWN\",\n    TRUE ~ \"NO\"\n  ))\n\nggplot(vol_data, aes(x = log2FoldChange, y = -log10(padj),\n                     color = diffexpressed)) +\n  geom_point(alpha = 0.5, size = 1.5) +\n  scale_color_manual(values = c(\"DOWN\" = \"blue\", \"NO\" = \"grey\", \"UP\" = \"red\")) +\n  geom_vline(xintercept = c(-lfc_thr, lfc_thr), linetype = \"dashed\") +\n  geom_hline(yintercept = -log10(p_thr), linetype = \"dashed\") +\n  geom_text_repel(data = head(arrange(vol_data, padj), 10),\n                  aes(label = gene_id), color = \"black\") +\n  theme_minimal() +\n  labs(title = \"Volcano Plot\",\n       x = \"Log2 Fold Change\", y = \"-Log10 Adjusted P-value\")\n\n\n\nHeatmap (Pattern Inspection)\n\n\n\n\n\n\nVisualize expression patterns of top significant genes\nInspect patterns between Case/Control and identify outlier samples\nApply vst/rlog transformation → z-score scaling\n\n\nlibrary(pheatmap)\n\nvsd &lt;- vst(dds, blind = FALSE)\n\n# Top 20 DEGs\ntop_genes &lt;- res_df %&gt;%\n  filter(padj &lt; 0.05) %&gt;%\n  arrange(desc(abs(log2FoldChange))) %&gt;%\n  head(20) %&gt;%\n  .$gene_id\n\nmat &lt;- assay(vsd)[top_genes, ]\ndf &lt;- as.data.frame(colData(dds)[, c(\"gender\", \"condition\")])\n\npheatmap(mat,\n         scale = \"row\",            # z-score\n         show_rownames = TRUE,\n         show_colnames = FALSE,\n         annotation_col = df,\n         cluster_cols = TRUE,\n         main = \"Top 20 DEGs Heatmap\")",
+    "crumbs": [
+      "Home",
+      "3. Result interpretation",
+      "W8. DEG Results Processing"
+    ]
+  },
+  {
+    "objectID": "chapters/part3/W8_DEG Results Processing.html#w8-assignment-simple-vs.-paired-model",
+    "href": "chapters/part3/W8_DEG Results Processing.html#w8-assignment-simple-vs.-paired-model",
+    "title": "W8. DEG Results Processing",
+    "section": "📝 W8 Assignment: Simple vs. Paired Model",
+    "text": "📝 W8 Assignment: Simple vs. Paired Model\n\n1. Comparing the Number of DEGs\n\nSimple model (~ condition): ~17,000 DEGs\nPaired model (~ patient + condition): ~15,700 DEGs\n\nFrom a variance decomposition perspective: the paired model accounts for patient effects separately, so patient variance that was incorrectly attributed to condition in the simple model is now partitioned out. As a result, some genes lose significance, but the remaining DEGs are more likely to reflect true biological signal.\n\n\n2. Gold Standard Genes\nValidate the change in p-values between models using known LUAD marker genes such as TOP2A, SFTPA1, SFTPB, SFTPC, and AGER.\n\n\n3. Volcano Plot with Highlight\n\n# Highlight specific genes\nhighlight_genes &lt;- c(\"TOP2A\", \"SFTPA1\", \"SFTPB\", \"SFTPC\", \"AGER\")\nhighlight_data &lt;- vol_data %&gt;% filter(gene_id %in% highlight_genes)\n\nggplot(vol_data, aes(x = log2FoldChange, y = -log10(padj),\n                     color = diffexpressed)) +\n  geom_point(alpha = 0.5, size = 1.5) +\n  scale_color_manual(values = c(\"DOWN\" = \"blue\", \"NO\" = \"grey\", \"UP\" = \"red\")) +\n  geom_point(data = highlight_data, color = \"purple\", size = 3) +\n  geom_text_repel(data = highlight_data,\n                  aes(label = gene_id), color = \"purple\") +\n  geom_vline(xintercept = c(-1, 1), linetype = \"dashed\") +\n  geom_hline(yintercept = -log10(0.05), linetype = \"dashed\") +\n  theme_minimal() +\n  labs(title = \"Volcano Plot (Paired Model)\",\n       x = \"Log2 Fold Change\", y = \"-Log10 Adjusted P-value\")",
+    "crumbs": [
+      "Home",
+      "3. Result interpretation",
+      "W8. DEG Results Processing"
+    ]
+  },
+  {
+    "objectID": "chapters/part2/W7_DEG Analysis.html",
+    "href": "chapters/part2/W7_DEG Analysis.html",
+    "title": "W7. DEG Analysis",
+    "section": "",
+    "text": "genes whose expression changes significantly between conditions (e.g., Case vs. Control)\n\n\n\n\n\n\n\nkey challenge: biological signal is always mixed with technical and inter-individual noise\nUltimate goal: extract only the biological signal from the total observed variance",
+    "crumbs": [
+      "Home",
+      "2. DEG analysis",
+      "W7. DEG Analysis"
+    ]
+  },
+  {
+    "objectID": "chapters/part2/W7_DEG Analysis.html#deg-differentially-expressed-genes",
+    "href": "chapters/part2/W7_DEG Analysis.html#deg-differentially-expressed-genes",
+    "title": "W7. DEG Analysis",
+    "section": "",
+    "text": "genes whose expression changes significantly between conditions (e.g., Case vs. Control)\n\n\n\n\n\n\n\nkey challenge: biological signal is always mixed with technical and inter-individual noise\nUltimate goal: extract only the biological signal from the total observed variance",
+    "crumbs": [
+      "Home",
+      "2. DEG analysis",
+      "W7. DEG Analysis"
+    ]
+  },
+  {
+    "objectID": "chapters/part2/W7_DEG Analysis.html#regression-analysis",
+    "href": "chapters/part2/W7_DEG Analysis.html#regression-analysis",
+    "title": "W7. DEG Analysis",
+    "section": "2. Regression analysis",
+    "text": "2. Regression analysis\n\n1) Linear regression\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n2) Variance decomposition\n\n“Statistics is the process of tracing the source of variation.”\n\n\\[\nTotal\\ Variance = \\mathbf{Condition} + \\mathbf{Batch} + Residual\n\\]\n\nCondition (Signal): the true biological effect\nBatch (systematic noise): controllable noise from experiment date, instrument, operator, etc.\nResidual (random noise): unavoidable stochastic error\n\nStrategy: include Batch in the statistical model to “regress it out” → the Condition signal is revealed",
+    "crumbs": [
+      "Home",
+      "2. DEG analysis",
+      "W7. DEG Analysis"
+    ]
+  },
+  {
+    "objectID": "chapters/part2/W7_DEG Analysis.html#statistical-model-of-deseq2",
+    "href": "chapters/part2/W7_DEG Analysis.html#statistical-model-of-deseq2",
+    "title": "W7. DEG Analysis",
+    "section": "3. Statistical Model of DESeq2",
+    "text": "3. Statistical Model of DESeq2\n\n1) Characteristics of RNA-seq Data\n\nCount data: discrete integers including zero\nOverdispersion: variance &gt;&gt;&gt; mean → standard linear regression is not appropriate\n\n\n\n\n\n\n\n\n\n2) Negative Binomial Distribution\n\\[\nVar(\\mu) = \\mu + \\alpha\\mu^2\n\\]\n\n\\(\\mu\\): mean expression (intrinsic sampling error)\n\\(\\alpha\\mu^2\\): overdispersion (variation across biological replicates)\n\n\n\n\n3) GLM (Generalized Linear Model)\n\\[\n\\log(\\mu) = \\beta_0 + \\beta_1(condition) + \\beta_2(batch) + \\cdots\n\\]\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n4) Estimating Dispersion α (Shrinkage)\nAddresses inaccurate per-gene α estimation in small samples (e.g., n=3):\n\nGene-wise: calculate the raw dispersion for each gene\nTrend line: fit a global trend line across all genes\nShrink: pull noisy estimates toward the trend line → improved accuracy, reduced false positives\n\n\n\n\n\n\n\n\n\n5) LFC Calculation and Statistical Testing\n\nβ₁(condition) = log₂FoldChange (case/control)\n\nControl: X=0 → log(μ_control) = β₀\nCase: X=1 → log(μ_case) = β₀ + β₁\n∴ β₁ = log₂(μ_case / μ_control)\n\nWald Test: \\(z = \\frac{\\beta_1}{SE(\\beta_1)}\\) → p-value\nLRT (Likelihood Ratio Test): used for time-series or ≥3 group comparisons (χ²-based)",
+    "crumbs": [
+      "Home",
+      "2. DEG analysis",
+      "W7. DEG Analysis"
+    ]
+  },
+  {
+    "objectID": "chapters/part2/W7_DEG Analysis.html#design-matrix",
+    "href": "chapters/part2/W7_DEG Analysis.html#design-matrix",
+    "title": "W7. DEG Analysis",
+    "section": "4. Design Matrix",
+    "text": "4. Design Matrix\n\n\n\n\n\n\n# design formula: batch/confounders first → condition last\n# design = ~ Batch + Confounding + Condition\n\n# How to set the reference level\n# Option A: set in advance\ndds$Condition &lt;- relevel(dds$Condition, ref = \"Control\")\n\n# Option B: specify post-hoc via contrast\nresults(dds, contrast = c(\"Condition\", \"Treatment\", \"Control\"))\n\n\n\nDesign Matrix (Advanced)\n\n\n\n\n\n\n\n\nAnalysis Type\nClinical Scenario\nDesign Formula\n\n\n\n\nPaired sample\nTumor vs. Normal, Pre vs. Post\n~ Patient + Treatment\n\n\nInteraction Term\nDrug response × disease subgroup\n~ Disease + Drug + Disease:Drug\n\n\nTime-Series\nMultiple time points\n~ Time (use LRT)\n\n\nRandom Effect\nMultiple tissues from the same individual\nNot supported in DESeq2 → use limma-voom\n\n\nHidden batch (sva)\nUnmeasured technical/biological factors\n~ Age + Gender + SV1 + SV2 + Condition",
+    "crumbs": [
+      "Home",
+      "2. DEG analysis",
+      "W7. DEG Analysis"
+    ]
+  },
+  {
+    "objectID": "chapters/part2/W7_DEG Analysis.html#practice",
+    "href": "chapters/part2/W7_DEG Analysis.html#practice",
+    "title": "W7. DEG Analysis",
+    "section": "5. Practice",
+    "text": "5. Practice\n\n\n\n\n\n\nNotepractice data download\n\n\n\nsave the following files in analysis/ in your R project\n\n\n\nFile\nLink\n\n\n\n\ndds_filtered.rds\n📥 Download\n\n\n\n\n\n\nlibrary(DESeq2)\nlibrary(tidyverse)\n\ndds &lt;- readRDS('analysis/dds_filtered.rds')\n\n# Run DESeq2 (paired model: ~ patient + condition)\ndds &lt;- DESeq(dds)\nsaveRDS(dds, file = 'analysis/dds_DESeq2.rds')\n\n# Simple model (~ condition only)\ndds@design &lt;- as.formula('~ condition')\ndds_smpl &lt;- DESeq(dds)\n\n# Check dispersion plots\nplotDispEsts(dds)\nplotDispEsts(dds_smpl)\n\n# Extract results (specify contrast)\nres &lt;- results(dds, contrast = c(\"condition\", \"Tumor\", \"Normal\"))\n\n\n\n\n\n\n\nNoteCollinearity\n\n\n\nIn a paired design, once patient ID is included in the model, variables such as age or gender cannot be added because they do not vary within a patient (nested structure) → collinearity",
+    "crumbs": [
+      "Home",
+      "2. DEG analysis",
+      "W7. DEG Analysis"
+    ]
+  },
+  {
+    "objectID": "chapters/part2/W7_DEG Analysis.html#w7-assignment",
+    "href": "chapters/part2/W7_DEG Analysis.html#w7-assignment",
+    "title": "W7. DEG Analysis",
+    "section": "📝 W7 Assignment",
+    "text": "📝 W7 Assignment\n\n1. Visualizing Noise: Dispersion Plot\n\nGenerate dispersion plots for both using plotDispEsts().\nObserve the distribution of the Blue dots (Final) and Blue circles (Outliers).\n\n\n\n2. The Design Matrix (Theory)\n\nRun DESeq2 with the Design Matrix for the formula ~ patient + age_in_index + gender + condition.\nWhy can we not include Age or Gender in this specific matrix if patient ID is already present?",
+    "crumbs": [
+      "Home",
+      "2. DEG analysis",
+      "W7. DEG Analysis"
+    ]
+  },
+  {
+    "objectID": "chapters/part2/W5_QC.html",
+    "href": "chapters/part2/W5_QC.html",
+    "title": "W5. Pre-processing",
+    "section": "",
+    "text": "The overall workflow of RNA-seq analysis is as follows (Conesa et al., Genome Biol., 2016):\n\nRead trimming\nAlignment\nQuantification\nNormalization\nDifferential analysis\nFunctional profiling",
+    "crumbs": [
+      "Home",
+      "2. DEG analysis",
+      "W5. Pre-processing"
+    ]
+  },
+  {
+    "objectID": "chapters/part2/W5_QC.html#workflow-of-rna-seq-data-analysis",
+    "href": "chapters/part2/W5_QC.html#workflow-of-rna-seq-data-analysis",
+    "title": "W5. Pre-processing",
+    "section": "",
+    "text": "The overall workflow of RNA-seq analysis is as follows (Conesa et al., Genome Biol., 2016):\n\nRead trimming\nAlignment\nQuantification\nNormalization\nDifferential analysis\nFunctional profiling",
+    "crumbs": [
+      "Home",
+      "2. DEG analysis",
+      "W5. Pre-processing"
+    ]
+  },
+  {
+    "objectID": "chapters/part2/W5_QC.html#quality-check-fastqc",
+    "href": "chapters/part2/W5_QC.html#quality-check-fastqc",
+    "title": "W5. Pre-processing",
+    "section": "0) Quality Check: FastQC",
+    "text": "0) Quality Check: FastQC\n\n\n\n\n\n\nPer base sequence quality:\ncheck quality toward the 3' end\nverify that scores remain in the green zone\nPer sequence GC content:\nshould follow a normal distribution\nmultiple peaks? … contamination\nAdapter Content: determines whether trimming is necessary\nNumber of reads: check Q20/Q30 ratios",
+    "crumbs": [
+      "Home",
+      "2. DEG analysis",
+      "W5. Pre-processing"
+    ]
+  },
+  {
+    "objectID": "chapters/part2/W5_QC.html#read-trimming-trimgalore",
+    "href": "chapters/part2/W5_QC.html#read-trimming-trimgalore",
+    "title": "W5. Pre-processing",
+    "section": "1) Read Trimming: TrimGalore",
+    "text": "1) Read Trimming: TrimGalore\n\n\n\n\n\n# TrimGalore key functions\n# 1) Remove low quality reads (Phred score Q20, error rate 1%) - sliding window\n# 2) Remove adapter sequences (Illumina Universal, TruSeq/Nextera)\n# 3) Minimum length filtering - discard reads that are too short",
+    "crumbs": [
+      "Home",
+      "2. DEG analysis",
+      "W5. Pre-processing"
+    ]
+  },
+  {
+    "objectID": "chapters/part2/W5_QC.html#alignment-star",
+    "href": "chapters/part2/W5_QC.html#alignment-star",
+    "title": "W5. Pre-processing",
+    "section": "2) Alignment: STAR",
+    "text": "2) Alignment: STAR\n\nBowtie2/BWA: for DNA; indexing & mismatch-based\nSTAR: spliced aligner dedicated to RNA-seq\n\nRecognizes splice junctions → maps to exons only\nRequires high RAM (&gt;30GB)\n\n\n\n\n\n\n\n\nQC criterion (general): %Uniquely mapped reads &gt; 80%, #mapped reads &gt; 20M\nOutput format: SAM (text) or BAM (binary)\nGalaxy: web-based tool for pre-processing",
+    "crumbs": [
+      "Home",
+      "2. DEG analysis",
+      "W5. Pre-processing"
+    ]
+  },
+  {
+    "objectID": "chapters/part2/W5_QC.html#quantification",
+    "href": "chapters/part2/W5_QC.html#quantification",
+    "title": "W5. Pre-processing",
+    "section": "3) Quantification",
+    "text": "3) Quantification\n\nAlignment-based (STAR + featureCounts)\n\n\n\n\n\n\nTraditional approach: position indexing → mapping to reference\nRequires BAM files; computationally intensive\n\n\n\nAlignment-free / Pseudo-alignment (Salmon, Kallisto)\n\n\n\n\n\n\nUses short k-mer (k=31) compatibility checks instead of full read mapping\nNo BAM required; very fast\nMulti-mapping reads → isoform-level probabilities assigned via EM algorithm\n\ne.g., read A → isoform X (0.6), isoform Y (0.4)\n\n\n\n\n\n\n\n\nTiptximport using salmon outputs (transcripts)\n\n\n\n\naggregation: transcripts –&gt; gene\ncorrection: average transcript length per sample (isoform switching) –&gt; gene count correction\nimport: float number –&gt; integer",
+    "crumbs": [
+      "Home",
+      "2. DEG analysis",
+      "W5. Pre-processing"
+    ]
+  },
+  {
+    "objectID": "chapters/part2/W5_QC.html#filtering-and-normalization",
+    "href": "chapters/part2/W5_QC.html#filtering-and-normalization",
+    "title": "W5. Pre-processing",
+    "section": "4) Filtering and Normalization",
+    "text": "4) Filtering and Normalization\n\nFiltering examples (depending on your study)\n\nRemove low-count genes: remove genes with zero counts in ≥ N×0.5 samples (N: the smallest group)\n\n\n\n\n\n\n\nRemove confounding genes:\n\nMitochondrial (^MT-)\nRibosomal (^RPS|^RPL)\nImmunoglobulin (^IG[HKL])\n\n\n\n\n\nWhy Normalization is Needed\n\nLibrary size (depth): higher sequencing depth → higher counts\n\n\n\n\n\n\n\nGene length: longer genes → higher counts\n\n\n\n\n\n\n\n\n\nNormalization Methods Comparison\n\n\n\n\n\n\n\n\n\nMethod\nCorrection\nComparison\nRemarks\n\n\n\n\nRaw Count\n×\n×\nedgeR/DESeq2 input\n\n\nRPKM/FPKM\nDepth + Length\nIntra-sample\nDeprecated\n\n\nTPM\nDepth + Length\nIntra + Inter-sample\nper-sample sum = 1M\n\n\nCPM\nDepth\nInter-sample\n\n\n\nTMM/RLE\nDepth + Composition\nInter-sample\nStandard for DEG analysis\n\n\n\n\n\n\nPractice: Normalization in R\n\nlibrary(edgeR)\nlibrary(DESeq2)\nlibrary(tidyverse)\nlibrary(ggplot2)\n\nset.seed(123)\n\n# 1. Generate fake data (1000 genes × 6 samples) ----\nn_genes &lt;- 1000; n_samples &lt;- 6\nsample_names &lt;- c(paste0(\"Ctrl_\", 1:3), paste0(\"Treat_\", 1:3))\ngene_names &lt;- paste0(\"Gene_\", 1:n_genes)\n\n## 1-2. creating Raw Count Matrix (Negative Binomial distribution) ####\nraw_counts &lt;- matrix(rnbinom(n_genes * n_samples, mu = 100, size = 5), # mean: 100, dispersion: 5\n                     nrow = n_genes) # making 1000 genes\nraw_counts[, 4:6] &lt;- raw_counts[, 4:6] * 3  # varying library size\ncolnames(raw_counts) &lt;- sample_names\nrownames(raw_counts) &lt;- gene_names\nhead(raw_counts)\n\n       Ctrl_1 Ctrl_2 Ctrl_3 Treat_1 Treat_2 Treat_3\nGene_1     77    119     77     258     327     255\nGene_2     33     27    107     156     396     204\nGene_3    183     57    125     444     399     189\nGene_4     32    109     62     480     228     204\nGene_5    153     67     69     129     330     363\nGene_6    108     88     95     267     321     108\n\ngene_lengths &lt;- round(runif(n_genes, min = 200, max = 5000))\nhead(gene_lengths)\n\n[1] 2241 4573  468 2508 4727 1154\n\n\n\n\n# 2. CPM (counts per million) ####\n## library size: Total Counts per sample \nlib_sizes &lt;- colSums(raw_counts)\nhead(lib_sizes)\n\n Ctrl_1  Ctrl_2  Ctrl_3 Treat_1 Treat_2 Treat_3 \n  99370   99638   96200  294987  293466  299811 \n\ncpm_counts &lt;- sweep(raw_counts, \n                    2, # 1: by row (gene), 2: by column (sample)\n                    lib_sizes, \"/\") * 1e6\nhead(cpm_counts)\n\n          Ctrl_1    Ctrl_2    Ctrl_3   Treat_1   Treat_2   Treat_3\nGene_1  774.8818 1194.3235  800.4158  874.6148 1114.2688  850.5358\nGene_2  332.0922  270.9810 1112.2661  528.8369 1349.3897  680.4287\nGene_3 1841.6021  572.0709 1299.3763 1505.1511 1359.6124  630.3972\nGene_4  322.0288 1093.9601  644.4906 1627.1904  776.9213  680.4287\nGene_5 1539.7001  672.4342  717.2557  437.3074 1124.4914 1210.7628\nGene_6 1086.8471  883.1972  987.5260  905.1246 1093.8235  360.2269\n\nraw_counts[1,1]/lib_sizes[1]* 1e6 # cpm_counts[1,1]\n\n  Ctrl_1 \n774.8818 \n\n# 3. RPKM (reads per killobase million) ####\n## gene length (kb)\nkb_lengths &lt;- gene_lengths / 1000\n\n## calculating RPKM\n# 3-1. correcting for gene length (RPK) ####\nrpk &lt;- sweep(raw_counts, 1, kb_lengths, \"/\")\nhead(rpk)\n\n           Ctrl_1    Ctrl_2    Ctrl_3   Treat_1   Treat_2   Treat_3\nGene_1  34.359661  53.10129  34.35966 115.12718 145.91700 113.78849\nGene_2   7.216269   5.90422  23.39821  34.11327  86.59523  44.60967\nGene_3 391.025641 121.79487 267.09402 948.71795 852.56410 403.84615\nGene_4  12.759171  43.46093  24.72089 191.38756  90.90909  81.33971\nGene_5  32.367252  14.17389  14.59700  27.29004  69.81172  76.79289\nGene_6  93.587522  76.25650  82.32236 231.36915 278.16291  93.58752\n\n# 3-2. correcting for Library Size (million-based) (RPKM) ####\nrpkm_counts &lt;- sweep(rpk, 2, lib_sizes, \"/\") * 1e6\nhead(rpkm_counts)\n\n          Ctrl_1     Ctrl_2    Ctrl_3    Treat_1   Treat_2   Treat_3\nGene_1  345.7750  532.94219  357.1690  390.27881  497.2194  379.5341\nGene_2   72.6202   59.25671  243.2246  115.64331  295.0776  148.7926\nGene_3 3935.0472 1222.37371 2776.4451 3216.13477 2905.1546 1347.0025\nGene_4  128.4006  436.18825  256.9739  648.79998  309.7773  271.3033\nGene_5  325.7246  142.25391  151.7359   92.51267  237.8869  256.1377\nGene_6  941.8086  765.33551  855.7418  784.33677  947.8540  312.1551\n\n# 4. TPM (transcripts per million) ####\n## 4-1. RPK (Reads Per Kilobase) ####\nrpk &lt;- sweep(raw_counts, 1, kb_lengths, \"/\")\n\n## 4-2. per-sample RPK ####\nrpk_sums &lt;- colSums(rpk)\nhead(rpk_sums)\n\n   Ctrl_1    Ctrl_2    Ctrl_3   Treat_1   Treat_2   Treat_3 \n 69097.87  66430.49  64690.06 199762.10 196381.76 205465.06 \n\n## 4-3. calculating TPM (correcting for per-sample RPK) ####\ntpm_counts &lt;- sweep(rpk, 2, rpk_sums, \"/\") * 1e6\ncolSums(tpm_counts)  # each sample sums to 1M\n\n Ctrl_1  Ctrl_2  Ctrl_3 Treat_1 Treat_2 Treat_3 \n  1e+06   1e+06   1e+06   1e+06   1e+06   1e+06 \n\ncolSums(rpkm_counts)\n\n  Ctrl_1   Ctrl_2   Ctrl_3  Treat_1  Treat_2  Treat_3 \n695359.4 666718.5 672453.9 677189.5 669180.6 685315.3 \n\n\n\n\n# 5. TMM from edgeR ####\n# 5-1. make edgeR object (DGEList) ####\ndge &lt;- DGEList(counts = raw_counts)\n# 5-2. make Normalization Factor from TMM ####\ndge2 &lt;- calcNormFactors(dge, method = \"TMM\")\n## 5-3. normalizing counts (CPM, but using TMM factor) ####\ntmm_counts &lt;- cpm(dge2, normalized.lib.sizes = TRUE)\nhead(tmm_counts)\n\n          Ctrl_1    Ctrl_2    Ctrl_3   Treat_1   Treat_2   Treat_3\nGene_1  772.8742 1187.1730  810.3052  869.3685 1119.3007  848.6924\nGene_2  331.2318  269.3586 1126.0085  525.6647 1355.4835  678.9539\nGene_3 1836.8310  568.6459 1315.4305 1496.1226 1365.7523  629.0308\nGene_4  321.1945 1087.4105  652.4535 1617.4298  780.4299  678.9539\nGene_5 1535.7111  668.4083  726.1176  434.6843 1129.5696 1208.1385\nGene_6 1084.0314  877.9094  999.7272  899.6953 1098.7631  359.4462\n\ncpm_counts2 &lt;- cpm(dge2, normalized.lib.sizes = FALSE)\nhead(cpm_counts2)\n\n          Ctrl_1    Ctrl_2    Ctrl_3   Treat_1   Treat_2   Treat_3\nGene_1  774.8818 1194.3235  800.4158  874.6148 1114.2688  850.5358\nGene_2  332.0922  270.9810 1112.2661  528.8369 1349.3897  680.4287\nGene_3 1841.6021  572.0709 1299.3763 1505.1511 1359.6124  630.3972\nGene_4  322.0288 1093.9601  644.4906 1627.1904  776.9213  680.4287\nGene_5 1539.7001  672.4342  717.2557  437.3074 1124.4914 1210.7628\nGene_6 1086.8471  883.1972  987.5260  905.1246 1093.8235  360.2269\n\n\n\n\n# 6. RLE from DESeq2 ####\n## 6-1. metadata for DESeq2 object ####\ncolData &lt;- data.frame(condition = factor(rep(c(\"Ctrl\", \"Treat\"), each = 3)))\nrownames(colData) &lt;- sample_names\n## 6-2. make DESeqDataSet (dds) ####\ndds &lt;- DESeqDataSetFromMatrix(countData = raw_counts,\n                              colData = colData,\n                              design = ~ condition)\ndds\n\nclass: DESeqDataSet \ndim: 1000 6 \nmetadata(1): version\nassays(1): counts\nrownames(1000): Gene_1 Gene_2 ... Gene_999 Gene_1000\nrowData names(0):\ncolnames(6): Ctrl_1 Ctrl_2 ... Treat_2 Treat_3\ncolData names(1): condition\n\n## 6-3. estimating Size Factor ####\ndds2 &lt;- estimateSizeFactors(dds)\ndds2 # creating sizeFactor in colData\n\nclass: DESeqDataSet \ndim: 1000 6 \nmetadata(1): version\nassays(1): counts\nrownames(1000): Gene_1 Gene_2 ... Gene_999 Gene_1000\nrowData names(0):\ncolnames(6): Ctrl_1 Ctrl_2 ... Treat_2 Treat_3\ncolData names(2): condition sizeFactor\n\ndds2@colData\n\nDataFrame with 6 rows and 2 columns\n        condition sizeFactor\n         &lt;factor&gt;  &lt;numeric&gt;\nCtrl_1      Ctrl    0.595939\nCtrl_2      Ctrl    0.590028\nCtrl_3      Ctrl    0.574036\nTreat_1     Treat   1.797617\nTreat_2     Treat   1.777084\nTreat_3     Treat   1.827412\n\n## 6-4. normalized counts ####\ndeseq_counts &lt;- counts(dds2, normalized = TRUE)\nhead(deseq_counts)\n\n          Ctrl_1    Ctrl_2   Ctrl_3   Treat_1  Treat_2   Treat_3\nGene_1 129.20775 201.68533 134.1380 143.52338 184.0093 139.54164\nGene_2  55.37475  45.76054 186.3996  86.78158 222.8369 111.63331\nGene_3 307.07817  96.60558 217.7565 246.99372 224.5251 103.42498\nGene_4  53.69673 184.73698 108.0072 267.02024 128.3000 111.63331\nGene_5 256.73748 113.55392 120.2016  71.76169 185.6974 198.64163\nGene_6 181.22646 149.14545 165.4949 148.53001 180.6330  59.09999\n\nraw_counts2 &lt;- counts(dds2, normalized = FALSE)\nhead(raw_counts2)\n\n       Ctrl_1 Ctrl_2 Ctrl_3 Treat_1 Treat_2 Treat_3\nGene_1     77    119     77     258     327     255\nGene_2     33     27    107     156     396     204\nGene_3    183     57    125     444     399     189\nGene_4     32    109     62     480     228     204\nGene_5    153     67     69     129     330     363\nGene_6    108     88     95     267     321     108\n\n\n\n\n# 7. visualization ####\n## 7-1. reshaping counts (Long format for ggplot) ####\ntransform_to_long &lt;- function(count_matrix, method_name) {\n  as.data.frame(count_matrix) %&gt;%\n    rownames_to_column(\"Gene\") %&gt;%\n    pivot_longer(-Gene, names_to = \"Sample\", values_to = \"Count\") %&gt;%\n    mutate(Method = method_name,\n           # Log2 transformation (pseudocount: +1 for 0)\n           LogCount = log2(Count + 1))\n}\n\n## applying the function ####\ntransform_to_long(raw_counts, \"1. Raw\") %&gt;% head\n\n# A tibble: 6 × 5\n  Gene   Sample  Count Method LogCount\n  &lt;chr&gt;  &lt;chr&gt;   &lt;dbl&gt; &lt;chr&gt;     &lt;dbl&gt;\n1 Gene_1 Ctrl_1     77 1. Raw     6.29\n2 Gene_1 Ctrl_2    119 1. Raw     6.91\n3 Gene_1 Ctrl_3     77 1. Raw     6.29\n4 Gene_1 Treat_1   258 1. Raw     8.02\n5 Gene_1 Treat_2   327 1. Raw     8.36\n6 Gene_1 Treat_3   255 1. Raw     8   \n\ntransform_to_long(cpm_counts, \"2. CPM\") %&gt;% head\n\n# A tibble: 6 × 5\n  Gene   Sample  Count Method LogCount\n  &lt;chr&gt;  &lt;chr&gt;   &lt;dbl&gt; &lt;chr&gt;     &lt;dbl&gt;\n1 Gene_1 Ctrl_1   775. 2. CPM     9.60\n2 Gene_1 Ctrl_2  1194. 2. CPM    10.2 \n3 Gene_1 Ctrl_3   800. 2. CPM     9.65\n4 Gene_1 Treat_1  875. 2. CPM     9.77\n5 Gene_1 Treat_2 1114. 2. CPM    10.1 \n6 Gene_1 Treat_3  851. 2. CPM     9.73\n\ndf_all &lt;- rbind(\n  transform_to_long(raw_counts, \"1. Raw\"),\n  transform_to_long(cpm_counts, \"2. CPM\"),\n  transform_to_long(rpkm_counts, \"3. RPKM\"),\n  transform_to_long(tpm_counts, \"4. TPM\"),\n  transform_to_long(tmm_counts, \"5. TMM (edgeR)\"),\n  transform_to_long(deseq_counts, \"6. DESeq2\")\n)\nhead(df_all)\n\n# A tibble: 6 × 5\n  Gene   Sample  Count Method LogCount\n  &lt;chr&gt;  &lt;chr&gt;   &lt;dbl&gt; &lt;chr&gt;     &lt;dbl&gt;\n1 Gene_1 Ctrl_1     77 1. Raw     6.29\n2 Gene_1 Ctrl_2    119 1. Raw     6.91\n3 Gene_1 Ctrl_3     77 1. Raw     6.29\n4 Gene_1 Treat_1   258 1. Raw     8.02\n5 Gene_1 Treat_2   327 1. Raw     8.36\n6 Gene_1 Treat_3   255 1. Raw     8   \n\ntail(df_all)\n\n# A tibble: 6 × 5\n  Gene      Sample  Count Method    LogCount\n  &lt;chr&gt;     &lt;chr&gt;   &lt;dbl&gt; &lt;chr&gt;        &lt;dbl&gt;\n1 Gene_1000 Ctrl_1  168.  6. DESeq2     7.40\n2 Gene_1000 Ctrl_2  222.  6. DESeq2     7.80\n3 Gene_1000 Ctrl_3  105.  6. DESeq2     6.72\n4 Gene_1000 Treat_1 204.  6. DESeq2     7.68\n5 Gene_1000 Treat_2 143.  6. DESeq2     7.17\n6 Gene_1000 Treat_3  91.9 6. DESeq2     6.54\n\n\n\n\n## 7-2. visualization (Boxplot) ####\ndf_all %&gt;%\nggplot(aes(x = Sample, y = LogCount, fill = Sample)) +\n  # box plot\n  geom_boxplot() + \n  # plot by method\n  facet_wrap(~Method, scales = \"free_y\") + \n  # theme\n  theme_bw() + \n  # x-axis text\n  theme(axis.text.x = element_text(angle = 45, hjust = 1)) + \n  # plot title\n  labs(title = \"Normalization Method Comparison\",\n       y = \"Log2(Counts + 1)\",\n       x = \"\")\n\n\n\n\n\n\n\n\n\n\n\nTMM vs RLE\n\nTMM: selects a reference sample, trims extreme values, and normalizes based on a set of housekeeping genes\nRLE: uses the median ratio of each gene relative to its geometric mean across samples as the size factor",
+    "crumbs": [
+      "Home",
+      "2. DEG analysis",
+      "W5. Pre-processing"
+    ]
+  },
+  {
+    "objectID": "chapters/part2/W5_QC.html#week-5-assignment",
+    "href": "chapters/part2/W5_QC.html#week-5-assignment",
+    "title": "W5. Pre-processing",
+    "section": "📝 Week 5 Assignment",
+    "text": "📝 Week 5 Assignment\n\nNothing. Please just submit a screenshot of your screen.",
+    "crumbs": [
+      "Home",
+      "2. DEG analysis",
+      "W5. Pre-processing"
+    ]
+  },
+  {
+    "objectID": "chapters/part2/W5_QC.html#references",
+    "href": "chapters/part2/W5_QC.html#references",
+    "title": "W5. Pre-processing",
+    "section": "References",
+    "text": "References\n\nSAM/BAM\nNormalization comparison",
+    "crumbs": [
+      "Home",
+      "2. DEG analysis",
+      "W5. Pre-processing"
+    ]
+  },
+  {
+    "objectID": "chapters/part1/W3_wrangling.html",
+    "href": "chapters/part1/W3_wrangling.html",
+    "title": "W3. Data Wrangling & Visualization",
+    "section": "",
+    "text": "All examples in this document use the patients dataset created below.\n\nlibrary(tidyverse)\n\nset.seed(42)\n\nn &lt;- 40\n\npatients &lt;- tibble(\n  pt_id     = paste0(\"P\", sprintf(\"%03d\", 1:n)),\n  gender    = sample(c(\"M\", \"F\"), n, replace = TRUE),\n  height    = round(rnorm(n, mean = 168, sd = 10)),\n  weight    = round(rnorm(n, mean = 70,  sd = 15)),\n  Age       = round(runif(n, min = 30, max = 72)),\n  Diagnosis = sample(c(\"Diabetes\", \"Hypertension\", \"Healthy\"),\n                     n, replace = TRUE, prob = c(0.35, 0.35, 0.30)),\n  disease   = Diagnosis,\n  HbA1c     = round(\n    case_when(\n      Diagnosis == \"Diabetes\"     ~ rnorm(n, mean = 8.0, sd = 1.0),\n      Diagnosis == \"Hypertension\" ~ rnorm(n, mean = 5.8, sd = 0.7),\n      TRUE                        ~ rnorm(n, mean = 5.2, sd = 0.5)\n    ), 1)\n)\n\n# data.frame version for comparison\npatients_df &lt;- as.data.frame(patients)\n\npatients\n\n# A tibble: 40 × 8\n   pt_id gender height weight   Age Diagnosis    disease      HbA1c\n   &lt;chr&gt; &lt;chr&gt;   &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;chr&gt;        &lt;chr&gt;        &lt;dbl&gt;\n 1 P001  M         165     64    67 Hypertension Hypertension   5.9\n 2 P002  M         150     73    52 Diabetes     Diabetes       7.1\n 3 P003  M         166     79    66 Hypertension Hypertension   6.1\n 4 P004  M         180     91    49 Hypertension Hypertension   6  \n 5 P005  F         187     59    37 Diabetes     Diabetes       7.6\n 6 P006  F         164     90    49 Diabetes     Diabetes       9.1\n 7 P007  F         165     75    71 Hypertension Hypertension   6.3\n 8 P008  F         150     86    50 Hypertension Hypertension   6.2\n 9 P009  M         173     84    41 Diabetes     Diabetes       8.7\n10 P010  F         162     81    41 Healthy      Healthy        5.8\n# ℹ 30 more rows",
+    "crumbs": [
+      "Home",
+      "1. R basics",
+      "W3. Data Wrangling & Visualization"
+    ]
+  },
+  {
+    "objectID": "chapters/part1/W3_wrangling.html#setup-example-data",
+    "href": "chapters/part1/W3_wrangling.html#setup-example-data",
+    "title": "W3. Data Wrangling & Visualization",
+    "section": "",
+    "text": "All examples in this document use the patients dataset created below.\n\nlibrary(tidyverse)\n\nset.seed(42)\n\nn &lt;- 40\n\npatients &lt;- tibble(\n  pt_id     = paste0(\"P\", sprintf(\"%03d\", 1:n)),\n  gender    = sample(c(\"M\", \"F\"), n, replace = TRUE),\n  height    = round(rnorm(n, mean = 168, sd = 10)),\n  weight    = round(rnorm(n, mean = 70,  sd = 15)),\n  Age       = round(runif(n, min = 30, max = 72)),\n  Diagnosis = sample(c(\"Diabetes\", \"Hypertension\", \"Healthy\"),\n                     n, replace = TRUE, prob = c(0.35, 0.35, 0.30)),\n  disease   = Diagnosis,\n  HbA1c     = round(\n    case_when(\n      Diagnosis == \"Diabetes\"     ~ rnorm(n, mean = 8.0, sd = 1.0),\n      Diagnosis == \"Hypertension\" ~ rnorm(n, mean = 5.8, sd = 0.7),\n      TRUE                        ~ rnorm(n, mean = 5.2, sd = 0.5)\n    ), 1)\n)\n\n# data.frame version for comparison\npatients_df &lt;- as.data.frame(patients)\n\npatients\n\n# A tibble: 40 × 8\n   pt_id gender height weight   Age Diagnosis    disease      HbA1c\n   &lt;chr&gt; &lt;chr&gt;   &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;chr&gt;        &lt;chr&gt;        &lt;dbl&gt;\n 1 P001  M         165     64    67 Hypertension Hypertension   5.9\n 2 P002  M         150     73    52 Diabetes     Diabetes       7.1\n 3 P003  M         166     79    66 Hypertension Hypertension   6.1\n 4 P004  M         180     91    49 Hypertension Hypertension   6  \n 5 P005  F         187     59    37 Diabetes     Diabetes       7.6\n 6 P006  F         164     90    49 Diabetes     Diabetes       9.1\n 7 P007  F         165     75    71 Hypertension Hypertension   6.3\n 8 P008  F         150     86    50 Hypertension Hypertension   6.2\n 9 P009  M         173     84    41 Diabetes     Diabetes       8.7\n10 P010  F         162     81    41 Healthy      Healthy        5.8\n# ℹ 30 more rows",
+    "crumbs": [
+      "Home",
+      "1. R basics",
+      "W3. Data Wrangling & Visualization"
+    ]
+  },
+  {
+    "objectID": "chapters/part1/W3_wrangling.html#tidyverse",
+    "href": "chapters/part1/W3_wrangling.html#tidyverse",
+    "title": "W3. Data Wrangling & Visualization",
+    "section": "tidyverse",
+    "text": "tidyverse\ntidyverse is a meta-package that includes useful packages such as dplyr, ggplot2, and tidyr.\n\n# install (once)\ninstall.packages(\"tidyverse\")\n\n\n# load every session\nlibrary(tidyverse)\n\n\ndata.frame vs. tibble\ntibble is an improved version of data.frame that displays column types on print and handles large datasets cleanly.\n\n# data.frame: prints all rows, no type info\npatients_df\n\n   pt_id gender height weight Age    Diagnosis      disease HbA1c\n1   P001      M    165     64  67 Hypertension Hypertension   5.9\n2   P002      M    150     73  52     Diabetes     Diabetes   7.1\n3   P003      M    166     79  66 Hypertension Hypertension   6.1\n4   P004      M    180     91  49 Hypertension Hypertension   6.0\n5   P005      F    187     59  37     Diabetes     Diabetes   7.6\n6   P006      F    164     90  49     Diabetes     Diabetes   9.1\n7   P007      F    165     75  71 Hypertension Hypertension   6.3\n8   P008      F    150     86  50 Hypertension Hypertension   6.2\n9   P009      M    173     84  41     Diabetes     Diabetes   8.7\n10  P010      F    162     81  41      Healthy      Healthy   5.8\n11  P011      M    173     54  53 Hypertension Hypertension   5.9\n12  P012      F    175     69  57 Hypertension Hypertension   5.6\n13  P013      M    178     79  44 Hypertension Hypertension   6.0\n14  P014      F    162     56  33     Diabetes     Diabetes   7.7\n15  P015      M    173     62  49 Hypertension Hypertension   5.1\n16  P016      M    151     79  65      Healthy      Healthy   5.0\n17  P017      F    160     82  54 Hypertension Hypertension   6.1\n18  P018      F    159     77  45     Diabetes     Diabetes   7.2\n19  P019      F    144     57  53     Diabetes     Diabetes   7.5\n20  P020      F    168     54  67     Diabetes     Diabetes   9.3\n21  P021      M    170     93  51      Healthy      Healthy   4.8\n22  P022      M    164     74  37 Hypertension Hypertension   6.0\n23  P023      M    176     71  53 Hypertension Hypertension   6.6\n24  P024      M    161     68  70      Healthy      Healthy   5.8\n25  P025      M    154     52  43     Diabetes     Diabetes   8.6\n26  P026      F    172     79  64 Hypertension Hypertension   5.0\n27  P027      M    160     67  43      Healthy      Healthy   5.7\n28  P028      M    182     67  38 Hypertension Hypertension   5.1\n29  P029      M    164     84  32      Healthy      Healthy   5.6\n30  P030      M    175     82  40      Healthy      Healthy   4.7\n31  P031      F    171     91  45 Hypertension Hypertension   5.0\n32  P032      F    160     63  37      Healthy      Healthy   5.2\n33  P033      F    184     80  43     Diabetes     Diabetes   6.3\n34  P034      F    174     91  31 Hypertension Hypertension   5.7\n35  P035      M    169     53  72      Healthy      Healthy   5.8\n36  P036      F    171     57  64 Hypertension Hypertension   5.8\n37  P037      M    175     53  34 Hypertension Hypertension   5.7\n38  P038      F    169     48  67     Diabetes     Diabetes   8.6\n39  P039      F    138     71  53     Diabetes     Diabetes   8.5\n40  P040      F    171     80  48     Diabetes     Diabetes   8.0\n\n# tibble: shows type tags (&lt;chr&gt;, &lt;dbl&gt;, ...) and caps output at 10 rows\npatients\n\n# A tibble: 40 × 8\n   pt_id gender height weight   Age Diagnosis    disease      HbA1c\n   &lt;chr&gt; &lt;chr&gt;   &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;chr&gt;        &lt;chr&gt;        &lt;dbl&gt;\n 1 P001  M         165     64    67 Hypertension Hypertension   5.9\n 2 P002  M         150     73    52 Diabetes     Diabetes       7.1\n 3 P003  M         166     79    66 Hypertension Hypertension   6.1\n 4 P004  M         180     91    49 Hypertension Hypertension   6  \n 5 P005  F         187     59    37 Diabetes     Diabetes       7.6\n 6 P006  F         164     90    49 Diabetes     Diabetes       9.1\n 7 P007  F         165     75    71 Hypertension Hypertension   6.3\n 8 P008  F         150     86    50 Hypertension Hypertension   6.2\n 9 P009  M         173     84    41 Diabetes     Diabetes       8.7\n10 P010  F         162     81    41 Healthy      Healthy        5.8\n# ℹ 30 more rows\n\n\n\n\n\nChain operator (%&gt;%)\n\n# traditional style\nhead(patients)\n\n# A tibble: 6 × 8\n  pt_id gender height weight   Age Diagnosis    disease      HbA1c\n  &lt;chr&gt; &lt;chr&gt;   &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;chr&gt;        &lt;chr&gt;        &lt;dbl&gt;\n1 P001  M         165     64    67 Hypertension Hypertension   5.9\n2 P002  M         150     73    52 Diabetes     Diabetes       7.1\n3 P003  M         166     79    66 Hypertension Hypertension   6.1\n4 P004  M         180     91    49 Hypertension Hypertension   6  \n5 P005  F         187     59    37 Diabetes     Diabetes       7.6\n6 P006  F         164     90    49 Diabetes     Diabetes       9.1\n\n# chain style (Ctrl + Shift + M)\npatients %&gt;% head()\n\n# A tibble: 6 × 8\n  pt_id gender height weight   Age Diagnosis    disease      HbA1c\n  &lt;chr&gt; &lt;chr&gt;   &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;chr&gt;        &lt;chr&gt;        &lt;dbl&gt;\n1 P001  M         165     64    67 Hypertension Hypertension   5.9\n2 P002  M         150     73    52 Diabetes     Diabetes       7.1\n3 P003  M         166     79    66 Hypertension Hypertension   6.1\n4 P004  M         180     91    49 Hypertension Hypertension   6  \n5 P005  F         187     59    37 Diabetes     Diabetes       7.6\n6 P006  F         164     90    49 Diabetes     Diabetes       9.1",
+    "crumbs": [
+      "Home",
+      "1. R basics",
+      "W3. Data Wrangling & Visualization"
+    ]
+  },
+  {
+    "objectID": "chapters/part1/W3_wrangling.html#data-wrangling-dplyr",
+    "href": "chapters/part1/W3_wrangling.html#data-wrangling-dplyr",
+    "title": "W3. Data Wrangling & Visualization",
+    "section": "1. Data Wrangling: dplyr",
+    "text": "1. Data Wrangling: dplyr\n\nThe 5 core dplyr verbs\n\nselect(): select columns\n\n\n\n\n\n\npatients %&gt;% select(pt_id, disease)\n\n# A tibble: 40 × 2\n   pt_id disease     \n   &lt;chr&gt; &lt;chr&gt;       \n 1 P001  Hypertension\n 2 P002  Diabetes    \n 3 P003  Hypertension\n 4 P004  Hypertension\n 5 P005  Diabetes    \n 6 P006  Diabetes    \n 7 P007  Hypertension\n 8 P008  Hypertension\n 9 P009  Diabetes    \n10 P010  Healthy     \n# ℹ 30 more rows\n\n\n\n\nfilter(): filter rows\n\n\n\n\n\n\npatients %&gt;% filter(disease == \"Diabetes\")\n\n# A tibble: 13 × 8\n   pt_id gender height weight   Age Diagnosis disease  HbA1c\n   &lt;chr&gt; &lt;chr&gt;   &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;chr&gt;     &lt;chr&gt;    &lt;dbl&gt;\n 1 P002  M         150     73    52 Diabetes  Diabetes   7.1\n 2 P005  F         187     59    37 Diabetes  Diabetes   7.6\n 3 P006  F         164     90    49 Diabetes  Diabetes   9.1\n 4 P009  M         173     84    41 Diabetes  Diabetes   8.7\n 5 P014  F         162     56    33 Diabetes  Diabetes   7.7\n 6 P018  F         159     77    45 Diabetes  Diabetes   7.2\n 7 P019  F         144     57    53 Diabetes  Diabetes   7.5\n 8 P020  F         168     54    67 Diabetes  Diabetes   9.3\n 9 P025  M         154     52    43 Diabetes  Diabetes   8.6\n10 P033  F         184     80    43 Diabetes  Diabetes   6.3\n11 P038  F         169     48    67 Diabetes  Diabetes   8.6\n12 P039  F         138     71    53 Diabetes  Diabetes   8.5\n13 P040  F         171     80    48 Diabetes  Diabetes   8  \n\n\n\n\nmutate(): create new columns\n\n\n\n\n\n\npatients %&gt;% mutate(bmi = round(weight / (height / 100)^2, 1))\n\n# A tibble: 40 × 9\n   pt_id gender height weight   Age Diagnosis    disease      HbA1c   bmi\n   &lt;chr&gt; &lt;chr&gt;   &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;chr&gt;        &lt;chr&gt;        &lt;dbl&gt; &lt;dbl&gt;\n 1 P001  M         165     64    67 Hypertension Hypertension   5.9  23.5\n 2 P002  M         150     73    52 Diabetes     Diabetes       7.1  32.4\n 3 P003  M         166     79    66 Hypertension Hypertension   6.1  28.7\n 4 P004  M         180     91    49 Hypertension Hypertension   6    28.1\n 5 P005  F         187     59    37 Diabetes     Diabetes       7.6  16.9\n 6 P006  F         164     90    49 Diabetes     Diabetes       9.1  33.5\n 7 P007  F         165     75    71 Hypertension Hypertension   6.3  27.5\n 8 P008  F         150     86    50 Hypertension Hypertension   6.2  38.2\n 9 P009  M         173     84    41 Diabetes     Diabetes       8.7  28.1\n10 P010  F         162     81    41 Healthy      Healthy        5.8  30.9\n# ℹ 30 more rows\n\n\n\n\narrange(): sort rows\n\n\n\n\n\n\npatients %&gt;% arrange(desc(weight))\n\n# A tibble: 40 × 8\n   pt_id gender height weight   Age Diagnosis    disease      HbA1c\n   &lt;chr&gt; &lt;chr&gt;   &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;chr&gt;        &lt;chr&gt;        &lt;dbl&gt;\n 1 P021  M         170     93    51 Healthy      Healthy        4.8\n 2 P004  M         180     91    49 Hypertension Hypertension   6  \n 3 P031  F         171     91    45 Hypertension Hypertension   5  \n 4 P034  F         174     91    31 Hypertension Hypertension   5.7\n 5 P006  F         164     90    49 Diabetes     Diabetes       9.1\n 6 P008  F         150     86    50 Hypertension Hypertension   6.2\n 7 P009  M         173     84    41 Diabetes     Diabetes       8.7\n 8 P029  M         164     84    32 Healthy      Healthy        5.6\n 9 P017  F         160     82    54 Hypertension Hypertension   6.1\n10 P030  M         175     82    40 Healthy      Healthy        4.7\n# ℹ 30 more rows\n\n\n\n\ngroup_by() & summarise(): group-wise summary\n\n\n\n\n\n\npatients %&gt;%\n  group_by(disease) %&gt;%\n  summarize(\n    n           = n(),\n    mean_weight = round(mean(weight), 1),\n    mean_HbA1c  = round(mean(HbA1c),  1)\n  )\n\n# A tibble: 3 × 4\n  disease          n mean_weight mean_HbA1c\n  &lt;chr&gt;        &lt;int&gt;       &lt;dbl&gt;      &lt;dbl&gt;\n1 Diabetes        13        67.8        8  \n2 Healthy          9        74.4        5.4\n3 Hypertension    18        73.6        5.8\n\n\n\n\n\njoin: combining datasets\n\n\n\n\n\n\n# lab results — some patients missing, one external patient included\nlab_results &lt;- tibble(\n  pt_id = c(\"P001\", \"P002\", \"P003\", \"P999\"),\n  hba1c = c(7.5, 5.8, 6.2, 8.0)\n)\n\n\n\n\n\n\n\n# left_join: keep all patients in the cohort\npatients %&gt;%\n  select(pt_id, disease) %&gt;%\n  left_join(lab_results, by = \"pt_id\")\n\n# A tibble: 40 × 3\n   pt_id disease      hba1c\n   &lt;chr&gt; &lt;chr&gt;        &lt;dbl&gt;\n 1 P001  Hypertension   7.5\n 2 P002  Diabetes       5.8\n 3 P003  Hypertension   6.2\n 4 P004  Hypertension  NA  \n 5 P005  Diabetes      NA  \n 6 P006  Diabetes      NA  \n 7 P007  Hypertension  NA  \n 8 P008  Hypertension  NA  \n 9 P009  Diabetes      NA  \n10 P010  Healthy       NA  \n# ℹ 30 more rows\n\n\n\n\n\n\n\n\n# right_join: based on lab results\npatients %&gt;%\n  select(pt_id, disease) %&gt;%\n  right_join(lab_results, by = \"pt_id\")\n\n# A tibble: 4 × 3\n  pt_id disease      hba1c\n  &lt;chr&gt; &lt;chr&gt;        &lt;dbl&gt;\n1 P001  Hypertension   7.5\n2 P002  Diabetes       5.8\n3 P003  Hypertension   6.2\n4 P999  &lt;NA&gt;           8  \n\n\n\n\n\n\n\n\n# inner_join: intersection (only patients with lab results)\npatients %&gt;%\n  select(pt_id, disease) %&gt;%\n  inner_join(lab_results, by = \"pt_id\")\n\n# A tibble: 3 × 3\n  pt_id disease      hba1c\n  &lt;chr&gt; &lt;chr&gt;        &lt;dbl&gt;\n1 P001  Hypertension   7.5\n2 P002  Diabetes       5.8\n3 P003  Hypertension   6.2\n\n\n\n\n\n\n\n\n# full_join: merge all data\npatients %&gt;%\n  select(pt_id, disease) %&gt;%\n  full_join(lab_results, by = \"pt_id\")\n\n# A tibble: 41 × 3\n   pt_id disease      hba1c\n   &lt;chr&gt; &lt;chr&gt;        &lt;dbl&gt;\n 1 P001  Hypertension   7.5\n 2 P002  Diabetes       5.8\n 3 P003  Hypertension   6.2\n 4 P004  Hypertension  NA  \n 5 P005  Diabetes      NA  \n 6 P006  Diabetes      NA  \n 7 P007  Hypertension  NA  \n 8 P008  Hypertension  NA  \n 9 P009  Diabetes      NA  \n10 P010  Healthy       NA  \n# ℹ 31 more rows\n\n\n\n\nData Reshaping: tidyr\n\npivot_longer(): Wide → Long\n\n\n\n\n\n\nbp_wide &lt;- tibble(\n  pt_id      = c(\"P001\", \"P002\", \"P003\"),\n  sbp_visit1 = c(120, 130, 110),\n  sbp_visit2 = c(118, 135, 115),\n  sbp_visit3 = c(115, 132, 112)\n)\n\nbp_wide\n\n# A tibble: 3 × 4\n  pt_id sbp_visit1 sbp_visit2 sbp_visit3\n  &lt;chr&gt;      &lt;dbl&gt;      &lt;dbl&gt;      &lt;dbl&gt;\n1 P001         120        118        115\n2 P002         130        135        132\n3 P003         110        115        112\n\nbp_long &lt;- bp_wide %&gt;%\n  pivot_longer(\n    cols      = starts_with(\"sbp\"),\n    names_to  = \"visit\",\n    values_to = \"sbp\"\n  )\n\nbp_long\n\n# A tibble: 9 × 3\n  pt_id visit        sbp\n  &lt;chr&gt; &lt;chr&gt;      &lt;dbl&gt;\n1 P001  sbp_visit1   120\n2 P001  sbp_visit2   118\n3 P001  sbp_visit3   115\n4 P002  sbp_visit1   130\n5 P002  sbp_visit2   135\n6 P002  sbp_visit3   132\n7 P003  sbp_visit1   110\n8 P003  sbp_visit2   115\n9 P003  sbp_visit3   112\n\n\n\n\npivot_wider(): Long → Wide\n\n\n\n\n\n\nbp_long %&gt;%\n  pivot_wider(\n    names_from  = visit,\n    values_from = sbp\n  )\n\n# A tibble: 3 × 4\n  pt_id sbp_visit1 sbp_visit2 sbp_visit3\n  &lt;chr&gt;      &lt;dbl&gt;      &lt;dbl&gt;      &lt;dbl&gt;\n1 P001         120        118        115\n2 P002         130        135        132\n3 P003         110        115        112\n\n\n\n\nseparate(): split a column\n\n\n\n\n\n\nbp_raw &lt;- tibble(\n  pt_id   = c(\"P001\", \"P002\"),\n  bp_full = c(\"120/80\", \"130/85\")\n)\n\nbp_raw %&gt;%\n  separate(bp_full, into = c(\"sbp\", \"dbp\"), sep = \"/\", convert = TRUE)\n\n# A tibble: 2 × 3\n  pt_id   sbp   dbp\n  &lt;chr&gt; &lt;int&gt; &lt;int&gt;\n1 P001    120    80\n2 P002    130    85\n\n\n\n\nunite(): merge columns\n\n\n\n\n\n\ndates &lt;- tibble(\n  pt_id = c(\"P001\", \"P002\"),\n  year  = c(\"2024\", \"2025\"),\n  month = c(\"12\", \"01\"),\n  day   = c(\"25\", \"15\")\n)\n\ndates %&gt;%\n  unite(col = \"exam_date\", year, month, day, sep = \"-\")\n\n# A tibble: 2 × 2\n  pt_id exam_date \n  &lt;chr&gt; &lt;chr&gt;     \n1 P001  2024-12-25\n2 P002  2025-01-15",
+    "crumbs": [
+      "Home",
+      "1. R basics",
+      "W3. Data Wrangling & Visualization"
+    ]
+  },
+  {
+    "objectID": "chapters/part1/W3_wrangling.html#visualization-ggplot2",
+    "href": "chapters/part1/W3_wrangling.html#visualization-ggplot2",
+    "title": "W3. Data Wrangling & Visualization",
+    "section": "2. Visualization: ggplot2",
+    "text": "2. Visualization: ggplot2\nggplot2 is built on three components:\n\ndata: a data frame\naes: x-axis, y-axis, color, fill, group, etc.\ngeom: the type of plot\n\n\ndataframe %&gt;%\n  ggplot(aes(x = xx, y = yy)) +\n  geom_function() +\n  ...\n\n\nAesthetics\n\n\n\n\n\n\n\n\nProperty\nDescription\nExample\n\n\n\n\ncolor / fill\nColor\n\"red\", \"#RRGGBB\"\n\n\nlinetype\nLine type\n\"solid\", \"dashed\", \"dotted\"\n\n\nsize\nPoint / text size\nin mm\n\n\nlinewidth\nLine width\nin mm\n\n\nshape\nPoint shape\ninteger 0–25\n\n\nalpha\nTransparency\n0 (transparent) – 1 (opaque)\n\n\n\n\n\n\n\n\n\nTip\n\n\n\nInside aes(): maps to a variable automatically → aes(color = Diagnosis)\nInside geom_: fixed value → geom_bar(color = 'black')\n\n\n\n\n\n① Bar Plot: frequency of categorical data\n\npatients %&gt;%\n  ggplot(aes(x = Diagnosis)) +\n  geom_bar(fill = \"steelblue\", width = 0.6) +\n  labs(title = \"Number of Patients by Diagnosis\",\n       x = \"Diagnosis\", y = \"Count\") +\n  theme_classic()\n\n\n\n\n\n\n\n\n\n\n\n② Histogram: distribution of a continuous variable\n\npatients %&gt;%\n  ggplot(aes(x = Age)) +\n  geom_histogram(binwidth = 10, fill = \"lightgrey\", color = \"black\") +\n  labs(title = \"Age Distribution\", x = \"Age\", y = \"Count\") +\n  theme_classic()\n\n\n\n\n\n\n\n\n\n\n\n③ Box Plot: comparing continuous values across groups\n\npatients %&gt;%\n  ggplot(aes(x = Diagnosis, y = HbA1c, fill = Diagnosis)) +\n  geom_boxplot() +\n  labs(title = \"HbA1c by Diagnosis\", x = \"Diagnosis\", y = \"HbA1c (%)\") +\n  theme_classic()\n\n\n\n\n\n\n\n\n\n\n\n④ Scatter Plot: relationship between two continuous variables\n\npatients %&gt;%\n  ggplot(aes(x = Age, y = HbA1c)) +\n  geom_point(size = 3, color = 'darkblue') +\n  geom_smooth(method = \"lm\", formula = y ~ x, se = TRUE) +\n  labs(title = \"Age vs HbA1c\", x = \"Age\", y = \"HbA1c (%)\") +\n  theme_classic()\n\n\n\n\n\n\n\n\n\n\n\n⑤ Line Plot: trends over time\n\nbp_long %&gt;%\n  ggplot(aes(x = visit, y = sbp, group = pt_id, color = pt_id)) +\n  geom_line(linewidth = 1) +\n  geom_point(size = 3) +\n  labs(title = \"Systolic BP Across Visits\",\n       x = \"Visit\", y = \"SBP (mmHg)\", color = \"Patient\") +\n  theme_classic()\n\n\n\n\n\n\n\n\n\n\n\nCustomizing Plots\n\npatients %&gt;%\n  ggplot(aes(x = Diagnosis, y = HbA1c, fill = Diagnosis)) +\n  geom_boxplot(alpha = 0.5) +\n  scale_fill_brewer(palette = \"Set2\") +\n  labs(title = \"HbA1c Levels by Diagnosis\",\n       x = \"Diagnosis\", y = \"HbA1c (%)\") +\n  theme(legend.position = \"none\") +\n  theme_classic()\n\n\n\n\n\n\n\n\n\n\n\nKey Themes\n\n\n\nTheme\nDescription\n\n\n\n\ntheme_classic()\nWhite background, axes only\n\n\ntheme_bw()\nWhite background + grid lines\n\n\ntheme_minimal()\nMinimal decoration\n\n\ntheme_light()\nLight tone\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nSaving Plots\n\n# format determined automatically by file extension\nggsave(\"results/w3_my_result.png\")\n\n# high-resolution TIFF (for publication)\nggsave(\"results/w3_Figure1.tiff\",\n       width = 6, height = 4, units = \"in\", dpi = 300)\n\n# PDF (for presentations; scales without pixelation)\nggsave(\"results/w3_Figure1.pdf\", width = 6, height = 4)",
+    "crumbs": [
+      "Home",
+      "1. R basics",
+      "W3. Data Wrangling & Visualization"
+    ]
+  },
+  {
+    "objectID": "chapters/part1/W3_wrangling.html#week-3-assignment",
+    "href": "chapters/part1/W3_wrangling.html#week-3-assignment",
+    "title": "W3. Data Wrangling & Visualization",
+    "section": "📝 Week 3 Assignment",
+    "text": "📝 Week 3 Assignment\nUse the dataset provided below (my_data):\n\nset.seed(7)\nmy_data &lt;- tibble(\n  Sample_ID  = paste0(\"S\", sprintf(\"%02d\", 1:20)),\n  Group      = sample(c(\"Control\", \"Treatment\"), 20, replace = TRUE),\n  Gender     = sample(c(\"Male\", \"Female\"), 20, replace = TRUE),\n  Age        = round(runif(20, 25, 65)),\n  Gene_A     = round(rnorm(20, mean = 5, sd = 2), 2),\n  Gene_B     = round(rnorm(20, mean = 8, sd = 3), 2),\n  Gene_C     = round(rnorm(20, mean = 3, sd = 1), 2)\n)\n\nmy_data %&gt;% head\n\n# A tibble: 6 × 7\n  Sample_ID Group     Gender   Age Gene_A Gene_B Gene_C\n  &lt;chr&gt;     &lt;chr&gt;     &lt;chr&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;\n1 S01       Treatment Male      57   3.26   7.21   3.43\n2 S02       Control   Female    40   6.44   7.98   2.08\n3 S03       Control   Female    55   5.22   9.1    2.38\n4 S04       Treatment Female    42   4.84  13.1    2.13\n5 S05       Control   Male      61   4.16  10.2    1.36\n6 S06       Treatment Male      38   3.88   9.44   1.67\n\n\n\n1. Data Manipulation\n\n# 1. select: Sample_ID, Group, Gene_A\nmy_data %&gt;% select(___, ___, ___)\n\n# 2. filter: Gender == \"Male\"\nmy_data %&gt;% filter(___ == ___)\n\n# 3. arrange: Gene_A descending\nmy_data %&gt;% arrange(desc(___))\n\n# 4. group_by & summarize: mean Gene_A per Group\nmy_data %&gt;%\n  group_by(___) %&gt;%\n  summarize(mean_GeneA = mean(___))\n\n# 5. pivot_longer: Gene_A, Gene_B, Gene_C → long format\nmy_long &lt;- my_data %&gt;%\n  pivot_longer(\n    cols      = c(Gene_A, Gene_B, Gene_C),\n    names_to  = \"___\",\n    values_to = \"___\"\n  )\n\n\n\n2. Visualization\n\n# 1. Box Plot: x = Gene_Name, y = Expression, fill = Group\nmy_long %&gt;%\n  ggplot(aes(x = ___, y = ___, fill = ___)) +\n  geom_boxplot()\n\n# 2. Scatter Plot: Age vs Gene_A, color = Group\nmy_data %&gt;%\n  ggplot(aes(x = ___, y = ___, color = ___)) +\n  geom_point(size = 3)\n\n\nPlease submit a screenshot of your screen.",
+    "crumbs": [
+      "Home",
+      "1. R basics",
+      "W3. Data Wrangling & Visualization"
+    ]
+  },
+  {
+    "objectID": "chapters/part1/W3_wrangling.html#references",
+    "href": "chapters/part1/W3_wrangling.html#references",
+    "title": "W3. Data Wrangling & Visualization",
+    "section": "References",
+    "text": "References\n\nData wrangling … cheatsheets\n\n\n\n\n\n\n\nVisualization\nFrom Data to Viz — chart recommendations by data type\nThe R Graph Gallery — R chart examples\nR Gallery Book",
+    "crumbs": [
+      "Home",
+      "1. R basics",
+      "W3. Data Wrangling & Visualization"
+    ]
+  },
+  {
+    "objectID": "chapters/part1/W1_intro.html",
+    "href": "chapters/part1/W1_intro.html",
+    "title": "W1. Introduction to Bioinformatics",
+    "section": "",
+    "text": "Bio + information\n\nBio ➡️ Human samples (with certain phenotypes)\nInformation ➡️ Data (Omics)\n\n\n\n\n\nOmics data is generated by NGS\nWhat is difference between Sanger Sequencing and Next-Generation Sequencing (NGS)?\n\nSanger sequencing … ddNTP with flourchromes\n\n\n\n\n\n\n\n\nNGS: library preparation + sequencing by synthesis\n\n\n\n\n\n\n\n\nLibrary prep & bridge amplification\n\n\n\n\nsequencing by synthesis (SBS)\n   \n \n\n\n\nNGS library molecule: adapter + insert\n\nP5/P7 (binding to flow cell)\nIndex (Sample identifier, 6-12nt, multiplexing)\nPrimer (e.g., PolyA for mRNA, 6-mer for total RNAs)\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nWhy 3’ is commonly used:\n\nscRNA-seq standard: 10x Genomics Chromium uses the 3’ kit as the standard\nCost-effective and high throughput\nSufficient for quantifying gene expression levels\nHigh mRNA capture efficiency due to poly-A tail targeting\n\nWhen to use 5’ kits:\n\nTCR/BCR V(D)J profiling: The CDR3 region is located at the 5’ end\nEssential for studying T cell and B cell repertoires\nCommonly used as a combination of the 10x Genomics 5’ kit and V(D)J enrichment\n\n\n\n\n\n\n\nholistic & comprehensive\nhigh-dimensional … large p, small n\nMulti-layered hierarchical … central dogma\n\n\n\n\ninformation of sequence\nfour lines per read (n=20~30M)\n\n@SRR21484222.626.1 626 length=51       ← Read ID\nGCCTTGGTGGTGAAATGGTAGACTGGAATTCTCGGGTGCCAAGGAACTCCA  ← Sequence\n+SRR21484222.626.1 626 length=51       ← Description\nF:FFFFFFFFFFFFFFFFFFFFFFFFFFF:FFFFFFFFFFF:,FFFFFFFFF  ← Base call quality (Phred score)\n\n\n\n\\(Q = -10 \\log_{10} P\\)\n\n\n\nPhred Score\nError rate\nBase call accruary\n\n\n\n\n10\n1 in 10\n90%\n\n\n20\n1 in 100\n99%\n\n\n30\n1 in 1,000\n99.9%\n\n\n40\n1 in 10,000\n99.99%\n\n\n\n\n\n\n\n\n\n\nWe will focus on transcriptomes (RNA-seq data)\n\n\n\n\n\n✅ A single NGS experiment ➡️ GB to TB of information …far beyond what traditional lab methods can handle\n✅ Rapidly declining NGS costs ➡️ exponentially growing data volume",
+    "crumbs": [
+      "Home",
+      "1. R basics",
+      "W1. Introduction to Bioinformatics"
+    ]
+  },
+  {
+    "objectID": "chapters/part1/W1_intro.html#introduction",
+    "href": "chapters/part1/W1_intro.html#introduction",
+    "title": "W1. Introduction to Bioinformatics",
+    "section": "",
+    "text": "Bio + information\n\nBio ➡️ Human samples (with certain phenotypes)\nInformation ➡️ Data (Omics)\n\n\n\n\n\nOmics data is generated by NGS\nWhat is difference between Sanger Sequencing and Next-Generation Sequencing (NGS)?\n\nSanger sequencing … ddNTP with flourchromes\n\n\n\n\n\n\n\n\nNGS: library preparation + sequencing by synthesis\n\n\n\n\n\n\n\n\nLibrary prep & bridge amplification\n\n\n\n\nsequencing by synthesis (SBS)\n   \n \n\n\n\nNGS library molecule: adapter + insert\n\nP5/P7 (binding to flow cell)\nIndex (Sample identifier, 6-12nt, multiplexing)\nPrimer (e.g., PolyA for mRNA, 6-mer for total RNAs)\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nWhy 3’ is commonly used:\n\nscRNA-seq standard: 10x Genomics Chromium uses the 3’ kit as the standard\nCost-effective and high throughput\nSufficient for quantifying gene expression levels\nHigh mRNA capture efficiency due to poly-A tail targeting\n\nWhen to use 5’ kits:\n\nTCR/BCR V(D)J profiling: The CDR3 region is located at the 5’ end\nEssential for studying T cell and B cell repertoires\nCommonly used as a combination of the 10x Genomics 5’ kit and V(D)J enrichment\n\n\n\n\n\n\n\nholistic & comprehensive\nhigh-dimensional … large p, small n\nMulti-layered hierarchical … central dogma\n\n\n\n\ninformation of sequence\nfour lines per read (n=20~30M)\n\n@SRR21484222.626.1 626 length=51       ← Read ID\nGCCTTGGTGGTGAAATGGTAGACTGGAATTCTCGGGTGCCAAGGAACTCCA  ← Sequence\n+SRR21484222.626.1 626 length=51       ← Description\nF:FFFFFFFFFFFFFFFFFFFFFFFFFFF:FFFFFFFFFFF:,FFFFFFFFF  ← Base call quality (Phred score)\n\n\n\n\\(Q = -10 \\log_{10} P\\)\n\n\n\nPhred Score\nError rate\nBase call accruary\n\n\n\n\n10\n1 in 10\n90%\n\n\n20\n1 in 100\n99%\n\n\n30\n1 in 1,000\n99.9%\n\n\n40\n1 in 10,000\n99.99%\n\n\n\n\n\n\n\n\n\n\nWe will focus on transcriptomes (RNA-seq data)\n\n\n\n\n\n✅ A single NGS experiment ➡️ GB to TB of information …far beyond what traditional lab methods can handle\n✅ Rapidly declining NGS costs ➡️ exponentially growing data volume",
+    "crumbs": [
+      "Home",
+      "1. R basics",
+      "W1. Introduction to Bioinformatics"
+    ]
+  },
+  {
+    "objectID": "chapters/part1/W1_intro.html#bulk-rna-seq-data",
+    "href": "chapters/part1/W1_intro.html#bulk-rna-seq-data",
+    "title": "W1. Introduction to Bioinformatics",
+    "section": "2. Bulk RNA-seq Data",
+    "text": "2. Bulk RNA-seq Data\ntechnology that measures the average gene-expression levels across millions of cells within a tissue",
+    "crumbs": [
+      "Home",
+      "1. R basics",
+      "W1. Introduction to Bioinformatics"
+    ]
+  },
+  {
+    "objectID": "chapters/part1/W1_intro.html#r-rstudio",
+    "href": "chapters/part1/W1_intro.html#r-rstudio",
+    "title": "W1. Introduction to Bioinformatics",
+    "section": "3. R & RStudio",
+    "text": "3. R & RStudio\n\nGeneral workflow of clinical researchers (?)\nExcel에서 데이터 정리 → SPSS에서 분석 → 결과를 Word에 복붙 → 리뷰어 코멘트 → 처음부터 다시...\n\n\n\n\n\n\nWarningdrawbacks of this approach\n\n\n\n\nData updated → Redo every table and figure manually\n“Where did this p-value come from?” → Hard to trace back\nSharing your analysis with collaborators → Verbal explanation or screenshots\n\n\n\n\n\n\nWhy R?\n✅ Comprehensive statistics beoynd Excel\n✅ Free & Open-Source &gt;&gt; SPSS\n✅ Publication-Quality Visualization\n✅ Biological & Biomedical Packages\n\n\n\n1) install R\nThe Comprehensive R Archive Network (CRAN)\n\n\n\n\n\n\n\n\n2) install R studio\n\nIDE (Integrated Development Environment) for R\n\nRStudio Desktop - Posit\n\n\n3) RStudio Interface",
+    "crumbs": [
+      "Home",
+      "1. R basics",
+      "W1. Introduction to Bioinformatics"
+    ]
+  },
+  {
+    "objectID": "chapters/part1/W1_intro.html#r-basics",
+    "href": "chapters/part1/W1_intro.html#r-basics",
+    "title": "W1. Introduction to Bioinformatics",
+    "section": "4. R Basics",
+    "text": "4. R Basics\n\nUse R as a calculator\n\n2 + 2\n\n[1] 4\n\n10 / 3\n\n[1] 3.333333\n\n5 * (4 - 1)\n\n[1] 15\n\n2^3\n\n[1] 8\n\n\n\n\nAssign data to a variable (naming your data)\n\nx &lt;- 10\ny &lt;- 5\nx + y\n\n[1] 15\n\nx * 2\n\n[1] 20",
+    "crumbs": [
+      "Home",
+      "1. R basics",
+      "W1. Introduction to Bioinformatics"
+    ]
+  },
+  {
+    "objectID": "chapters/part1/W1_intro.html#week-1-assignment",
+    "href": "chapters/part1/W1_intro.html#week-1-assignment",
+    "title": "W1. Introduction to Bioinformatics",
+    "section": "📝 Week 1 Assignment",
+    "text": "📝 Week 1 Assignment\n\nInstall R and Rstudio to your laptop\nPractice four basic operations (+,-,*,/)\nAssign 100 to A, 50 to B, and then calculate their sum in the console\n\n\nPlease submit a snapshot of your screen",
+    "crumbs": [
+      "Home",
+      "1. R basics",
+      "W1. Introduction to Bioinformatics"
+    ]
+  },
+  {
+    "objectID": "chapters/part1/W1_intro.html#references",
+    "href": "chapters/part1/W1_intro.html#references",
+    "title": "W1. Introduction to Bioinformatics",
+    "section": "References",
+    "text": "References\n\nNGS\nNGS vs. Sanger\nNGS Instead of Sanger Sequencing\nNGS introductioin\nSequencing by Synthesis\n\n\nOmics data\nFASTQ\nPhred score\ncost of DNA-seq\n\n\nRNA-seq\nRNA-seq workflow\nRNA library prep (illumina)",
+    "crumbs": [
+      "Home",
+      "1. R basics",
+      "W1. Introduction to Bioinformatics"
+    ]
+  },
+  {
+    "objectID": "chapters/part1/W2_rbasics.html",
+    "href": "chapters/part1/W2_rbasics.html",
+    "title": "W2. R Fundamentals",
+    "section": "",
+    "text": "The most fundamental data structure in R\nto store multiple values of the same type: numeric, character, or logical\n\n\n# numeric vector\nmy_vector &lt;- c(1, 2, 3, 4, 5)\n1:5\n\n[1] 1 2 3 4 5\n\n5:1\n\n[1] 5 4 3 2 1\n\nseq(1, 5)\n\n[1] 1 2 3 4 5\n\nrep(1, 5)\n\n[1] 1 1 1 1 1\n\nseq(from = 1, to = 5, by = 1)\n\n[1] 1 2 3 4 5\n\nseq(1, 5, 2)\n\n[1] 1 3 5\n\nlength(my_vector)\n\n[1] 5\n\n# character vector\ngender &lt;- c(\"M\", \"F\", \"F\")\ngender; class(gender)\n\n[1] \"M\" \"F\" \"F\"\n\n\n[1] \"character\"\n\n# factor (categorical)\nfactor_gender_vector &lt;- factor(gender)\nfactor_gender_vector; class(factor_gender_vector)\n\n[1] M F F\nLevels: F M\n\n\n[1] \"factor\"\n\n# ordinal factor (ordered)\nfactor_gender_vector &lt;- factor(gender, order = T, levels = c('F', 'M'))\nfactor_gender_vector; class(factor_gender_vector)\n\n[1] M F F\nLevels: F &lt; M\n\n\n[1] \"ordered\" \"factor\" \n\n# logical vector\nrecur &lt;- c(TRUE, FALSE, TRUE)\nrecur; class(recur)\n\n[1]  TRUE FALSE  TRUE\n\n\n[1] \"logical\"\n\n\n\n\n\n# check: class(), is.XX()\nclass(my_vector)    # \"numeric\"\nclass(gender)       # \"character\"\nis.character(my_vector)  # FALSE\nis.numeric(my_vector)    # TRUE\n\n# convert: as.XX()\nas.character(my_vector)  # \"1\" \"2\" \"3\" \"4\" \"5\"\nas.numeric(gender)       # NA NA NA (warning)\n\n\n\n\n\n\nA two-dimensional structure that holds only a single data type\n\n# create\nmatrix_a &lt;- matrix(1:10, byrow = TRUE, nrow = 5)\nmatrix_b &lt;- matrix(1:10, byrow = FALSE, nrow = 5)\nmatrix_a; matrix_b\n\n     [,1] [,2]\n[1,]    1    2\n[2,]    3    4\n[3,]    5    6\n[4,]    7    8\n[5,]    9   10\n\n\n     [,1] [,2]\n[1,]    1    6\n[2,]    2    7\n[3,]    3    8\n[4,]    4    9\n[5,]    5   10\n\n# check dimensions\ndim(matrix_a)\n\n[1] 5 2\n\nnrow(matrix_a)\n\n[1] 5\n\nncol(matrix_a)\n\n[1] 2\n\n# assign names\nrownames(matrix_a) &lt;- c(\"Row 1\", \"Row 2\", \"Row 3\", \"Row 4\", \"Row 5\")\ncolnames(matrix_a) &lt;- c(\"Col 1\", \"Col 2\")\n\n# combine\nmatrix_a1 &lt;- cbind(matrix_a, 1:5)  # add column\nmatrix_c &lt;- rbind(matrix_a, 1:2) # add row\n\n\n\n\n\n\n\n\n\nmatrix_c[1, 2]     # row 1, col 2 (element)\nmatrix_c[1, ]       # entire row 1\nmatrix_c[, 1]       # entire col 1\nmatrix_c[1:5, 1]  # subset selection\nmatrix_c[-1, ]      # exclude row 1\n\n\n\n\n\n\n\n\n\nA two-dimensional structure that can hold multiple data types\nMost commonly used in real-world analyses\n\n\n\n\n\n\n\n\n\n\ndf &lt;- data.frame(\n  x = c(35, 42, 50),\n  y = c(\"M\", \"F\", \"F\"),\n  z = c(TRUE, FALSE, TRUE)\n)\ndf\n\n   x y     z\n1 35 M  TRUE\n2 42 F FALSE\n3 50 F  TRUE\n\n# inspect structure\nstr(df)\n\n'data.frame':   3 obs. of  3 variables:\n $ x: num  35 42 50\n $ y: chr  \"M\" \"F\" \"F\"\n $ z: logi  TRUE FALSE TRUE\n\ndim(df)\n\n[1] 3 3\n\nnames(df) # = colnames\n\n[1] \"x\" \"y\" \"z\"\n\n# rename columns\nnames(df) &lt;- c('age', 'gender', 'recur')\ndf\n\n  age gender recur\n1  35      M  TRUE\n2  42      F FALSE\n3  50      F  TRUE\n\n\n\n# indexing\ndf[1, 2]      # row 1, col 2\ndf[1:2, ]     # rows 1–2\ndf$age        # age column ($ operator)\n\n\n# add column\nBMI &lt;- c(19, 35, 25)\ndf$BMI &lt;- BMI\n\n# subset\nsubset(df, subset = BMI &gt; 30)\n\n  age gender recur BMI\n2  42      F FALSE  35\n\n# sort\ndf_order &lt;- df[order(df$BMI), ]\ndf_order\n\n  age gender recur BMI\n1  35      M  TRUE  19\n3  50      F  TRUE  25\n2  42      F FALSE  35\n\ndf_order &lt;- df[order(df$gender, df$BMI), ]\ndf_order\n\n  age gender recur BMI\n3  50      F  TRUE  25\n2  42      F FALSE  35\n1  35      M  TRUE  19\n\ndf_order &lt;- df[order(-df$age, df$age), ]  # descending\ndf_order\n\n  age gender recur BMI\n3  50      F  TRUE  25\n2  42      F FALSE  35\n1  35      M  TRUE  19\n\n\n\n\n\n\nA container that groups together data of different types and structures.\n\nvect &lt;- 1:5\nmat  &lt;- matrix(1:9, ncol = 3)\ndf   &lt;- iris[1:5, ]\n\n# create list\nmy_list &lt;- list(vect, mat, df)\nmy_list\n\n[[1]]\n[1] 1 2 3 4 5\n\n[[2]]\n     [,1] [,2] [,3]\n[1,]    1    4    7\n[2,]    2    5    8\n[3,]    3    6    9\n\n[[3]]\n  Sepal.Length Sepal.Width Petal.Length Petal.Width Species\n1          5.1         3.5          1.4         0.2  setosa\n2          4.9         3.0          1.4         0.2  setosa\n3          4.7         3.2          1.3         0.2  setosa\n4          4.6         3.1          1.5         0.2  setosa\n5          5.0         3.6          1.4         0.2  setosa\n\n# indexing: [[ ]]\nmy_list[[2]]  # retrieve the matrix\n\n     [,1] [,2] [,3]\n[1,]    1    4    7\n[2,]    2    5    8\n[3,]    3    6    9",
+    "crumbs": [
+      "Home",
+      "1. R basics",
+      "W2. R Fundamentals"
+    ]
+  },
+  {
+    "objectID": "chapters/part1/W2_rbasics.html#data-types-in-r",
+    "href": "chapters/part1/W2_rbasics.html#data-types-in-r",
+    "title": "W2. R Fundamentals",
+    "section": "",
+    "text": "The most fundamental data structure in R\nto store multiple values of the same type: numeric, character, or logical\n\n\n# numeric vector\nmy_vector &lt;- c(1, 2, 3, 4, 5)\n1:5\n\n[1] 1 2 3 4 5\n\n5:1\n\n[1] 5 4 3 2 1\n\nseq(1, 5)\n\n[1] 1 2 3 4 5\n\nrep(1, 5)\n\n[1] 1 1 1 1 1\n\nseq(from = 1, to = 5, by = 1)\n\n[1] 1 2 3 4 5\n\nseq(1, 5, 2)\n\n[1] 1 3 5\n\nlength(my_vector)\n\n[1] 5\n\n# character vector\ngender &lt;- c(\"M\", \"F\", \"F\")\ngender; class(gender)\n\n[1] \"M\" \"F\" \"F\"\n\n\n[1] \"character\"\n\n# factor (categorical)\nfactor_gender_vector &lt;- factor(gender)\nfactor_gender_vector; class(factor_gender_vector)\n\n[1] M F F\nLevels: F M\n\n\n[1] \"factor\"\n\n# ordinal factor (ordered)\nfactor_gender_vector &lt;- factor(gender, order = T, levels = c('F', 'M'))\nfactor_gender_vector; class(factor_gender_vector)\n\n[1] M F F\nLevels: F &lt; M\n\n\n[1] \"ordered\" \"factor\" \n\n# logical vector\nrecur &lt;- c(TRUE, FALSE, TRUE)\nrecur; class(recur)\n\n[1]  TRUE FALSE  TRUE\n\n\n[1] \"logical\"\n\n\n\n\n\n# check: class(), is.XX()\nclass(my_vector)    # \"numeric\"\nclass(gender)       # \"character\"\nis.character(my_vector)  # FALSE\nis.numeric(my_vector)    # TRUE\n\n# convert: as.XX()\nas.character(my_vector)  # \"1\" \"2\" \"3\" \"4\" \"5\"\nas.numeric(gender)       # NA NA NA (warning)\n\n\n\n\n\n\nA two-dimensional structure that holds only a single data type\n\n# create\nmatrix_a &lt;- matrix(1:10, byrow = TRUE, nrow = 5)\nmatrix_b &lt;- matrix(1:10, byrow = FALSE, nrow = 5)\nmatrix_a; matrix_b\n\n     [,1] [,2]\n[1,]    1    2\n[2,]    3    4\n[3,]    5    6\n[4,]    7    8\n[5,]    9   10\n\n\n     [,1] [,2]\n[1,]    1    6\n[2,]    2    7\n[3,]    3    8\n[4,]    4    9\n[5,]    5   10\n\n# check dimensions\ndim(matrix_a)\n\n[1] 5 2\n\nnrow(matrix_a)\n\n[1] 5\n\nncol(matrix_a)\n\n[1] 2\n\n# assign names\nrownames(matrix_a) &lt;- c(\"Row 1\", \"Row 2\", \"Row 3\", \"Row 4\", \"Row 5\")\ncolnames(matrix_a) &lt;- c(\"Col 1\", \"Col 2\")\n\n# combine\nmatrix_a1 &lt;- cbind(matrix_a, 1:5)  # add column\nmatrix_c &lt;- rbind(matrix_a, 1:2) # add row\n\n\n\n\n\n\n\n\n\nmatrix_c[1, 2]     # row 1, col 2 (element)\nmatrix_c[1, ]       # entire row 1\nmatrix_c[, 1]       # entire col 1\nmatrix_c[1:5, 1]  # subset selection\nmatrix_c[-1, ]      # exclude row 1\n\n\n\n\n\n\n\n\n\nA two-dimensional structure that can hold multiple data types\nMost commonly used in real-world analyses\n\n\n\n\n\n\n\n\n\n\ndf &lt;- data.frame(\n  x = c(35, 42, 50),\n  y = c(\"M\", \"F\", \"F\"),\n  z = c(TRUE, FALSE, TRUE)\n)\ndf\n\n   x y     z\n1 35 M  TRUE\n2 42 F FALSE\n3 50 F  TRUE\n\n# inspect structure\nstr(df)\n\n'data.frame':   3 obs. of  3 variables:\n $ x: num  35 42 50\n $ y: chr  \"M\" \"F\" \"F\"\n $ z: logi  TRUE FALSE TRUE\n\ndim(df)\n\n[1] 3 3\n\nnames(df) # = colnames\n\n[1] \"x\" \"y\" \"z\"\n\n# rename columns\nnames(df) &lt;- c('age', 'gender', 'recur')\ndf\n\n  age gender recur\n1  35      M  TRUE\n2  42      F FALSE\n3  50      F  TRUE\n\n\n\n# indexing\ndf[1, 2]      # row 1, col 2\ndf[1:2, ]     # rows 1–2\ndf$age        # age column ($ operator)\n\n\n# add column\nBMI &lt;- c(19, 35, 25)\ndf$BMI &lt;- BMI\n\n# subset\nsubset(df, subset = BMI &gt; 30)\n\n  age gender recur BMI\n2  42      F FALSE  35\n\n# sort\ndf_order &lt;- df[order(df$BMI), ]\ndf_order\n\n  age gender recur BMI\n1  35      M  TRUE  19\n3  50      F  TRUE  25\n2  42      F FALSE  35\n\ndf_order &lt;- df[order(df$gender, df$BMI), ]\ndf_order\n\n  age gender recur BMI\n3  50      F  TRUE  25\n2  42      F FALSE  35\n1  35      M  TRUE  19\n\ndf_order &lt;- df[order(-df$age, df$age), ]  # descending\ndf_order\n\n  age gender recur BMI\n3  50      F  TRUE  25\n2  42      F FALSE  35\n1  35      M  TRUE  19\n\n\n\n\n\n\nA container that groups together data of different types and structures.\n\nvect &lt;- 1:5\nmat  &lt;- matrix(1:9, ncol = 3)\ndf   &lt;- iris[1:5, ]\n\n# create list\nmy_list &lt;- list(vect, mat, df)\nmy_list\n\n[[1]]\n[1] 1 2 3 4 5\n\n[[2]]\n     [,1] [,2] [,3]\n[1,]    1    4    7\n[2,]    2    5    8\n[3,]    3    6    9\n\n[[3]]\n  Sepal.Length Sepal.Width Petal.Length Petal.Width Species\n1          5.1         3.5          1.4         0.2  setosa\n2          4.9         3.0          1.4         0.2  setosa\n3          4.7         3.2          1.3         0.2  setosa\n4          4.6         3.1          1.5         0.2  setosa\n5          5.0         3.6          1.4         0.2  setosa\n\n# indexing: [[ ]]\nmy_list[[2]]  # retrieve the matrix\n\n     [,1] [,2] [,3]\n[1,]    1    4    7\n[2,]    2    5    8\n[3,]    3    6    9",
+    "crumbs": [
+      "Home",
+      "1. R basics",
+      "W2. R Fundamentals"
+    ]
+  },
+  {
+    "objectID": "chapters/part1/W2_rbasics.html#operations-in-r",
+    "href": "chapters/part1/W2_rbasics.html#operations-in-r",
+    "title": "W2. R Fundamentals",
+    "section": "2. Operations in R",
+    "text": "2. Operations in R\n\n1) Arithmetic Operators\n\n\n\nOperator\nDescription\nExample\n\n\n\n\n+\nAddition\n3 + 4\n\n\n-\nSubtraction\n5 - 2\n\n\n*\nMultiplication\n3 * 5\n\n\n/\nDivision\n(5+5) / 2\n\n\n^ or **\nExponentiation\n2^5\n\n\n%%\nModulo\n27 %% 6 → 3\n\n\n%/%\nInteger divide\n27 %/% 6 → 4\n\n\n\n\n\n\n2) Logical Operators\n\n\n\nOperator\nDescription\n\n\n\n\n&lt;, &lt;=, &gt;, &gt;=\nComparison\n\n\n==\nEqual to\n\n\n!=\nNot equal to\n\n\nx | y\nOR\n\n\nx & y\nAND\n\n\n\n\nlogical_vector &lt;- 1:10\nlogical_vector &gt; 5\n\n [1] FALSE FALSE FALSE FALSE FALSE  TRUE  TRUE  TRUE  TRUE  TRUE\n\n# combining conditions\nlogical_vector[(logical_vector &gt; 4) & (logical_vector &lt; 7)]\n\n[1] 5 6\n\n# which: returns indices satisfying the condition\nslice_vector &lt;- c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)\nslice_vector[which(slice_vector %% 3 == 0)]  # multiples of 3\n\n[1] 3 6 9",
+    "crumbs": [
+      "Home",
+      "1. R basics",
+      "W2. R Fundamentals"
+    ]
+  },
+  {
+    "objectID": "chapters/part1/W2_rbasics.html#basic-programming-with-r",
+    "href": "chapters/part1/W2_rbasics.html#basic-programming-with-r",
+    "title": "W2. R Fundamentals",
+    "section": "3. Basic Programming with R",
+    "text": "3. Basic Programming with R\n\n1) Functions\n\nMath Functions\n\n\n\nFunction\nDescription\n\n\n\n\nabs(x)\nAbsolute value\n\n\nlog(x, base=y)\nLogarithm (default: natural log)\n\n\nexp(x)\n\\(e^x\\)\n\n\nsqrt(x)\n\\(\\sqrt{x}\\)\n\n\nfactorial(x)\n\\(x!\\)\n\n\n\n\nabs(-5)\nlog(8)\nlog(8, base=2)  # log2(8)\nexp(2)\nsqrt(9)\nfactorial(4)\n\n\n\n\nStatistical Functions\n\n\n\nFunction\nDescription\n\n\n\n\nmean(x)\nMean\n\n\nmedian(x)\nMedian\n\n\nvar(x)\nVariance\n\n\nsd(x)\nStandard deviation\n\n\nscale(x)\nZ-score\n\n\nquantile(x)\nQuantiles\n\n\nsummary(x)\nSummary statistics\n\n\n\n\nspeed &lt;- cars$speed\nhead(speed); length(speed)\n\n[1] 4 4 7 7 8 9\n\n\n[1] 50\n\n\n\nmean(speed)\nmedian(speed)\nvar(speed)\nsd(speed)\nhead(scale(speed), 5)\nquantile(speed)\nsummary(speed)\n\n\n\n\nUser-defined Functions\n\n# single argument\nsquare_function &lt;- function(n) {\n  n^2\n}\nsquare_function(4)  # 16\n\n[1] 16\n\n# multiple arguments\ntimes &lt;- function(x, y) {\n  x * y\n}\ntimes(2, 4)  # 8\n\n[1] 8\n\n\n\n\n\n\n2) if / else\n\nquantity &lt;- 25\n\nif (quantity &gt; 20) {\n  print('You sold a lot!')\n} else {\n  print('Not enough for today')\n}\n\n[1] \"You sold a lot!\"\n\n# else if\nquantity &lt;- 10\n\nif (quantity &lt; 20) {\n  print('Not enough for today')\n} else if (quantity &gt; 20 & quantity &lt;= 30) {\n  print('Average day')\n} else {\n  print('What a great day!')\n}\n\n[1] \"Not enough for today\"\n\n\n\n\n\n3) for / while\n\n# for\nfruit &lt;- c('Apple', 'Orange', 'Passion fruit', 'Banana')\n\nfor (i in fruit) {\n  print(i)\n}\n\n[1] \"Apple\"\n[1] \"Orange\"\n[1] \"Passion fruit\"\n[1] \"Banana\"\n\n# for + list\nlist &lt;- c()\n\nfor (i in seq(1, 4, by = 1)) {\n  list[[i]] &lt;- i * i\n}\nprint(list)\n\n[[1]]\n[1] 1\n\n[[2]]\n[1] 4\n\n[[3]]\n[1] 9\n\n[[4]]\n[1] 16\n\n# while\nbegin &lt;- 1\n\nwhile (begin &lt;= 10) {\n  cat('This is loop number', begin)\n  begin &lt;- begin + 1\n  print(begin)\n}\n\nThis is loop number 1[1] 2\nThis is loop number 2[1] 3\nThis is loop number 3[1] 4\nThis is loop number 4[1] 5\nThis is loop number 5[1] 6\nThis is loop number 6[1] 7\nThis is loop number 7[1] 8\nThis is loop number 8[1] 9\nThis is loop number 9[1] 10\nThis is loop number 10[1] 11\n\n\n\n\n\n4) apply family\n\n\n\nFunction\nInput\nOutput\n\n\n\n\napply(x, MARGIN, FUN)\ndf / matrix\nvector, list, array\n\n\nlapply(X, FUN)\nlist, vector, df\nlist\n\n\nsapply(X, FUN)\nlist, vector, df\nvector / matrix\n\n\ntapply(X, INDEX, FUN)\nvector + factor\nmeasure\n\n\n\n\nm1 &lt;- matrix(1:10, nrow = 5, ncol = 6)\nm1\n\n     [,1] [,2] [,3] [,4] [,5] [,6]\n[1,]    1    6    1    6    1    6\n[2,]    2    7    2    7    2    7\n[3,]    3    8    3    8    3    8\n[4,]    4    9    4    9    4    9\n[5,]    5   10    5   10    5   10\n\n# apply: row-wise sum\napply(m1, 1, sum)\n\n[1] 21 27 33 39 45\n\n# apply: column-wise sum\napply(m1, 2, sum)\n\n[1] 15 40 15 40 15 40\n\n# lapply: uppercase → lowercase\nmovies &lt;- c(\"SPYDERMAN\", \"BATMAN\", \"VERTIGO\", \"CHINATOWN\")\nlapply(movies, tolower)\n\n[[1]]\n[1] \"spyderman\"\n\n[[2]]\n[1] \"batman\"\n\n[[3]]\n[1] \"vertigo\"\n\n[[4]]\n[1] \"chinatown\"\n\n# sapply: returns a vector\nhead(cars)\n\n  speed dist\n1     4    2\n2     4   10\n3     7    4\n4     7   22\n5     8   16\n6     9   10\n\nsapply(cars, min)\n\nspeed  dist \n    4     2 \n\n# tapply: group-wise summary\nhead(iris)\n\n  Sepal.Length Sepal.Width Petal.Length Petal.Width Species\n1          5.1         3.5          1.4         0.2  setosa\n2          4.9         3.0          1.4         0.2  setosa\n3          4.7         3.2          1.3         0.2  setosa\n4          4.6         3.1          1.5         0.2  setosa\n5          5.0         3.6          1.4         0.2  setosa\n6          5.4         3.9          1.7         0.4  setosa\n\ntapply(iris$Sepal.Width, iris$Species, median)\n\n    setosa versicolor  virginica \n       3.4        2.8        3.0",
+    "crumbs": [
+      "Home",
+      "1. R basics",
+      "W2. R Fundamentals"
+    ]
+  },
+  {
+    "objectID": "chapters/part1/W2_rbasics.html#packages",
+    "href": "chapters/part1/W2_rbasics.html#packages",
+    "title": "W2. R Fundamentals",
+    "section": "4. Packages",
+    "text": "4. Packages\na collection of pre-defined, reusable functions\n\nCRAN (official app store)\n\ninstall.packages('package_name')\n\n\n\nBioconductor (for omics analysis)\n\nif (!require(\"BiocManager\", quietly = TRUE)) {\n  install.packages(\"BiocManager\")\n} else {\n  BiocManager::install(\"DESeq2\")\n}",
+    "crumbs": [
+      "Home",
+      "1. R basics",
+      "W2. R Fundamentals"
+    ]
+  },
+  {
+    "objectID": "chapters/part1/W2_rbasics.html#working-directory-file-io",
+    "href": "chapters/part1/W2_rbasics.html#working-directory-file-io",
+    "title": "W2. R Fundamentals",
+    "section": "5. Working Directory & File I/O",
+    "text": "5. Working Directory & File I/O\n\n1) Working Directory\nyour current folder where R can read and write files\n\n\n\n\n\n\n# check the current working directory \ngetwd()\n\n[1] \"C:/Users/USER/BI_for_MD_PhD_KNUmed\"\n\n# change your working directory \nsetwd('C:\\\\Users\\\\USER\\\\BI_for_MD_PhD_KNUmed')\n\n# dir.create(\"your_path\") # create directory\n# dir.exists(\"your_path\") # check if the directory exists\n\n\n\n\n2) R Project (.Rproj)\nR env file to fix your working directory\n\nhow to create R project\nRStudio → File → New Project → New Directory (or Existing Directory)\n\n\n\n\n\n\n\n\nrecommended structure of folders\nmy_project/\n├── my_project.Rproj  ← setting working directory where this file exists\n├── scripts/          ← R scripts (.R)\n│   ├── 1_table1.R\n│   ├── 2_preprocessing.R\n│   └── 3_figure.R\n├── rawdata/          ← raw data (never change)\n│   └── clinical_data.xlsx\n├── analysis/         ← preprocessed data\n│   ├── 1_cleaned_data.rds\n│   ├── 1_df_pt.rds\n│   ├── 1_table1.rds\n│   ├── 2_df_pt_processed.rds\n│   ├── 3_cox_model.rds\n│   ├── 3_cox_tidy.rds\n└── results/          ← final results\n│   ├── Table1.docx\n│   ├── KM_OS.tiff\n│   └── forest_OS.tiff\n└── logs/ or docs/     ← whatever\n\n\n\n\n\n\n\n\n\n\n\nTipwhen you need R Project\n\n\n\n\n\n\n\n\n\n\n\n\nsetwd()\nR Project\n\n\n\n\npath compatibility\n❌ only in your computer … need hard coding\n✅wherever\n\n\nreproducibility\n❌ low\n✅ high\n\n\ncowork, git\n❌ hard\n✅ easy\n\n\n\n\n\n\n\n\n\n3) File Read & Write\n\nCSV / TSV\n\n# --- Read ---\n# CSV (Comma-Separated Values)\ndf &lt;- read.csv(\"examples/data/part1/my_data.csv\")\n\n# TSV (Tab-Separated Values)\ndf &lt;- read.table(\"examples/data/part1/my_data.csv\", sep = \"\\t\", header = TRUE)\n\n# readr/bigreadr: faster and more options (recommended)\nlibrary(readr)\ndf &lt;- read_csv(\"examples/data/part1/my_data.csv\")    # CSV\ndf &lt;- read_tsv(\"examples/data/part1/my_data.tsv\")    # TSV\n\n# --- Write ---\nwrite.csv(df, \"examples/analysis/w2_my_data.csv\", row.names = FALSE)\n\nlibrary(readr)\nwrite_csv(df, \"examples/analysis/w2_my_data.csv\") \nwrite_tsv(df, \"examples/analysis/w2_my_data.tsv\")\n\n\n\n\n\n\n\nNoteread.csv vs read_csv\n\n\n\n\n\n\n\nread.csv (base R)\nread_csv (readr)\n\n\n\n\nspeed\nnormal\nfast (better for large-scale data)\n\n\ncharacter column\nautomatically convert to factor\nkeep character\n\n\noutput\ndata.frame\ntibble\n\n\nwhen recommended\nsimple task\nreal analysis (?)\n\n\n\n\n\n\n\nExcel\n\nlibrary(readxl)\n\n# set sheet\ndf &lt;- read_excel(\"examples/data/part1/my_data.xlsx\", sheet = \"Sheet1\")\n\n# set range\ndf &lt;- read_excel(\"examples/data/part1/my_data.xlsx\", range = \"A1:D50\")\n\n\n\n\n\n4) RDS (R Data Serialization)\nfor saving data (R objects; list, results, …) in R\n\n# save your data\nsaveRDS(df, \"examples/analysis/w2_my_data.rds\")\n\n# load your data\ndf_loaded &lt;- readRDS(\"examples/analysis/w2_my_data.rds\")\n\n# 모델 결과 저장 예시\nfit &lt;- lm(mpg ~ wt, data = mtcars)\nsaveRDS(fit, \"examples/analysis/w2_linear_model.rds\")\nfit_loaded &lt;- readRDS(\"examples/analysis/w2_linear_model.rds\")\n\n\n\n\n\n\n\nTipwhen rds helps\n\n\n\n\n\n\n\n\n\n\nwhen\nrecommended format\n\n\n\n\nsharing your data\n.csv / .tsv\n\n\nre-use after pre-processing of data\n.rds\n\n\nfor large-scale data, list, model results\n.rds\n\n\nfor multiple R data\n.RData (save() / load())\n\n\n\n\n\n\nsave(df, fit, file = \"examples/analysis/w2_my_workspace.RData\")\nrm(list = ls())\n\nload(\"examples/analysis/w2_my_workspace.RData\")  # df, fit\nls()",
+    "crumbs": [
+      "Home",
+      "1. R basics",
+      "W2. R Fundamentals"
+    ]
+  },
+  {
+    "objectID": "chapters/part1/W2_rbasics.html#week-2-assignment",
+    "href": "chapters/part1/W2_rbasics.html#week-2-assignment",
+    "title": "W2. R Fundamentals",
+    "section": "📝 Week 2 Assignment",
+    "text": "📝 Week 2 Assignment\n\nStore your age and height in a variable called my_info\nInstall dplyr and ggplot2 using install.packages()\nCreate a team_data data frame with information about 3 colleagues (name, age, specialty)\nExtract the specialty column from team_data using $\nExtract the second person’s information from team_data using [,]\n\n\nPlease submit a snapshot of your screen",
+    "crumbs": [
+      "Home",
+      "1. R basics",
+      "W2. R Fundamentals"
+    ]
+  },
+  {
+    "objectID": "chapters/part1/W4_publicdb.html",
+    "href": "chapters/part1/W4_publicdb.html",
+    "title": "W4. Public Database Exploration",
+    "section": "",
+    "text": "Public databases are used for pilot studies or external validation.\n\n\n\n\n\nDB\nData Provided\nNotes\n\n\n\n\nGEO\ncount matrix + metadata\nMost widely used\n\n\nSRA\nraw FASTQ\nRequires SRA Toolkit\n\n\nEGA\nraw FASTQ\nEuropean; access request + fee required\n\n\nTCGA/GDC\nmulti-omics including count matrix\nCancer-specific\n\n\nGTEx\ncount matrix\nNormal tissue reference\n\n\n\n\n\n\n\n\n\n\nTip\n\n\n\nYou can find GSE/SRA accession numbers in the Data Availability section of publications.\n\n\n\n\n\n\n\n\n\nGEO and TCGA provide preprocessed count matrices, so you can skip the FASTQ → alignment step.",
+    "crumbs": [
+      "Home",
+      "1. R basics",
+      "W4. Public Database Exploration"
+    ]
+  },
+  {
+    "objectID": "chapters/part1/W4_publicdb.html#public-databases",
+    "href": "chapters/part1/W4_publicdb.html#public-databases",
+    "title": "W4. Public Database Exploration",
+    "section": "",
+    "text": "Public databases are used for pilot studies or external validation.\n\n\n\n\n\nDB\nData Provided\nNotes\n\n\n\n\nGEO\ncount matrix + metadata\nMost widely used\n\n\nSRA\nraw FASTQ\nRequires SRA Toolkit\n\n\nEGA\nraw FASTQ\nEuropean; access request + fee required\n\n\nTCGA/GDC\nmulti-omics including count matrix\nCancer-specific\n\n\nGTEx\ncount matrix\nNormal tissue reference\n\n\n\n\n\n\n\n\n\n\nTip\n\n\n\nYou can find GSE/SRA accession numbers in the Data Availability section of publications.\n\n\n\n\n\n\n\n\n\nGEO and TCGA provide preprocessed count matrices, so you can skip the FASTQ → alignment step.",
+    "crumbs": [
+      "Home",
+      "1. R basics",
+      "W4. Public Database Exploration"
+    ]
+  },
+  {
+    "objectID": "chapters/part1/W4_publicdb.html#browsing-geo",
+    "href": "chapters/part1/W4_publicdb.html#browsing-geo",
+    "title": "W4. Public Database Exploration",
+    "section": "2. Browsing GEO",
+    "text": "2. Browsing GEO\n\n1) How to Search\n① Boolean operators\n\nLung Cancer AND RNA-seq\nNSCLC OR Adenocarcinoma\nNOT Cell line\n\n② MeSH Terms: “Lung Neoplasms”[MeSH Terms]\n\n\n\n\n\n\n\nGEO Terminology\n\n\n\nPrefix\nMeaning\nExample\n\n\n\n\nGSE\nSeries (study/paper level)\nGSE159857\n\n\nGSM\nSample (individual tissue)\nGSM4839001\n\n\nGPL\nPlatform (sequencing platform)\nGPL20301\n\n\n\n\n\nCriteria for a Good Dataset\n\nSample size: sufficient N (minimum 30 recommended)\nExperimental design: comparable control vs. case groups\nMetadata: key variables available (e.g., duration, drug response, age, sex)",
+    "crumbs": [
+      "Home",
+      "1. R basics",
+      "W4. Public Database Exploration"
+    ]
+  },
+  {
+    "objectID": "chapters/part1/W4_publicdb.html#getting-geo-data-geoquery",
+    "href": "chapters/part1/W4_publicdb.html#getting-geo-data-geoquery",
+    "title": "W4. Public Database Exploration",
+    "section": "2) Getting GEO Data: GEOquery",
+    "text": "2) Getting GEO Data: GEOquery\n\n① Load and Clean Metadata\n\nlibrary(GEOquery)\nlibrary(tidyverse)\n\n# 1. load data\ngse_id &lt;- \"GSE159857\"\ngset &lt;- getGEO(gse_id, GSEMatrix = TRUE)\n# str(gset) # check the structure\nlength(gset)\n\n[1] 1\n\ngset_data &lt;- gset[[1]]\nclass(gset_data)\n\n[1] \"ExpressionSet\"\nattr(,\"package\")\n[1] \"Biobase\"\n\n# 2. extract metadata\nmeta_data &lt;- pData(gset_data) %&gt;% as_tibble()\nview(meta_data)\nnames(meta_data)\n\n [1] \"title\"                   \"geo_accession\"          \n [3] \"status\"                  \"submission_date\"        \n [5] \"last_update_date\"        \"type\"                   \n [7] \"channel_count\"           \"source_name_ch1\"        \n [9] \"organism_ch1\"            \"characteristics_ch1\"    \n[11] \"characteristics_ch1.1\"   \"characteristics_ch1.2\"  \n[13] \"characteristics_ch1.3\"   \"characteristics_ch1.4\"  \n[15] \"molecule_ch1\"            \"extract_protocol_ch1\"   \n[17] \"extract_protocol_ch1.1\"  \"taxid_ch1\"              \n[19] \"description\"             \"data_processing\"        \n[21] \"data_processing.1\"       \"data_processing.2\"      \n[23] \"data_processing.3\"       \"data_processing.4\"      \n[25] \"platform_id\"             \"contact_name\"           \n[27] \"contact_email\"           \"contact_institute\"      \n[29] \"contact_address\"         \"contact_city\"           \n[31] \"contact_zip/postal_code\" \"contact_country\"        \n[33] \"data_row_count\"          \"instrument_model\"       \n[35] \"library_selection\"       \"library_source\"         \n[37] \"library_strategy\"        \"relation\"               \n[39] \"relation.1\"              \"supplementary_file_1\"   \n[41] \"cancer subtype:ch1\"      \"disease state:ch1\"      \n[43] \"patient diagnosis:ch1\"   \"subject id:ch1\"         \n[45] \"tissue:ch1\"             \n\n\n\n\n# 3. select relevant columns\nclean_meta &lt;- meta_data %&gt;%\n  select(geo_accession, title,\n         `cancer subtype:ch1`,\n         `disease state:ch1`) %&gt;%\n  transmute(geo_accession,\n            sample = title,\n            cancer_type = `cancer subtype:ch1`,\n            disease = `disease state:ch1`)\nclean_meta %&gt;% head\n\n# A tibble: 6 × 4\n  geo_accession sample   cancer_type disease\n  &lt;chr&gt;         &lt;chr&gt;    &lt;chr&gt;       &lt;chr&gt;  \n1 GSM4848811    A10N_S1  Adenoma     Normal \n2 GSM4848812    A10T_S12 Adenoma     Tumor  \n3 GSM4848813    A12N_S23 Adenoma     Normal \n4 GSM4848814    A14N_S45 Adenoma     Normal \n5 GSM4848815    A14T_S56 Adenoma     Tumor  \n6 GSM4848816    A15N_S58 Adenoma     Normal \n\n# check\ntable(clean_meta$cancer_type)\n\n\nAdenoma Squamus \n     29      29 \n\ntable(clean_meta$disease)\n\n\nNormal  Tumor \n    26     32 \n\ntable(clean_meta$cancer_type, clean_meta$disease)\n\n         \n          Normal Tumor\n  Adenoma     14    15\n  Squamus     12    17\n\n\n\n\n\n② Retrieving Expression Data\n\n# Method 1: exprs() — often empty\nexpr_matrix &lt;- exprs(gset_data)\ndim(expr_matrix)\n\n# Method 2: getGEOSuppFiles() — download supplementary files\ngetGEOSuppFiles(gse_id)\n\n\n# Method 3: manual download (most reliable)\nfile_path &lt;- 'examples/data/part1/GSE159857_raw_counts_GRCh38.p13_NCBI.tsv.gz'\nraw_counts &lt;- read.table(file_path, header = TRUE, sep = \"\\t\", row.names = 1)\ndim(raw_counts)\n\n[1] 39376    58\n\nhead(raw_counts[,1:5])\n\n          GSM4848811 GSM4848812 GSM4848813 GSM4848814 GSM4848815\n100287102          1          0          2          2          1\n653635            13         23         34         52        106\n102466751          0          0          1          1          1\n107985730          0          0          1          0          1\n100302278          0          0          0          0          0\n645520             0          0          2          0          0\n\n\n\n\n\n③ Matching Expression Data with Metadata (Important!)\n\n\n\n\n\n\nImportant\n\n\n\nThe row (sample) order in metadata must match the column (sample) order in the count matrix exactly.\n\n\n\n# find common samples\ncommon_samples &lt;- intersect(colnames(raw_counts), clean_meta$geo_accession)\nlength(common_samples)\n\n# align order\nclean_meta &lt;- clean_meta[match(common_samples, clean_meta$geo_accession), ]\nraw_counts &lt;- raw_counts[, match(common_samples, colnames(raw_counts))]\n\n# verify\nall(clean_meta$geo_accession == colnames(raw_counts))  # must be TRUE\n\n# save\nwrite.table(clean_meta, file = 'examples/analysis/part1/clean_meta.txt',\n            sep = \"\\t\", quote = F, row.names = F, col.names = T)\nwrite.table(raw_counts, file = 'examples/analysis/part1/raw_counts.txt',\n            sep = \"\\t\", quote = F, row.names = F, col.names = T)",
+    "crumbs": [
+      "Home",
+      "1. R basics",
+      "W4. Public Database Exploration"
+    ]
+  },
+  {
+    "objectID": "chapters/part1/W4_publicdb.html#browsing-tcga",
+    "href": "chapters/part1/W4_publicdb.html#browsing-tcga",
+    "title": "W4. Public Database Exploration",
+    "section": "3. Browsing TCGA",
+    "text": "3. Browsing TCGA\n\n1) GDC Data Portal (GUI)\n\n① Projects: browse by project (e.g., TCGA-LUAD)\n\n\n\n\n\n\n\n\n② Cohort Builder: build cohorts based on clinical variables\n\n\n\n\n\n\n\n\n③ Analysis Center: survival analysis, clinical data visualization\n\n\n\n\n\n\n\n\n\n2) TCGAbiolinks (R package)\n\n① Retrieving Clinical Data\n\n# install packages (once)\nBiocManager::install(\"TCGAbiolinks\")\nBiocManager::install(\"SummarizedExperiment\")\n\n\nlibrary(tidyverse)\nlibrary(TCGAbiolinks)\nlibrary(SummarizedExperiment)\n\n# metadata\nproject_name &lt;- \"TCGA-LUAD\"\nclinical_luad &lt;- GDCquery_clinic(project = project_name, type = \"clinical\") %&gt;%\n  as_tibble()\n\nnames(clinical_luad)\n\n# select relevant columns\nclinical_luad_subset &lt;- clinical_luad %&gt;%\n  select(submitter_id, age_at_index, gender,\n         vital_status, days_to_death, ajcc_pathologic_stage)\n\nwrite.table(clinical_luad_subset, 'examples/analysis/part1/clinical_luad_subset.txt',\n            sep = \"\\t\", quote = F, row.names = F, col.names = T)\nsaveRDS(clinical_luad_subset, 'examples/analysis/part1/clinical_luad_subset.rds')\n\n\n\n\n② Retrieving Expression Data\n\n# set up query (may take time)\nquery_luad &lt;- GDCquery(\n  project = \"TCGA-LUAD\",\n  data.category = \"Transcriptome Profiling\",\n  experimental.strategy = \"RNA-Seq\",\n  workflow.type = \"STAR - Counts\"  # select Raw Counts for DESeq2\n)\nsaveRDS(query_luad, 'examples/analysis/part1/query_luad.rds')\n\n# (for practice) use only the first 20 samples\nquery_luad$results[[1]] &lt;- query_luad$results[[1]] %&gt;%\n  filter(access == 'open') %&gt;% .[1:20, ]\n\n# download\nGDCdownload(query_luad)\n\n# prepare as SummarizedExperiment object\nluad_data &lt;- GDCprepare(query_luad)\nclass(luad_data)\n\n\n\n\n③ Matching Count Matrix with Metadata\n\nluad_data = readRDS('examples/analysis/part1/query_luad.rds')\n\n# Count Matrix\ncount_matrix &lt;- assay(luad_data)\nhead(count_matrix)  # gene ID = Ensembl ID\n\n# Metadata\nmeta_data &lt;- colData(luad_data) %&gt;% as_tibble\nnames(meta_data) %&gt;% head\n\nclean_meta &lt;- meta_data %&gt;%\n  select(patient, sample, definition, tissue_type,\n         ajcc_pathologic_stage, race, gender, age_at_index, days_to_birth)\n\n# check\ntable(clean_meta$tissue_type)\ntable(clean_meta$definition)",
+    "crumbs": [
+      "Home",
+      "1. R basics",
+      "W4. Public Database Exploration"
+    ]
+  },
+  {
+    "objectID": "chapters/part1/W4_publicdb.html#tips-gene-id-conversion",
+    "href": "chapters/part1/W4_publicdb.html#tips-gene-id-conversion",
+    "title": "W4. Public Database Exploration",
+    "section": "Tips: Gene ID Conversion",
+    "text": "Tips: Gene ID Conversion\nCommon gene ID systems used in RNA-seq data:\n\n\n\n\n\n\n\n\n\nID Type\nExample\nSource\nUse Case\n\n\n\n\nGene Symbol\nTP53, EGFR\nHGNC\nHuman-readable (may have duplicates)\n\n\nEnsembl ID\nENSG00000141510\nEBI\nRNA-seq aligner output; unique and stable\n\n\nEntrez ID\n7157\nNCBI\nGene set labels (KEGG, GO)\n\n\n\n\nConversion Method: org.Hs.eg.db + mapIds()\n\nlibrary(tidyverse)\nlibrary(org.Hs.eg.db)\nlibrary(AnnotationDbi)\n\n# remove version numbers from Ensembl IDs\nmy_ids &lt;- rownames(count_matrix)\nhead(my_ids)  # ENSG00000141510.15\n\nmy_ids &lt;- sapply(my_ids, function(x) {\n  strsplit(x, '\\\\.') %&gt;% unlist %&gt;% .[[1]]\n})\nmy_ids &lt;- as.character(my_ids)\n\n# Ensembl → Symbol\nmy_symbol &lt;- mapIds(org.Hs.eg.db,\n                    keys = my_ids,\n                    column = \"SYMBOL\",\n                    keytype = \"ENSEMBL\",\n                    multiVals = \"first\")\n\n# Ensembl → Entrez ID (for GSEA/KEGG)\nmy_entrez &lt;- mapIds(org.Hs.eg.db,\n                    keys = my_ids,\n                    column = \"ENTREZID\",\n                    keytype = \"ENSEMBL\",\n                    multiVals = \"first\")\n\n# inspect\nmy_genes &lt;- tibble(ids = my_ids,\n                   symbol = my_symbol,\n                   entrez = my_entrez)\n\n# check for NAs (novel genes, pseudogenes, version mismatches, etc.)\nsum(is.na(my_genes$symbol))\nmy_genes %&gt;% filter(is.na(symbol))",
+    "crumbs": [
+      "Home",
+      "1. R basics",
+      "W4. Public Database Exploration"
+    ]
+  },
+  {
+    "objectID": "chapters/part1/W4_publicdb.html#week-4-assignment",
+    "href": "chapters/part1/W4_publicdb.html#week-4-assignment",
+    "title": "W4. Public Database Exploration",
+    "section": "📝 Week 4 Assignment",
+    "text": "📝 Week 4 Assignment\n\n1. GEO Dataset for Pilot Study\n\nSearch GEO for a keyword related to your research interest\nEvaluate the dataset using the following criteria:\n\nSample size (N &gt; 30?)\nExperimental design (paired tissue?)\nMetadata (at least 3 key variables?)\n\nLoad the data with getGEO() and inspect the metadata using pData()\n\n\n\n2. GDC Data Portal\n\nSelect a project of interest\nDraw a survival curve based on a specific variable in the Analysis Center\nCheck the Log-Rank Test P-value\n\n\nPlease submit a screenshot of your screen.",
+    "crumbs": [
+      "Home",
+      "1. R basics",
+      "W4. Public Database Exploration"
+    ]
+  },
+  {
+    "objectID": "chapters/part2/W6_EDA.html",
+    "href": "chapters/part2/W6_EDA.html",
+    "title": "W6. Exploratory Data Analysis (EDA)",
+    "section": "",
+    "text": "Visualize data before statistical analysis to understand its overall characteristics and quality\n\nQuality Control: identify outlier samples\nBatch Effect Detection: check whether technical noise (experiment date, instrument, etc.) is masking biological signal\nHeteroscedasticity: variance increases with expression level → a small number of highly expressed genes can dominate the entire analysis\n\n\n\n\nwe need to transform our data (RNA-seq data) for statistic analyses\n\n\n\n\n\n\n\n\n\n\n\nCaution\n\n\n\nvst/rlog transformed values are for visualization only; raw counts must be used for differential analysis!\n\n\n\n\n\n\n\n\n\nSuitable for n ≥ 30 (large sample sizes)\nBased on a global trend → fast\nasinh transformation for highly-expressed genes\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nSuitable for n &lt; 30 (small sample sizes)\nPer-gene shrinkage (Bayesian estimation) → slow\nSuppresses noise in low-count genes\n\n\n\n\n\n\n\n\n\n\n\n\n\nNoteImagine this\n\n\n\ngene A (low):\nsample 1: 1, sample 2: 5 ➡️ logFC = log2(5/1) = 2.32 … noise ↑\n\ngene B (high):\nsample 1: 1000, sample 2: 1004 ➡️ logFC = log2(1004/1000) = 0.005 … noise ↓ (stabilized)",
+    "crumbs": [
+      "Home",
+      "2. DEG analysis",
+      "W6. Exploratory Data Analysis (EDA)"
+    ]
+  },
+  {
+    "objectID": "chapters/part2/W6_EDA.html#explanatory-data-analysis-eda",
+    "href": "chapters/part2/W6_EDA.html#explanatory-data-analysis-eda",
+    "title": "W6. Exploratory Data Analysis (EDA)",
+    "section": "",
+    "text": "Visualize data before statistical analysis to understand its overall characteristics and quality\n\nQuality Control: identify outlier samples\nBatch Effect Detection: check whether technical noise (experiment date, instrument, etc.) is masking biological signal\nHeteroscedasticity: variance increases with expression level → a small number of highly expressed genes can dominate the entire analysis\n\n\n\n\nwe need to transform our data (RNA-seq data) for statistic analyses\n\n\n\n\n\n\n\n\n\n\n\nCaution\n\n\n\nvst/rlog transformed values are for visualization only; raw counts must be used for differential analysis!\n\n\n\n\n\n\n\n\n\nSuitable for n ≥ 30 (large sample sizes)\nBased on a global trend → fast\nasinh transformation for highly-expressed genes\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nSuitable for n &lt; 30 (small sample sizes)\nPer-gene shrinkage (Bayesian estimation) → slow\nSuppresses noise in low-count genes\n\n\n\n\n\n\n\n\n\n\n\n\n\nNoteImagine this\n\n\n\ngene A (low):\nsample 1: 1, sample 2: 5 ➡️ logFC = log2(5/1) = 2.32 … noise ↑\n\ngene B (high):\nsample 1: 1000, sample 2: 1004 ➡️ logFC = log2(1004/1000) = 0.005 … noise ↓ (stabilized)",
+    "crumbs": [
+      "Home",
+      "2. DEG analysis",
+      "W6. Exploratory Data Analysis (EDA)"
+    ]
+  },
+  {
+    "objectID": "chapters/part2/W6_EDA.html#visual-exploration-qc-part-ii",
+    "href": "chapters/part2/W6_EDA.html#visual-exploration-qc-part-ii",
+    "title": "W6. Exploratory Data Analysis (EDA)",
+    "section": "2. Visual Exploration (QC Part II)",
+    "text": "2. Visual Exploration (QC Part II)\nWhat to check through visualization:\n\nIs there a difference between groups?\nAre there any outlier samples?\nIs there a batch effect?\n\n\n\n\n\n\n\nNotedownload practice data\n\n\n\nsave the following files in data/ in your R project\n\n\n\nFile\nLink\n\n\n\n\nraw_counts_final.rds\n📥 Download\n\n\nmeta_data_final.rds\n📥 Download\n\n\n\n\n\n\n\nSample Correlation Heatmap\n\nlibrary(pheatmap)\nlibrary(RColorBrewer)\n\nsampleDists &lt;- dist(t(vsd_data))\nsampleDistMatrix &lt;- as.matrix(sampleDists)\nrownames(sampleDistMatrix) &lt;- paste(vsd$condition, vsd$type, sep = \"-\")\ncolnames(sampleDistMatrix) &lt;- NULL\n\ncolors &lt;- colorRampPalette(rev(brewer.pal(9, \"Blues\")))(255)\npheatmap(sampleDistMatrix,\n         clustering_distance_rows = sampleDists,\n         clustering_distance_cols = sampleDists,\n         col = colors)\n\n\n\n\n\n\n\n\n\nPCA Plot\n\n# PCA\npca_res &lt;- prcomp(t(vsd_data))\npca_coords &lt;- as.data.frame(pca_res$x[, 1:2])\n\nggplot(pca_coords, aes(x = PC1, y = PC2)) +\n  geom_point(size = 3) +\n  ggtitle(\"PCA Result\") +\n  theme_bw()\n\n\n\n\n\n\n\n\n\nPCA vs. MDS\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nPCA\nMDS\n\n\n\n\nInput\nRaw data matrix (sample × gene)\nDistance matrix (sample × sample)\n\n\nGoal\nPreserve variance\nPreserve pairwise distances\n\n\nMethod\nEigen decomposition\nCoordinate reconstruction\n\n\nBenefit\nLoadings reveal important genes\nSupports various distance metrics\n(Euclidean-PCA, Correlation, Bray-Curtis)\n\n\nUse\nGeneral QC, sample clustering\nMicrobiome, non-Euclidean distance",
+    "crumbs": [
+      "Home",
+      "2. DEG analysis",
+      "W6. Exploratory Data Analysis (EDA)"
+    ]
+  },
+  {
+    "objectID": "chapters/part2/W6_EDA.html#batch-effect",
+    "href": "chapters/part2/W6_EDA.html#batch-effect",
+    "title": "W6. Exploratory Data Analysis (EDA)",
+    "section": "3. Batch Effect",
+    "text": "3. Batch Effect\n\nTechnical noise arising from experiment date, sequencing platform, operator, etc.\nInspect alongside batch metadata in the PCA plot\nCorrection strategies:\n\nFor visualization: use residuals from limma::removeBatchEffect()\nFor statistical testing: include batch in the design matrix (covered next week)\n\n\n\nlibrary(limma)\n\nmat &lt;- assay(vsd)\nmm &lt;- model.matrix(~condition, colData(vsd))\nmat2 &lt;- removeBatchEffect(mat, batch = vsd$patient, design = mm)\n\n# PCA after batch removal\nrv &lt;- rowVars(mat2)\nselect &lt;- order(rv, decreasing = TRUE)[seq_len(min(500, length(rv)))]\npca &lt;- prcomp(t(mat2[select, ]))\npercentVar &lt;- round(100 * pca$sdev^2 / sum(pca$sdev^2))\n\npcaData2 &lt;- data.frame(PC1 = pca$x[, 1], PC2 = pca$x[, 2],\n                        condition = colData(vsd)$condition)\n\nggplot(pcaData2, aes(x = PC1, y = PC2, color = condition)) +\n  geom_point(size = 3) +\n  xlab(paste0(\"PC1: \", percentVar[1], \"% variance\")) +\n  ylab(paste0(\"PC2: \", percentVar[2], \"% variance\")) +\n  ggtitle(\"PCA - After Patient Effect Removal\") +\n  theme_bw()",
+    "crumbs": [
+      "Home",
+      "2. DEG analysis",
+      "W6. Exploratory Data Analysis (EDA)"
+    ]
+  },
+  {
+    "objectID": "chapters/part2/W6_EDA.html#week-6-assignment",
+    "href": "chapters/part2/W6_EDA.html#week-6-assignment",
+    "title": "W6. Exploratory Data Analysis (EDA)",
+    "section": "📝 Week 6 Assignment",
+    "text": "📝 Week 6 Assignment\n\nPlease just submit screenshots of your screen.",
+    "crumbs": [
+      "Home",
+      "2. DEG analysis",
+      "W6. Exploratory Data Analysis (EDA)"
+    ]
+  },
+  {
+    "objectID": "chapters/part2/W6_EDA.html#references",
+    "href": "chapters/part2/W6_EDA.html#references",
+    "title": "W6. Exploratory Data Analysis (EDA)",
+    "section": "References",
+    "text": "References\nDESeq2",
+    "crumbs": [
+      "Home",
+      "2. DEG analysis",
+      "W6. Exploratory Data Analysis (EDA)"
+    ]
+  },
+  {
+    "objectID": "chapters/part3/W10_GSEA.html",
+    "href": "chapters/part3/W10_GSEA.html",
+    "title": "W10. Gene Set Enrichment Analysis (GSEA)",
+    "section": "",
+    "text": "ORA Limitation\nExplanation\n\n\n\n\nCutoff dependency\nGenes with padj=1e-10 and padj=0.049 are treated identically\n\n\nDirection ignored\nInformation about up- vs. down-regulation is discarded\n\n\nBoundary problem\nIf all genes in an important pathway have padj=0.06, ORA misses it entirely\n\n\n\n✅ Solution: GSEA\n\nUses all genes, ranked by a continuous metric\nNo cutoff required → no information loss\nPreserves directionality of expression change",
+    "crumbs": [
+      "Home",
+      "3. Result interpretation",
+      "W10. Gene Set Enrichment Analysis (GSEA)"
+    ]
+  },
+  {
+    "objectID": "chapters/part3/W10_GSEA.html#introduction-the-threshold-problem",
+    "href": "chapters/part3/W10_GSEA.html#introduction-the-threshold-problem",
+    "title": "W10. Gene Set Enrichment Analysis (GSEA)",
+    "section": "",
+    "text": "ORA Limitation\nExplanation\n\n\n\n\nCutoff dependency\nGenes with padj=1e-10 and padj=0.049 are treated identically\n\n\nDirection ignored\nInformation about up- vs. down-regulation is discarded\n\n\nBoundary problem\nIf all genes in an important pathway have padj=0.06, ORA misses it entirely\n\n\n\n✅ Solution: GSEA\n\nUses all genes, ranked by a continuous metric\nNo cutoff required → no information loss\nPreserves directionality of expression change",
+    "crumbs": [
+      "Home",
+      "3. Result interpretation",
+      "W10. Gene Set Enrichment Analysis (GSEA)"
+    ]
+  },
+  {
+    "objectID": "chapters/part3/W10_GSEA.html#the-gsea-algorithm",
+    "href": "chapters/part3/W10_GSEA.html#the-gsea-algorithm",
+    "title": "W10. Gene Set Enrichment Analysis (GSEA)",
+    "section": "2. The GSEA Algorithm",
+    "text": "2. The GSEA Algorithm\n\n1) Input: Ranked Gene List\n\n\n\n\n\nRanking metric options:\n\n\n\n\n\n\n\n\nMetric\nFormula\nCharacteristics\n\n\n\n\nlog2FoldChange\nUsed directly\nSimple; focuses on effect size\n\n\nWald Statistic (recommended)\nDESeq2 stat column\nIntegrates LFC + uncertainty\n\n\nPi-value\n\\(-\\log_{10}(p) \\times \\text{sign}(LFC)\\)\nEmphasizes statistical significance\n\n\n\n\n\n\n\n\n\nTipWhich Ranking Metric Should I Use?\n\n\n\nAll three metrics are highly correlated (r &gt; 0.9), but in general:\n\nWald statistic: Accounts for both effect size and its standard error → most balanced choice\nPi-value: Emphasizes genes with strong statistical support\nBest practice: run all three and compare (sensitivity analysis)\n\n\n\n\n\n\n2) Enrichment Score (ES) Calculation\nA running sum is calculated for each gene set as you walk through the ranked list:\n\nWalk through all genes from rank 1 to N:\n  → Hit a gene IN the pathway:  running sum += 1/K  (K = pathway size)\n  → Hit a gene NOT in pathway:  running sum -= 1/(N-K)\n\nES = maximum deviation of the running sum from zero (KS statistic)\nPatterns of ES:\n\n\n\n\n\nUp-regulated pathway:   ^^^^^^^\\_____  → peak near the top\nRandom (not enriched):  ~/\\/\\/\\/\\/\\/\\  → fluctuates around zero\nDown-regulated pathway: _______/^^^^^  → peak near the bottom\n\n\n\n3) Statistical Significance: Permutation Test\n\n\n\n\n\n1. Calculate ES from the actual data\n          ↓\n2. Randomly shuffle sample labels 1,000 times\n          ↓\n3. Generate 1,000 random ES values → build null distribution\n          ↓\n4. Where does the observed ES fall relative to the null?\nNES (Normalized Enrichment Score): \\[NES = \\frac{ES_{observed}}{\\text{mean}(ES_{random})}\\] Corrects for pathway size differences → enables fair comparison across pathways\nFDR (q-value): \\[\\text{FDR} = \\frac{N_{&gt;NES\\text{ in random}}}{N_{&gt;NES\\text{ in observed}}}\\]",
+    "crumbs": [
+      "Home",
+      "3. Result interpretation",
+      "W10. Gene Set Enrichment Analysis (GSEA)"
+    ]
+  },
+  {
+    "objectID": "chapters/part3/W10_GSEA.html#practice-clusterprofiler",
+    "href": "chapters/part3/W10_GSEA.html#practice-clusterprofiler",
+    "title": "W10. Gene Set Enrichment Analysis (GSEA)",
+    "section": "3. Practice: clusterProfiler",
+    "text": "3. Practice: clusterProfiler\n\n⓪ set-up\n\nPackage Installation\n\nif (!require(\"clusterProfiler\")) BiocManager::install(\"clusterProfiler\")\nif (!require(\"msigdbr\"))         BiocManager::install(\"msigdbr\")\nif (!require(\"enrichplot\"))      BiocManager::install(\"enrichplot\")\nif (!require(\"ReactomePA\"))      BiocManager::install(\"ReactomePA\")\nif (!require(\"org.Hs.eg.db\"))    BiocManager::install(\"org.Hs.eg.db\")\n\n\n\ngene ID conversion (if needed): org.Hs.eg.db + mapIds()\n\n\n\n\n\n\nNoteUnderstanding Gene ID Systems\n\n\n\n\n\n\n\n\n\n\n\n\nID Type\nExample\nSource\nUse Case\n\n\n\n\nGene Symbol\nTP53, EGFR\nHGNC\nHuman-readable (may have duplicates)\n\n\nEnsembl ID\nENSG00000141510\nEBI\nRNA-seq aligner output; unique and stable\n\n\nEntrez ID\n7157\nNCBI\nGene set labels (KEGG, GO)\n\n\n\nFor GSEA, you typically need to convert Gene Symbols or Ensembl IDs to Entrez IDs.\n\n\n\nlibrary(tidyverse)\nlibrary(org.Hs.eg.db)\nlibrary(AnnotationDbi)\n\n# Load DESeq2 results\nres        &lt;- readRDS('examples/data/w7_res_DESeq2.rds')\nres_df &lt;- as.data.frame(res) %&gt;%\n  filter(!is.na(pvalue) & !is.na(log2FoldChange)) %&gt;%\n  mutate(gene = rownames(.))\n\n# Example: Gene Symbol → Entrez ID\nmy_ids &lt;- res_df$gene  # vector of Gene Symbols\n\nmy_entrez &lt;- mapIds(\n  org.Hs.eg.db,\n  keys      = my_ids,\n  column    = \"ENTREZID\",  # desired output ID type\n  keytype   = \"SYMBOL\",    # input ID type\n  multiVals = \"first\"      # handle 1-to-many mappings: keep first\n)\n\n# Combine into a data frame for inspection\nmy_genes &lt;- tibble(\n  gene   = my_ids,\n  entrez = my_entrez\n)\nhead(my_genes)\n\n# check for NAs (novel genes, pseudogenes, version mismatches, etc.)\nsum(is.na(my_genes$entrez))\nmy_genes %&gt;% filter(is.na(entrez))\n\n\n\n\n\n① Data Loading\n\nlibrary(clusterProfiler)\nlibrary(enrichplot)\nlibrary(msigdbr)\n\n# 1. Load DESeq2 results\nres_shrink &lt;- readRDS('examples/data/w9_res_DESeq2_lfcShrink.rds')\nres        &lt;- readRDS('examples/data/w7_res_DESeq2.rds')  # needed for stat column\n\n# 2. Convert to data frame and remove NAs\nres_df &lt;- as.data.frame(res) %&gt;%\n  filter(!is.na(pvalue) & !is.na(log2FoldChange)) %&gt;%\n  mutate(gene = rownames(.))\n\n# 3. Add Entrez ID\nres_df &lt;- res_df %&gt;% left_join(my_genes, by = \"gene\")\n\n# 4. Compute ranking metrics\nres_df$rank_lfc  &lt;- res_shrink$log2FoldChange\nres_df$rank_pi   &lt;- -log10(res_df$pvalue) * sign(res_df$log2FoldChange)\nres_df$rank_wald &lt;- res_df$stat\n\n# Check correlation between metrics\ncat(\"LFC vs Pi-value:\", round(cor(res_df$rank_lfc, res_df$rank_pi,  use = \"complete\"), 3), \"\\n\")\ncat(\"LFC vs Wald:    \", round(cor(res_df$rank_lfc, res_df$rank_wald, use = \"complete\"), 3), \"\\n\")\ncat(\"Pi  vs Wald:    \", round(cor(res_df$rank_pi,  res_df$rank_wald, use = \"complete\"), 3), \"\\n\")\n\n# 5. Remove duplicate Entrez IDs and drop NAs\nres_df &lt;- res_df %&gt;%\n  distinct(entrez, .keep_all = TRUE) %&gt;%\n  filter(!is.na(entrez))\n\n# 6. Build the final ranked gene list (using Wald statistic)\ngeneList        &lt;- res_df$rank_wald\nnames(geneList) &lt;- res_df$gene   # use when keyType = \"SYMBOL\"\ngeneList        &lt;- sort(geneList, decreasing = TRUE)\n\ncat(\"\\nTop 5 (up-regulated):\\n\");   print(head(geneList, 5))\ncat(\"\\nBottom 5 (down-regulated):\\n\"); print(tail(geneList, 5))\n\n\n\n\n② Running GSEA\n\n# ---- (1) GO Biological Process ----\ngsea_go &lt;- gseGO(\n  geneList     = geneList,\n  OrgDb        = org.Hs.eg.db,\n  keyType      = \"SYMBOL\",\n  ont          = \"BP\",         # choose from: BP, MF, CC\n  minGSSize    = 10,           # exclude very small pathways\n  maxGSSize    = 500,          # exclude very broad, non-specific pathways\n  pvalueCutoff = 1,            # keep all results for now; filter later\n  by           = \"fgsea\"       # fast approximation method\n)\nsaveRDS(gsea_go, 'examples/analysis/w10_gsea_GO.rds')\n\n\n\n# ---- (2) Reactome ----\nlibrary(ReactomePA)\n\n# Note: Reactome requires Entrez IDs!\ngeneList_entrez        &lt;- res_df$rank_wald\nnames(geneList_entrez) &lt;- res_df$entrez\ngeneList_entrez        &lt;- sort(geneList_entrez, decreasing = TRUE)\n\ngsea_reactome &lt;- gsePathway(\n  geneList     = geneList_entrez,\n  pvalueCutoff = 1\n)\nsaveRDS(gsea_reactome, 'examples/analysis/w10_gsea_reactome.rds')\n\n\n# ---- (3) MSigDB Hallmark Gene Sets ----\n# Hallmark: 50 well-defined biological states — good for first pass\nmsig_h &lt;- msigdbr(species = \"Homo sapiens\", category = \"H\") %&gt;%\n  transmute(gs_name, ncbi_gene)\n\ngsea_hallmark &lt;- GSEA(\n  geneList,\n  TERM2GENE      = msig_h,\n  pvalueCutoff   = 1,\n  pAdjustMethod  = \"BH\",\n  minGSSize      = 10,\n  maxGSSize      = 500,\n  by             = \"fgsea\"\n)\nsaveRDS(gsea_hallmark, 'examples/analysis/w10_gsea_hallmarks.rds')\n\n\n\n\n\n\n\nImportantMSigDB Collection Reference\n\n\n\n\n\n\n\n\n\n\n\nCategory\nCode\nDescription\n\n\n\n\nHallmark\nH\n50 coherent biological states — best starting point\n\n\nCurated\nC2\nKEGG, Reactome, WikiPathways\n\n\nGO\nC5\nGene Ontology\n\n\nOncogenic\nC6\nCancer-related signaling signatures\n\n\nImmunologic\nC7\nImmune signatures\n\n\n\n\n\n\n\n\n⑤ Visualization\n\nlibrary(ggplot2)\nlibrary(ggridges)\n\ngsea_res &lt;- readRDS('examples/analysis/w10_gsea_GO.rds')\n\n# ---- (1) Dot Plot: overview of enriched pathways ----\n# x = NES, dot size = gene count, color = adjusted p-value\ndotplot(gsea_res, showCategory = 5, split = \".sign\") +\n  ggtitle(\"GO BP Enrichment\")\n\n# Split by up- and down-regulated pathways\ndotplot(gsea_res, showCategory = 5, split = \".sign\") +\n  facet_grid(. ~ .sign) +\n  ggtitle(\"GO BP Enrichment (Activated vs. Suppressed)\")\n\n\n# ---- (2) Classic GSEA Enrichment Plot ----\np1 &lt;- gseaplot2(\n  gsea_res,\n  geneSetID = 1,\n  title     = gsea_res$Description[1]\n)\nprint(p1)\n\n# Show top 3 pathways together\np2 &lt;- gseaplot2(gsea_res, geneSetID = 1:3)\nprint(p2)\n\n\n# ---- (3) Ridge Plot: distribution of ranked metric ----\nridgeplot(gsea_res, showCategory = 5) +\n  labs(x     = \"Enrichment Distribution\",\n       title = \"Gene expression distribution across pathways\")\n\n\n# ---- (4) Network Plot: gene–pathway connections ----\ncnetplot(gsea_res, foldChange = geneList)\n\n\n\n\n⑥ Saving Results and Extracting Core Enrichment Genes\n\n# Save full results as CSV\ngsea_df &lt;- as.data.frame(gsea_res)\nwrite.csv(gsea_df, \"examples/analysis/w10_GSEA_Results.csv\", row.names = FALSE)\n\n# Inspect the top pathway\ntop_pathway &lt;- gsea_df[1, ]\ncat(\"Top pathway: \", top_pathway$Description, \"\\n\")\ncat(\"NES:         \", round(top_pathway$NES, 3), \"\\n\")\ncat(\"FDR:         \", round(top_pathway$p.adjust, 4), \"\\n\")\n\n# Extract core enrichment genes (the \"leading edge\")\ncore_genes &lt;- strsplit(top_pathway$core_enrichment, \"/\")[[1]]\ncat(\"\\nCore enrichment genes (top 10):\\n\")\nprint(head(core_genes, 10))",
+    "crumbs": [
+      "Home",
+      "3. Result interpretation",
+      "W10. Gene Set Enrichment Analysis (GSEA)"
+    ]
+  },
+  {
+    "objectID": "chapters/part3/W10_GSEA.html#summary",
+    "href": "chapters/part3/W10_GSEA.html#summary",
+    "title": "W10. Gene Set Enrichment Analysis (GSEA)",
+    "section": "4. Summary",
+    "text": "4. Summary\n\nORA vs. GSEA Comparison\n\n\n\n\n\n\n\n\nFeature\nORA\nGSEA\n\n\n\n\nInput\nDEG list + background\nAll genes, ranked\n\n\nCutoff required\nYes (binary)\nNo (continuous)\n\n\nStatistical test\nHypergeometric / Fisher’s Exact\nPermutation test (KS statistic)\n\n\nEffect direction\nIgnored\nPreserved (up vs. down)\n\n\nEffect size metric\nOdds Ratio, Fold Enrichment\nNES (Normalized Enrichment Score)\n\n\nAdvantage\nIntuitive, fast\nNo information loss, direction-aware\n\n\nDisadvantage\nCutoff-sensitive, loses information\nComputationally intensive, harder to interpret\n\n\nBest used when\nClear, well-defined DEG list exists\nExploratory analysis, detecting subtle changes\n\n\n\n\n\n\n\n\n\nCaution❌ Pitfalls or common mistakes to avoid\n\n\n\n\nNo background gene set (ORA): Always use the actually-tested genes, not the whole genome\nDuplicate Entrez IDs: Use distinct(entrez, .keep_all = TRUE) to deduplicate\nNot removing NAs: Filter out NA pvalue/log2FoldChange before building the ranked list\nCutoff shopping: Adjusting thresholds until you get the desired result = p-hacking\nIgnoring gene set size: Set minGSSize = 10 and maxGSSize = 500 to exclude trivial pathways\nReporting NES without FDR: Always check FDR (q-value) ≤ 0.25 (GSEA standard) or ≤ 0.05 (conservative)",
+    "crumbs": [
+      "Home",
+      "3. Result interpretation",
+      "W10. Gene Set Enrichment Analysis (GSEA)"
+    ]
+  },
+  {
+    "objectID": "chapters/part3/W10_GSEA.html#week-10-assignment",
+    "href": "chapters/part3/W10_GSEA.html#week-10-assignment",
+    "title": "W10. Gene Set Enrichment Analysis (GSEA)",
+    "section": "📝 Week 10 Assignment",
+    "text": "📝 Week 10 Assignment\n1. Threshold Effect in ORA\nRun enrichGO(BP) twice using different gene lists from the same DESeq2 results:\n\nList A (Strict): padj &lt; 0.01 & |log2FC| &gt; 2\nList B (Lenient): padj &lt; 0.05 & |log2FC| &gt; 0.5\n\n\nlibrary(clusterProfiler)\nlibrary(org.Hs.eg.db)\n\n# List A — Strict\ngenes_A &lt;- res_df %&gt;%\n  filter(padj &lt; 0.01, abs(log2FoldChange) &gt; 2) %&gt;%\n  .$gene\n\nora_A &lt;- enrichGO(\n  gene         = genes_A,\n  universe     = total_genes,   # always set background!\n  OrgDb        = org.Hs.eg.db,\n  keyType      = \"SYMBOL\",\n  ont          = \"BP\",\n  pvalueCutoff = 0.05,\n  qvalueCutoff = 0.2\n)\n\n# List B — Lenient\ngenes_B &lt;- res_df %&gt;%\n  filter(padj &lt; 0.05, abs(log2FoldChange) &gt; 0.5) %&gt;%\n  .$gene\n\nora_B &lt;- enrichGO(\n  gene         = genes_B,\n  universe     = total_genes,\n  OrgDb        = org.Hs.eg.db,\n  keyType      = \"SYMBOL\",\n  ont          = \"BP\",\n  pvalueCutoff = 0.05,\n  qvalueCutoff = 0.2\n)\n\ndotplot(ora_A, showCategory = 5) + ggtitle(\"Strict (List A)\")\ndotplot(ora_B, showCategory = 5) + ggtitle(\"Lenient (List B)\")\n\n1) Compare the top 5 pathways. Did the biological conclusion change?\n2) Why might List A fail to detect broad biological pathways compared to List B? (Hint: think about the number of genes fed into Fisher’s test)\n2. Ranking Metric Effect in GSEA\nRun gseGO() using logFoldChange and pi-value as the ranking metric, then compare the top 20 results.\n\n# Metric 1: log2 Fold Change\ngeneList_lfc &lt;- res_df$rank_lfc\nnames(geneList_lfc) &lt;- res_df$gene\ngeneList_lfc &lt;- sort(geneList_lfc, decreasing = TRUE)\n\n# Metric 2: Pi-value\ngeneList_pi &lt;- res_df$rank_pi\nnames(geneList_pi) &lt;- res_df$gene\ngeneList_pi &lt;- sort(geneList_pi, decreasing = TRUE)\n\n\nPlease submit a snapshot of your screen",
+    "crumbs": [
+      "Home",
+      "3. Result interpretation",
+      "W10. Gene Set Enrichment Analysis (GSEA)"
+    ]
+  },
+  {
+    "objectID": "chapters/part3/W10_GSEA.html#references",
+    "href": "chapters/part3/W10_GSEA.html#references",
+    "title": "W10. Gene Set Enrichment Analysis (GSEA)",
+    "section": "References",
+    "text": "References\n\nMootha et al., Nature Genetics 2003 — original GSEA paper\nSubramanian et al., PNAS 2005\nMSigDB\nclusterProfiler official documentation\nBiomedical Knowledge Mining using GOSemSim and clusterProfiler (e-book)",
+    "crumbs": [
+      "Home",
+      "3. Result interpretation",
+      "W10. Gene Set Enrichment Analysis (GSEA)"
+    ]
+  },
+  {
+    "objectID": "chapters/part3/W9_ORA.html#introduction-gene-sets",
+    "href": "chapters/part3/W9_ORA.html#introduction-gene-sets",
+    "title": "W9. Over-Representation Analysis (ORA)",
+    "section": "1. Introduction: Gene sets",
+    "text": "1. Introduction: Gene sets\n\nafter DEG analysis…\nFrom the last week, we identified ~5,500 DEGs (Tumor vs. Normal) with FDR≤0.05 & |LFC|≥1 … So What? “Do they functionally cluster in specific biological processes?“\n\n\n\n\n\nBefore running ORA, you need to understand the databases that link genes to biological pathways\n\n\n\nMajor Databases of gene sets\n\n\n\nDatabase\nCharacteristics\nTypical Use Case\n\n\n\n\nKEGG\nMetabolic and disease pathways\nMetabolic disease, signaling cascades\n\n\nGene Ontology(GO)\nHierarchical gene function classification\nMost widely used across all fields\n\n\nReactome\nPeer-reviewed, manually curated pathways\nDetailed biochemical mechanisms\n\n\nMSigDB / Enrichr\n225+ diverse gene set collections\nExploratory analyses\n\n\n\n\n\n\n\n\n\n\n\nThree GO Categories\n\nBP (Biological Process): What is the gene doing? (e.g., Cell division, Inflammation) … Most used in clinical research\nMF (Molecular Function): What is the molecular activity? (e.g., Kinase activity, ATP binding)\nCC (Cellular Component): Where is it located? (e.g., Nucleus, Membrane)",
+    "crumbs": [
+      "Home",
+      "3. Result interpretation",
+      "W9. Over-Representation Analysis (ORA)"
+    ]
+  },
+  {
+    "objectID": "chapters/part3/W9_ORA.html#statistical-principle-fishers-exact-test",
+    "href": "chapters/part3/W9_ORA.html#statistical-principle-fishers-exact-test",
+    "title": "W9. Over-Representation Analysis (ORA)",
+    "section": "2. Statistical Principle: Fisher’s Exact Test",
+    "text": "2. Statistical Principle: Fisher’s Exact Test\n\nIntuition: The Urn Problem\n\nQ: Does my DEG list contain more genes from the “Inflammation” pathway than expected by chance?\n\n\n\n\n\n\n\n\n2×2 Contingency Table\n\n\n\n\n\n\n\n\n\n\nIn Pathway (Red)\nNot in Pathway (White)\nTotal\n\n\n\n\nDEGs (drawn)\n100 (a, hit)\n400 (b)\n500\n\n\nNon-DEGs\n900 (c)\n18,600 (d)\n19,500\n\n\nTotal\n1,000\n19,000\n20,000 (N)\n\n\n\n\n\nTwo Effect Size Metrics\nOdds Ratio (OR): \\[OR = \\frac{a/c}{b/d} = \\frac{a \\times d}{b \\times c} = \\frac{100 \\times 18{,}600}{400 \\times 900} \\approx 5.2\\]\nFold Enrichment (FE) — more intuitive and conservative: \\[FE = \\frac{a/(a+c)}{(a+b)/N} = \\frac{\\text{% of pathway genes among DEGs}}{\\text{% of pathway genes in background}}\\]\n\n\n\n\n\n\nImportantOR vs. FE — Which to Use?\n\n\n\n\nOR: Compares the two groups (selected vs. not selected); can overestimate effect size with small DEG lists\nFE: How much more enriched relative to the background; more commonly reported in papers\nIn practice: Report both, but the p-value (hypergeometric test) and FDR-corrected p-value are the critical outputs\n\n\n\n\n\n\nP-value: Hypergeometric Distribution\n\n\n\n\nIn Pathway (Red)\nNot in Pathway (White)\nTotal\n\n\n\n\nDEGs (drawn)\n100 (k)\n400 (n-k)\n500 (n)\n\n\nNon-DEGs\n900 (K-k)\n18,600 (N-n -K-k)\n19,500 (N-n)\n\n\nTotal\n1,000 (K)\n19,000 (N-K)\n20,000 (N)\n\n\n\n\n\\(N\\): total number of genes (background)\n\\(K\\): number of genes in the pathway\n\\(n\\): number of DEGs\n\\(k\\): number of DEGs that hit the pathway\n\n\\[P(X = k) = \\frac{\\binom{K}{k}\\binom{N-K}{n-k}}{\\binom{N}{n}}\\]\n\\[\\text{p-value} = \\sum_{i=k}^{\\min(n,K)} P(X=i) \\quad \\text{(one-tailed test)}\\]\n\n\n\n\n\n\nWarningThe Importance of Background Genes\n\n\n\nSuppose you tested a cancer gene panel (n = 500) and found 50 DEGs.\nRunning ORA without a proper background → results will be trivially enriched in cancer pathways (selection bias!).\nCorrect approach: Use all genes that were actually tested by DESeq2 (i.e., genes where padj is not NA) as the background universe.",
+    "crumbs": [
+      "Home",
+      "3. Result interpretation",
+      "W9. Over-Representation Analysis (ORA)"
+    ]
+  },
+  {
+    "objectID": "chapters/part3/W9_ORA.html#practice-enrichr",
+    "href": "chapters/part3/W9_ORA.html#practice-enrichr",
+    "title": "W9. Over-Representation Analysis (ORA)",
+    "section": "Practice: Enrichr",
+    "text": "Practice: Enrichr\n\nData Preparation in R\n\nlibrary(DESeq2)\nlibrary(tidyverse)\n\n# 1. Load LFC-shrunken results\nresLFC &lt;- readRDS('examples/data/w9_res_DESeq2_lfcShrink.rds')\nres_df &lt;- resLFC %&gt;%\n  as.data.frame() %&gt;%\n  mutate(gene_id = rownames(.)) %&gt;%\n  arrange(padj)\n\n# 2. Extract DEG list (|LFC| &gt;= 1 & FDR &lt;= 0.05)\ngenes &lt;- res_df %&gt;%\n  filter(abs(log2FoldChange) &gt;= 1, padj &lt;= 0.05) %&gt;%\n  .$gene_id\n\ncat(\"Number of DEGs:\", length(genes), \"\\n\")\n\n# 3. Save to file (for Enrichr upload)\nwrite.table(genes,\n            file      = 'examples/analysis/w9_myDEGs.txt',\n            sep       = \"\\t\",\n            quote     = FALSE,\n            row.names = FALSE,\n            col.names = FALSE)\n\n# 4. Save background gene list\ntotal &lt;- res_df %&gt;%\n  filter(!is.na(padj)) %&gt;%\n  .$gene_id\n\nwrite.table(total,\n            file      = 'examples/analysis/w9_myDEGs.txt',\n            sep       = \"\\t\",\n            quote     = FALSE,\n            row.names = FALSE,\n            col.names = FALSE)\n\ncat(\"Number of background genes:\", length(total), \"\\n\")\n\n\n\n\nHow to Use Enrichr\n\nGo to https://maayanlab.cloud/Enrichr/\nPaste your DEG list (myDEGs.txt)\nUpload your background gene list (total.txt)\n\nPathways tab → explore Reactome, KEGG\nOntologies tab → explore GO Biological Process\n\n\n\n\n\n\n\n\nTipInterpreting Enrichr Results\n\n\n\n\nCombined Score = log(p-value) × z-score (Enrichr-specific metric)\nOnly pathways passing Adjusted P-value ≤ 0.05 are considered significant\nPathways that appear consistently across multiple databases carry higher confidence",
+    "crumbs": [
+      "Home",
+      "3. Result interpretation",
+      "W9. Over-Representation Analysis (ORA)"
+    ]
+  },
+  {
+    "objectID": "chapters/part3/W9_ORA.html#week-9-assignment",
+    "href": "chapters/part3/W9_ORA.html#week-9-assignment",
+    "title": "W9. Over-Representation Analysis (ORA)",
+    "section": "📝 Week 9 Assignment",
+    "text": "📝 Week 9 Assignment\nNo assignment this week — look forward to GSEA next week!\n(W8 review: Simple vs. Paired model comparison, Gold Standard Gene validation, Volcano Plot)\n\nPlease just submit screenshots of your screen",
+    "crumbs": [
+      "Home",
+      "3. Result interpretation",
+      "W9. Over-Representation Analysis (ORA)"
+    ]
+  },
+  {
+    "objectID": "chapters/part4/W12_summary.html",
+    "href": "chapters/part4/W12_summary.html",
+    "title": "W12. Summary & Final Assignment",
+    "section": "",
+    "text": "Analysis Step\nKey Functions\nCheckpoints\n\n\n\n\n1. Data\nreadRDS(), GEOquery\nN &gt; 30, clear phenotype\n\n\n2. DESeq2 object\nDESeqDataSetFromMatrix()\nCorrect design matrix, reference level\n\n\n3. Filtering\nrowSums()\nLow-count genes removed, contaminants removed\n\n\n4. Normalization\nDESeq2 internal (RLE)\n—\n\n\n5. EDA\nvst(), plotPCA()\nNo batch effects, no outliers\n\n\n6. DEG\nDESeq(), lfcShrink()\nFDR ≤ 0.05, |LFC| ≥ 1\n\n\n7. Visualization\nggplot2, pheatmap\nVolcano plot, heatmap\n\n\n8. Enrichment\ngseGO(), clusterProfiler\nNES, FDR (q-value)\n\n\n\n\n\n\n\nlibrary(GEOquery)\nlibrary(TCGAbiolinks)\nlibrary(SummarizedExperiment)\nlibrary(tidyverse)\n\n# Option 1: Download directly from GEO\n# gse &lt;- getGEO(\"GSE****\", GSEMatrix = TRUE)\n\n# Option 2: TCGA (web browser recommended for large datasets)\n# query &lt;- GDCquery(project = \"TCGA-LUAD\", ...)\n# GDCdownload(query)\n# data &lt;- GDCprepare(query)\n\n# Load pre-saved files\ncountData &lt;- readRDS('examples/data/w6_raw_counts_final.rds')\ncolData   &lt;- readRDS('examples/data/w6_meta_data_final.rds')\n\ncat(\"Count matrix:\", nrow(countData), \"genes x\", ncol(countData), \"samples\\n\")\ncat(\"Sample groups:\\n\"); print(table(colData$tissue_type))\n\n\n\n\n\n\n\nNoteStudy Design Checklist\n\n\n\n✅ N &gt; 30 per group: ensures adequate statistical power\n✅ Clear phenotype: binary comparison (Tumor vs. Normal, Responder vs. Non-responder)\n✅ Potential batch effects: samples from different institutions or time points?\n✅ Confounding variables: age, sex, smoking history, treatment history\n\n\n\n\n\n\n\nlibrary(DESeq2)\n\n# Set factor levels — control group must be the reference!\ncolData$condition &lt;- factor(\n  colData$tissue_type,\n  levels = c(\"Normal\", \"Tumor\")  # Normal is the reference\n)\n\n# Build DESeq2 dataset with design matrix\ndds &lt;- DESeqDataSetFromMatrix(\n  countData = countData,\n  colData   = colData,\n  design    = ~ patient + condition  # account for paired patient structure\n)\n\n\n\n\n\n\n# Method 1: Simple threshold (remove total count &lt; 10)\nkeep_simple &lt;- rowSums(counts(dds)) &gt;= 10\n\n# Method 2: Group-size-aware filtering (recommended)\n# Keep genes with at least 1 count in &gt;= 50% of the smallest group\nsmallest_group &lt;- min(table(colData$condition))\nkeep_group     &lt;- rowSums(counts(dds) &gt;= 1) &gt;= (smallest_group * 0.5)\n\ncat(\"Removed (simple):     \", sum(!keep_simple), \"genes\\n\")\ncat(\"Removed (group-aware):\", sum(!keep_group),  \"genes\\n\")\n\ndds_filtered &lt;- dds[keep_group, ]\n\n# Remove confounding gene categories\nall_genes  &lt;- rownames(dds_filtered)\nmt_genes   &lt;- grep(\"^MT-\",      all_genes, value = TRUE)  # mitochondrial\nribo_genes &lt;- grep(\"^RPS|^RPL\", all_genes, value = TRUE)  # ribosomal\nig_genes   &lt;- grep(\"^IG[HKL]\",  all_genes, value = TRUE)  # immunoglobulin\n\ncat(\"Contaminating genes to remove:\", length(c(mt_genes, ribo_genes, ig_genes)), \"\\n\")\n\ncontam       &lt;- c(mt_genes, ribo_genes, ig_genes)\ndds_filtered &lt;- dds_filtered[!(all_genes %in% contam), ]\n\nsaveRDS(dds_filtered, 'examples/analysis/w6_dds_filtered.rds')\n\n\n\n\n\n\n# Variance Stabilizing Transformation for visualization\nvsd &lt;- vst(dds_filtered, blind = FALSE)\n\n# PCA Plot: check for batch effects and outliers\nplotPCA(vsd, intgroup = \"condition\") +\n  theme_classic() +\n  labs(title = \"PCA Plot: Sample Quality Check\")\n\n\n\n\n\n\n\nWarningWhat to Look for in the PCA Plot\n\n\n\n\nPC1 separates conditions? → Strong biological signal, good to proceed\nObvious outliers? → Consider excluding and re-running\nNo clear grouping? → Suspect batch effects; apply limma::removeBatchEffect()\n\n\n\n\n\n\n\n\ndds &lt;- readRDS('examples/analysis/w6_dds_filtered.rds')\n\n# Run DESeq2 (dispersion estimation → GLM fitting → Wald test)\ndds &lt;- DESeq(dds)\nsaveRDS(dds, 'examples/analysis/w7_dds_DESeq2.rds')\n\n# Extract results (Tumor vs. Normal)\nres &lt;- results(dds, contrast = c(\"condition\", \"Tumor\", \"Normal\"))\nsummary(res)\n\n# LFC Shrinkage: stabilize effect size estimates for low-count genes\nlibrary(apeglm)\nresLFC &lt;- lfcShrink(dds, coef = \"condition_Tumor_vs_Normal\", type = \"apeglm\")\nsaveRDS(resLFC, 'examples/analysis/w9_res_DESeq2_lfcShrink.rds')\n\n\n\n\n\n\nlibrary(ggrepel)\nlibrary(pheatmap)\n\nresLFC &lt;- readRDS('examples/analysis/w9_res_DESeq2_lfcShrink.rds')\n\nres_df &lt;- as.data.frame(resLFC) %&gt;%\n  rownames_to_column(\"gene_id\")\n\n# ---- Volcano Plot ----\np_thr   &lt;- 0.05\nlfc_thr &lt;- 1\n\nvol_data &lt;- res_df %&gt;%\n  mutate(diffexpressed = case_when(\n    log2FoldChange &gt;  lfc_thr & padj &lt; p_thr ~ \"UP\",\n    log2FoldChange &lt; -lfc_thr & padj &lt; p_thr ~ \"DOWN\",\n    TRUE ~ \"NO\"\n  ))\n\nggplot(vol_data, aes(x = log2FoldChange, y = -log10(padj), color = diffexpressed)) +\n  geom_point(alpha = 0.5, size = 1.5) +\n  scale_color_manual(values = c(\"DOWN\" = \"blue\", \"NO\" = \"grey\", \"UP\" = \"red\")) +\n  geom_vline(xintercept = c(-lfc_thr, lfc_thr), linetype = \"dashed\") +\n  geom_hline(yintercept = -log10(p_thr), linetype = \"dashed\") +\n  geom_text_repel(\n    data = head(arrange(vol_data, padj), 10),\n    aes(label = gene_id), color = \"black\"\n  ) +\n  theme_minimal() +\n  labs(title = \"Volcano Plot\",\n       x     = \"Log2 Fold Change\",\n       y     = \"-Log10 Adjusted P-value\")\n\n\n# ---- Heatmap of Top 20 DEGs ----\nvsd &lt;- readRDS('examples/analysis/w6_dds_vsd.rds')\n\ntop_genes &lt;- res_df %&gt;%\n  filter(padj &lt; 0.05) %&gt;%\n  arrange(desc(abs(log2FoldChange))) %&gt;%\n  head(20) %&gt;%\n  .$gene_id\n\nmat &lt;- assay(vsd)[top_genes, ]\n\n# Sample annotation sidebar\nanno_col &lt;- as.data.frame(colData(dds)[, c(\"gender\", \"condition\")])\n\npheatmap(\n  mat,\n  scale          = \"row\",   # z-score normalization across samples\n  show_rownames  = TRUE,\n  show_colnames  = FALSE,\n  annotation_col = anno_col,\n  cluster_cols   = TRUE,\n  main           = \"Top 20 DEGs Heatmap\"\n)\n\n\n\n\n\n\n# See GSEA section above for full code\n# gseGO() → dotplot() → gseaplot2() → cnetplot()",
+    "crumbs": [
+      "Home",
+      "4. Practice and wrap-up",
+      "W12. Summary & Final Assignment"
+    ]
+  },
+  {
+    "objectID": "chapters/part4/W12_summary.html#complete-analysis-pipeline",
+    "href": "chapters/part4/W12_summary.html#complete-analysis-pipeline",
+    "title": "W12. Summary & Final Assignment",
+    "section": "",
+    "text": "Analysis Step\nKey Functions\nCheckpoints\n\n\n\n\n1. Data\nreadRDS(), GEOquery\nN &gt; 30, clear phenotype\n\n\n2. DESeq2 object\nDESeqDataSetFromMatrix()\nCorrect design matrix, reference level\n\n\n3. Filtering\nrowSums()\nLow-count genes removed, contaminants removed\n\n\n4. Normalization\nDESeq2 internal (RLE)\n—\n\n\n5. EDA\nvst(), plotPCA()\nNo batch effects, no outliers\n\n\n6. DEG\nDESeq(), lfcShrink()\nFDR ≤ 0.05, |LFC| ≥ 1\n\n\n7. Visualization\nggplot2, pheatmap\nVolcano plot, heatmap\n\n\n8. Enrichment\ngseGO(), clusterProfiler\nNES, FDR (q-value)\n\n\n\n\n\n\n\nlibrary(GEOquery)\nlibrary(TCGAbiolinks)\nlibrary(SummarizedExperiment)\nlibrary(tidyverse)\n\n# Option 1: Download directly from GEO\n# gse &lt;- getGEO(\"GSE****\", GSEMatrix = TRUE)\n\n# Option 2: TCGA (web browser recommended for large datasets)\n# query &lt;- GDCquery(project = \"TCGA-LUAD\", ...)\n# GDCdownload(query)\n# data &lt;- GDCprepare(query)\n\n# Load pre-saved files\ncountData &lt;- readRDS('examples/data/w6_raw_counts_final.rds')\ncolData   &lt;- readRDS('examples/data/w6_meta_data_final.rds')\n\ncat(\"Count matrix:\", nrow(countData), \"genes x\", ncol(countData), \"samples\\n\")\ncat(\"Sample groups:\\n\"); print(table(colData$tissue_type))\n\n\n\n\n\n\n\nNoteStudy Design Checklist\n\n\n\n✅ N &gt; 30 per group: ensures adequate statistical power\n✅ Clear phenotype: binary comparison (Tumor vs. Normal, Responder vs. Non-responder)\n✅ Potential batch effects: samples from different institutions or time points?\n✅ Confounding variables: age, sex, smoking history, treatment history\n\n\n\n\n\n\n\nlibrary(DESeq2)\n\n# Set factor levels — control group must be the reference!\ncolData$condition &lt;- factor(\n  colData$tissue_type,\n  levels = c(\"Normal\", \"Tumor\")  # Normal is the reference\n)\n\n# Build DESeq2 dataset with design matrix\ndds &lt;- DESeqDataSetFromMatrix(\n  countData = countData,\n  colData   = colData,\n  design    = ~ patient + condition  # account for paired patient structure\n)\n\n\n\n\n\n\n# Method 1: Simple threshold (remove total count &lt; 10)\nkeep_simple &lt;- rowSums(counts(dds)) &gt;= 10\n\n# Method 2: Group-size-aware filtering (recommended)\n# Keep genes with at least 1 count in &gt;= 50% of the smallest group\nsmallest_group &lt;- min(table(colData$condition))\nkeep_group     &lt;- rowSums(counts(dds) &gt;= 1) &gt;= (smallest_group * 0.5)\n\ncat(\"Removed (simple):     \", sum(!keep_simple), \"genes\\n\")\ncat(\"Removed (group-aware):\", sum(!keep_group),  \"genes\\n\")\n\ndds_filtered &lt;- dds[keep_group, ]\n\n# Remove confounding gene categories\nall_genes  &lt;- rownames(dds_filtered)\nmt_genes   &lt;- grep(\"^MT-\",      all_genes, value = TRUE)  # mitochondrial\nribo_genes &lt;- grep(\"^RPS|^RPL\", all_genes, value = TRUE)  # ribosomal\nig_genes   &lt;- grep(\"^IG[HKL]\",  all_genes, value = TRUE)  # immunoglobulin\n\ncat(\"Contaminating genes to remove:\", length(c(mt_genes, ribo_genes, ig_genes)), \"\\n\")\n\ncontam       &lt;- c(mt_genes, ribo_genes, ig_genes)\ndds_filtered &lt;- dds_filtered[!(all_genes %in% contam), ]\n\nsaveRDS(dds_filtered, 'examples/analysis/w6_dds_filtered.rds')\n\n\n\n\n\n\n# Variance Stabilizing Transformation for visualization\nvsd &lt;- vst(dds_filtered, blind = FALSE)\n\n# PCA Plot: check for batch effects and outliers\nplotPCA(vsd, intgroup = \"condition\") +\n  theme_classic() +\n  labs(title = \"PCA Plot: Sample Quality Check\")\n\n\n\n\n\n\n\nWarningWhat to Look for in the PCA Plot\n\n\n\n\nPC1 separates conditions? → Strong biological signal, good to proceed\nObvious outliers? → Consider excluding and re-running\nNo clear grouping? → Suspect batch effects; apply limma::removeBatchEffect()\n\n\n\n\n\n\n\n\ndds &lt;- readRDS('examples/analysis/w6_dds_filtered.rds')\n\n# Run DESeq2 (dispersion estimation → GLM fitting → Wald test)\ndds &lt;- DESeq(dds)\nsaveRDS(dds, 'examples/analysis/w7_dds_DESeq2.rds')\n\n# Extract results (Tumor vs. Normal)\nres &lt;- results(dds, contrast = c(\"condition\", \"Tumor\", \"Normal\"))\nsummary(res)\n\n# LFC Shrinkage: stabilize effect size estimates for low-count genes\nlibrary(apeglm)\nresLFC &lt;- lfcShrink(dds, coef = \"condition_Tumor_vs_Normal\", type = \"apeglm\")\nsaveRDS(resLFC, 'examples/analysis/w9_res_DESeq2_lfcShrink.rds')\n\n\n\n\n\n\nlibrary(ggrepel)\nlibrary(pheatmap)\n\nresLFC &lt;- readRDS('examples/analysis/w9_res_DESeq2_lfcShrink.rds')\n\nres_df &lt;- as.data.frame(resLFC) %&gt;%\n  rownames_to_column(\"gene_id\")\n\n# ---- Volcano Plot ----\np_thr   &lt;- 0.05\nlfc_thr &lt;- 1\n\nvol_data &lt;- res_df %&gt;%\n  mutate(diffexpressed = case_when(\n    log2FoldChange &gt;  lfc_thr & padj &lt; p_thr ~ \"UP\",\n    log2FoldChange &lt; -lfc_thr & padj &lt; p_thr ~ \"DOWN\",\n    TRUE ~ \"NO\"\n  ))\n\nggplot(vol_data, aes(x = log2FoldChange, y = -log10(padj), color = diffexpressed)) +\n  geom_point(alpha = 0.5, size = 1.5) +\n  scale_color_manual(values = c(\"DOWN\" = \"blue\", \"NO\" = \"grey\", \"UP\" = \"red\")) +\n  geom_vline(xintercept = c(-lfc_thr, lfc_thr), linetype = \"dashed\") +\n  geom_hline(yintercept = -log10(p_thr), linetype = \"dashed\") +\n  geom_text_repel(\n    data = head(arrange(vol_data, padj), 10),\n    aes(label = gene_id), color = \"black\"\n  ) +\n  theme_minimal() +\n  labs(title = \"Volcano Plot\",\n       x     = \"Log2 Fold Change\",\n       y     = \"-Log10 Adjusted P-value\")\n\n\n# ---- Heatmap of Top 20 DEGs ----\nvsd &lt;- readRDS('examples/analysis/w6_dds_vsd.rds')\n\ntop_genes &lt;- res_df %&gt;%\n  filter(padj &lt; 0.05) %&gt;%\n  arrange(desc(abs(log2FoldChange))) %&gt;%\n  head(20) %&gt;%\n  .$gene_id\n\nmat &lt;- assay(vsd)[top_genes, ]\n\n# Sample annotation sidebar\nanno_col &lt;- as.data.frame(colData(dds)[, c(\"gender\", \"condition\")])\n\npheatmap(\n  mat,\n  scale          = \"row\",   # z-score normalization across samples\n  show_rownames  = TRUE,\n  show_colnames  = FALSE,\n  annotation_col = anno_col,\n  cluster_cols   = TRUE,\n  main           = \"Top 20 DEGs Heatmap\"\n)\n\n\n\n\n\n\n# See GSEA section above for full code\n# gseGO() → dotplot() → gseaplot2() → cnetplot()",
+    "crumbs": [
+      "Home",
+      "4. Practice and wrap-up",
+      "W12. Summary & Final Assignment"
+    ]
+  },
+  {
+    "objectID": "chapters/part4/W12_summary.html#final-assignment",
+    "href": "chapters/part4/W12_summary.html#final-assignment",
+    "title": "W12. Summary & Final Assignment",
+    "section": "📝 Final Assignment",
+    "text": "📝 Final Assignment\n\n1. Data Selection\n\nDownload a Gene Count Matrix + Metadata from a public database (GEO or TCGA)\nClearly state the biological context (e.g., “Lung Cancer: Tumor vs. Normal”)\n\n\n\n2. Perform the Analysis (apply everything you have learned)\n① PCA plot (vst/rlog)  → check for outliers and batch effects\n② DESeq2              → identify DEGs with an appropriate design matrix\n③ GSEA                → run GO Biological Process (BP) analysis\n\n\n3. Biological Interpretation (Discussion)\n\nDo your top DEGs and enriched pathways agree with established biological knowledge?\nCompare your findings to the conclusions of the original study\n\nEvaluation focus: Depth and validity of your biological interpretation",
+    "crumbs": [
+      "Home",
+      "4. Practice and wrap-up",
+      "W12. Summary & Final Assignment"
+    ]
+  }
+]
