@@ -5,7 +5,7 @@ project:
     - _extensions/ai-chat/ai-chat.js
 
 website:
-  favicon: assets/img/logo.ico
+  favicon: assets/img/favicon.ico
   navbar:
     logo: assets/img/logo.jpg
     left:
