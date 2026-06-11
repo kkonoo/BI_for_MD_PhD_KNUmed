@@ -52,7 +52,7 @@ What is difference between **Sanger Sequencing** and **Next-Generation Sequencin
 
     ![](/assets/img/part1/SBS0.png){plot-algin="center" width="111"} ![](/assets/img/part1/SBS1.png){plot-algin="center" width="100"} ![](/assets/img/part1/SBS00.jpg){plot-algin="center" width="144"} ![](/assets/img/part1/SBS2.png){plot-algin="center" width="287"}
 
-    ![](/assets/img/part1/sBS3.png){plot-algin="center" width="233"} ![](/assets/img/part1/SBS5.png){plot-algin="center" width="393"}
+    ![](/assets/img/part1/SBS3.png){plot-algin="center" width="233"} ![](/assets/img/part1/SBS5.png){plot-algin="center" width="393"}
 
 ------------------------------------------------------------------------
 
