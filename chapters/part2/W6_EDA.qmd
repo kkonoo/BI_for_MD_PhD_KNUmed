@@ -103,6 +103,99 @@ save the following files in `data/` in your R project
 
 ------------------------------------------------------------------------
 
+### data transformation for visualization
+
+```{r}
+#| eval: false
+
+# 1. read data (count table and metadata) ####
+countData <- readRDS('data/raw_counts_final.rds')
+dim(countData)
+head(countData[,1:5])
+
+colData <- readRDS("data/meta_data_final.rds")
+head(colData)
+table(colData$tissue_type)
+
+# check sample ids of the count table and metadata
+all(colnames(countData) == colData$barcode) # should be TRUE
+
+# set the Factor level (condition)
+# default: alphabetical ... ref = Control/Normal
+colData$condition <- factor(colData$tissue_type, levels = c("Normal", "Tumor")) 
+colData$condition
+# case / control ... treatment / control ... KO / control
+
+
+# 2. DESeq2 object (dds) ####
+# countData, colData, design
+dds <- DESeqDataSetFromMatrix(countData = countData,
+                              colData = colData,
+                              design = ~ patient + condition) # DEG by condition
+colData$patient = gsub('-','_',colData$patient)
+dds
+
+# 3. Pre-filtering (de-noising) ####
+dim(counts(dds))
+
+head(counts(dds)[,1:4])
+head(counts(dds)[,1:4]>=1)
+head(rowSums(counts(dds)[,1:4]>=1))
+head(rowSums(counts(dds)>=1))
+rowSums(counts(dds)) %>% head
+
+## 3-1. lowly expressed genes (for speed-up & statistical power) ####
+### option 1: simple (Total Count < 10?) ####
+keep <- rowSums(counts(dds)) >= 10
+head(keep)
+cat(paste("   Removed", sum(!keep), "low count genes.\n"))
+cat(paste("   Remaining genes:", sum(keep), "\n"))
+dds_filtered <- dds[keep, ]
+
+### option 2: considring group size (recommended) ####
+# Total Count < 10 in the smallest group?
+# ex: Control(3), Case(10) -> non-zero counts in at least 3 samples?
+main_condition = 'condition'
+smallestGroupSize <- min(table(colData[[main_condition]]))
+smallestGroupSize*0.4
+keep <- rowSums(counts(dds) >= 1) >= (smallestGroupSize*0.5)
+cat(paste("   Removed", sum(!keep), "low count genes.\n"))
+cat(paste("   Remaining genes:", sum(keep), "\n"))
+dds_filtered <- dds[keep, ]
+
+## 3-2. confounding genes ####
+all_genes <- rownames(dds_filtered)
+head(all_genes)
+# Mitochodiral: starting with "^MT-" 
+mt_genes <- grep("^MT-", all_genes, value = TRUE)
+mt_genes
+# Ribosomal: starting with "^RPS|^RPL"
+ribo_genes <- grep("^RPS|^RPL", all_genes, value = TRUE)
+ribo_genes
+# Immunoglobulin: starting with "^IG[HKL]" : "IGH", "IGK", "IGL"
+ig_genes <- grep("^IG[HKL]", all_genes, value = TRUE)
+ig_genes
+# filtering gene list
+contam_list <- c(mt_genes, ribo_genes, ig_genes)
+length(contam_list)
+# !: 'NOT'
+keep_indices <- !(all_genes %in% contam_list)
+dds_filtered <- dds_filtered[keep_indices, ]
+dds_filtered
+saveRDS(dds_filtered, 'dds_filtered.rds')
+
+# 4. Variance Stabilizing Transformation (vst) ####
+## 4-1. vst (normalization and transformation) ####
+vsd <- vst(dds_filtered, blind=FALSE) 
+# blind = FALSE: using design (recommended), blind=TRUE: using only technical noises
+
+# check the result visually
+vsd_data = assay(vsd)
+
+```
+
+------------------------------------------------------------------------
+
 ### Sample Correlation Heatmap
 
 ```{r}
