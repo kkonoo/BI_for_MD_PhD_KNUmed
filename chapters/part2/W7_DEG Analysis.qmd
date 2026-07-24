@@ -140,7 +140,7 @@ results(dds, contrast = c("Condition", "Treatment", "Control"))
 ### Design Matrix (Advanced)
 
 | Analysis Type | Clinical Scenario | Design Formula |
-|------------------|--------------------------|----------------------------|
+|----|----|----|
 | Paired sample | Tumor vs. Normal, Pre vs. Post | `~ Patient + Treatment` |
 | Interaction Term | Drug response × disease subgroup | `~ Disease + Drug + Disease:Drug` |
 | Time-Series | Multiple time points | `~ Time` (use LRT) |
@@ -157,7 +157,7 @@ results(dds, contrast = c("Condition", "Treatment", "Control"))
 save the following files in analysis/ in your R project
 
 | File | Link |
-|------------------------------------|------------------------------------|
+|----|----|
 | `dds_filtered.rds` | [📥 Download](https://drive.google.com/file/d/15OlQlqKIPGo9kDsx8Qk1BYTx4XGCnaiT/view?usp=drive_link) |
 :::
 
