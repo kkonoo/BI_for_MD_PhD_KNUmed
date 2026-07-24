@@ -72,7 +72,7 @@ format:
     scrollable: true
 
 execute:
-  freeze: auto          # 코드 실행 결과 캐시 (빠른 빌드)
+  freeze: true          # CI에서 R 없이 렌더: 항상 _freeze 캐시 사용 (재실행 안 함)
   echo: true
   eval: false
   warning: false
