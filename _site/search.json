@@ -106,7 +106,7 @@
     "href": "chapters/part3/W8_DEG Results Processing.html",
     "title": "W8. DEG Results Processing",
     "section": "",
-    "text": "p-value: the probability of observing the result by chance under the null hypothesis (H₀: no difference between groups)\nMultiple testing problem: testing 10,000 genes at p &lt; 0.05 would yield ~500 spuriously significant results → dramatic increase in false positives\n\n\n\n\n\nBonferroni: \\(\\alpha / n_{total}\\) → too conservative\nFDR (False Discovery Rate): \\(FDR = \\frac{FP}{FP + TP}\\)\n\n\n\n\n\n\n\n\n\n“Stricter for higher ranks, more lenient for lower ranks”\n\n\\[\nFDR \\leq \\frac{n_{total} \\cdot p_{cut}}{i} \\leq \\alpha(0.05)\n\\]\n\\[\np_{cut} \\leq \\frac{i}{n_{total}} \\cdot \\alpha\n\\]\n\nadjusted p-value (padj) … (with cumulative minimum applied) \\[\np \\times \\frac{n_{total}}{i}\n\\]\n\n\n# Manual implementation of the BH procedure\npvalues &lt;- c(0.04, 0.001, 0.05, 0.0001, 0.2)\ngenes &lt;- c(\"GeneA\", \"GeneB\", \"GeneC\", \"GeneD\", \"GeneE\")\ndf &lt;- data.frame(Gene = genes, P_raw = pvalues)\ndf &lt;- df[order(df$P_raw), ]\nm &lt;- nrow(df)\nalpha &lt;- 0.05\ndf$Rank &lt;- 1:m\ndf$BH_Threshold &lt;- (df$Rank / m) * alpha\ndf$Pass &lt;- df$P_raw &lt;= df$BH_Threshold\ndf$padj_calc &lt;- pmin(df$P_raw * (m / df$Rank), 1)\ndf$padj_final &lt;- rev(cummin(rev(df$padj_calc)))\n\n# Built-in R function\ndf$R_function &lt;- p.adjust(df$P_raw, method = \"BH\")\n\n\n\n\n\nLow-count genes → difficult to achieve statistical significance\nPre-filtering → reduces total number of tests n → increases statistical power\nCases where padj is NA in DESeq2::results():\n\nLow-count gene (excluded by independent filtering)\nOutlier gene (based on Cook’s distance)",
+    "text": "p-value: the probability of observing the result by chance under the null hypothesis (H₀: no difference between groups)\nMultiple testing problem: testing 10,000 genes at p &lt; 0.05 would yield ~500 spuriously significant results → dramatic increase in false positives\n\n\n\n\n\nBonferroni: \\(\\alpha / n_{total}\\) → too conservative\nFDR (False Discovery Rate): \\(FDR = \\frac{FP}{FP + TP}\\)\n\n\n\n\n\n\n\n\n\n\n“Stricter for higher ranks, more lenient for lower ranks”\n\n\\[\nFDR \\leq \\frac{n_{total} \\cdot p_{cut}}{i} \\leq \\alpha(0.05)\n\\]\n\\[\np_{cut} \\leq \\frac{i}{n_{total}} \\cdot \\alpha\n\\]\n\nadjusted p-value (padj) … (with cumulative minimum applied) \\[\np \\times \\frac{n_{total}}{i}\n\\]\n\n\n# Manual implementation of the BH procedure\npvalues &lt;- c(0.04, 0.001, 0.05, 0.0001, 0.2)\ngenes &lt;- c(\"GeneA\", \"GeneB\", \"GeneC\", \"GeneD\", \"GeneE\")\ndf &lt;- data.frame(Gene = genes, P_raw = pvalues)\ndf &lt;- df[order(df$P_raw), ]\nm &lt;- nrow(df)\nalpha &lt;- 0.05\ndf$Rank &lt;- 1:m\ndf$BH_Threshold &lt;- (df$Rank / m) * alpha\ndf$Pass &lt;- df$P_raw &lt;= df$BH_Threshold\ndf$padj_calc &lt;- pmin(df$P_raw * (m / df$Rank), 1)\ndf$padj_final &lt;- rev(cummin(rev(df$padj_calc)))\n\n# Built-in R function\ndf$R_function &lt;- p.adjust(df$P_raw, method = \"BH\")\n\ndf\n\n\n\n\n\nLow-count genes → difficult to achieve statistical significance\nPre-filtering → reduces total number of tests n → increases statistical power\nCases where padj is NA in DESeq2::results():\n\nLow-count gene (excluded by independent filtering)\nOutlier gene (based on Cook’s distance)",
     "crumbs": [
       "Home",
       "3. Result interpretation",
@@ -915,6 +915,126 @@
       "Home",
       "4. Practice and wrap-up",
       "W12. Summary & Final Assignment"
+    ]
+  },
+  {
+    "objectID": "chapters/part3/W8_DEG Results Processing.html#deg-analysis-and-the-multiple-testing-problem",
+    "href": "chapters/part3/W8_DEG Results Processing.html#deg-analysis-and-the-multiple-testing-problem",
+    "title": "W8. DEG Results Processing",
+    "section": "",
+    "text": "p-value: the probability of observing the result by chance under the null hypothesis (H₀: no difference between groups)\nMultiple testing problem: testing 10,000 genes at p &lt; 0.05 would yield ~500 spuriously significant results → dramatic increase in false positives",
+    "crumbs": [
+      "Home",
+      "3. Result interpretation",
+      "W8. DEG Results Processing"
+    ]
+  },
+  {
+    "objectID": "chapters/part3/W8_DEG Results Processing.html#multiple-testing-correction",
+    "href": "chapters/part3/W8_DEG Results Processing.html#multiple-testing-correction",
+    "title": "W8. DEG Results Processing",
+    "section": "",
+    "text": "Bonferroni: \\(\\alpha / n_{total}\\) → too conservative\nFDR (False Discovery Rate): \\(FDR = \\frac{FP}{FP + TP}\\)",
+    "crumbs": [
+      "Home",
+      "3. Result interpretation",
+      "W8. DEG Results Processing"
+    ]
+  },
+  {
+    "objectID": "chapters/part3/W8_DEG Results Processing.html#benjamini-hochberg-bh-procedure",
+    "href": "chapters/part3/W8_DEG Results Processing.html#benjamini-hochberg-bh-procedure",
+    "title": "W8. DEG Results Processing",
+    "section": "",
+    "text": "“Stricter for higher ranks, more lenient for lower ranks”\n\n\\[\nFDR \\leq \\frac{n_{total} \\cdot p_{cut}}{i} \\leq \\alpha(0.05)\n\\]\n\\[\np_{cut} \\leq \\frac{i}{n_{total}} \\cdot \\alpha\n\\]\n\nadjusted p-value (padj) … (with cumulative minimum applied) \\[\np \\times \\frac{n_{total}}{i}\n\\]\n\n\n# Manual implementation of the BH procedure\npvalues &lt;- c(0.04, 0.001, 0.05, 0.0001, 0.2)\ngenes &lt;- c(\"GeneA\", \"GeneB\", \"GeneC\", \"GeneD\", \"GeneE\")\ndf &lt;- data.frame(Gene = genes, P_raw = pvalues)\ndf &lt;- df[order(df$P_raw), ]\nm &lt;- nrow(df)\nalpha &lt;- 0.05\ndf$Rank &lt;- 1:m\ndf$BH_Threshold &lt;- (df$Rank / m) * alpha\ndf$Pass &lt;- df$P_raw &lt;= df$BH_Threshold\ndf$padj_calc &lt;- pmin(df$P_raw * (m / df$Rank), 1)\ndf$padj_final &lt;- rev(cummin(rev(df$padj_calc)))\n\n# Built-in R function\ndf$R_function &lt;- p.adjust(df$P_raw, method = \"BH\")\n\ndf",
+    "crumbs": [
+      "Home",
+      "3. Result interpretation",
+      "W8. DEG Results Processing"
+    ]
+  },
+  {
+    "objectID": "chapters/part3/W8_DEG Results Processing.html#independent-filtering-deseq2",
+    "href": "chapters/part3/W8_DEG Results Processing.html#independent-filtering-deseq2",
+    "title": "W8. DEG Results Processing",
+    "section": "",
+    "text": "Low-count genes → difficult to achieve statistical significance\nPre-filtering → reduces total number of tests n → increases statistical power\nCases where padj is NA in DESeq2::results():\n\nLow-count gene (excluded by independent filtering)\nOutlier gene (based on Cook’s distance)",
+    "crumbs": [
+      "Home",
+      "3. Result interpretation",
+      "W8. DEG Results Processing"
+    ]
+  },
+  {
+    "objectID": "chapters/part3/W8_DEG Results Processing.html#ma-plot-global-view",
+    "href": "chapters/part3/W8_DEG Results Processing.html#ma-plot-global-view",
+    "title": "W8. DEG Results Processing",
+    "section": "MA Plot (Global View)",
+    "text": "MA Plot (Global View)\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nX-axis: Mean Average (A), Y-axis: Log Ratio (M = log₂FC)\nCheck for data bias and LFC inflation in low-count genes\nShould be symmetric around Y=0\napeglm::lfcShrink(): controls LFC in low-count genes (recommended)\n\n\n# MA plot\nplotMA(res, ylim = c(-10, 10), main = \"Before Shrinkage\")\n\n# LFC shrinkage (apeglm)\nlibrary(apeglm)\nresLFC &lt;- lfcShrink(dds, coef = \"condition_Tumor_vs_Normal\", type = \"apeglm\")\n\npar(mfrow = c(1, 2))\nplotMA(res, main = \"Before Shrinkage\", ylim = c(-5, 5))\nplotMA(resLFC, main = \"After Shrinkage (Recommended)\", ylim = c(-5, 5))\npar(mfrow = c(1, 1))",
+    "crumbs": [
+      "Home",
+      "3. Result interpretation",
+      "W8. DEG Results Processing"
+    ]
+  },
+  {
+    "objectID": "chapters/part3/W8_DEG Results Processing.html#volcano-plot-gene-selection",
+    "href": "chapters/part3/W8_DEG Results Processing.html#volcano-plot-gene-selection",
+    "title": "W8. DEG Results Processing",
+    "section": "Volcano Plot (Gene Selection)",
+    "text": "Volcano Plot (Gene Selection)\n\n\n\n\n\n\nX-axis: log₂(Fold Change), Y-axis: −log₁₀(adjusted p-value)\nIdentify genes with large |LFC| and low p-value\n\n\nlibrary(ggrepel)\n\nres_df &lt;- as.data.frame(resLFC) %&gt;%\n  rownames_to_column(\"gene_id\") %&gt;%\n  mutate(is_significant = padj &lt; 0.05 & abs(log2FoldChange) &gt; 1)\n\np_thr &lt;- 0.05; lfc_thr &lt;- 1\nvol_data &lt;- res_df %&gt;%\n  mutate(diffexpressed = case_when(\n    log2FoldChange &gt; lfc_thr & padj &lt; p_thr ~ \"UP\",\n    log2FoldChange &lt; -lfc_thr & padj &lt; p_thr ~ \"DOWN\",\n    TRUE ~ \"NO\"\n  ))\n\nggplot(vol_data, aes(x = log2FoldChange, y = -log10(padj),\n                     color = diffexpressed)) +\n  geom_point(alpha = 0.5, size = 1.5) +\n  scale_color_manual(values = c(\"DOWN\" = \"blue\", \"NO\" = \"grey\", \"UP\" = \"red\")) +\n  geom_vline(xintercept = c(-lfc_thr, lfc_thr), linetype = \"dashed\") +\n  geom_hline(yintercept = -log10(p_thr), linetype = \"dashed\") +\n  geom_text_repel(data = head(arrange(vol_data, padj), 10),\n                  aes(label = gene_id), color = \"black\") +\n  theme_minimal() +\n  labs(title = \"Volcano Plot\",\n       x = \"Log2 Fold Change\", y = \"-Log10 Adjusted P-value\")",
+    "crumbs": [
+      "Home",
+      "3. Result interpretation",
+      "W8. DEG Results Processing"
+    ]
+  },
+  {
+    "objectID": "chapters/part3/W8_DEG Results Processing.html#heatmap-pattern-inspection",
+    "href": "chapters/part3/W8_DEG Results Processing.html#heatmap-pattern-inspection",
+    "title": "W8. DEG Results Processing",
+    "section": "Heatmap (Pattern Inspection)",
+    "text": "Heatmap (Pattern Inspection)\n\n\n\n\n\n\nVisualize expression patterns of top significant genes\nInspect patterns between Case/Control and identify outlier samples\nApply vst/rlog transformation → z-score scaling\n\n\nlibrary(pheatmap)\n\nvsd &lt;- vst(dds, blind = FALSE)\n\n# Top 20 DEGs\ntop_genes &lt;- res_df %&gt;%\n  filter(padj &lt; 0.05) %&gt;%\n  arrange(desc(abs(log2FoldChange))) %&gt;%\n  head(20) %&gt;%\n  .$gene_id\n\nmat &lt;- assay(vsd)[top_genes, ]\ndf &lt;- as.data.frame(colData(dds)[, c(\"gender\", \"condition\")])\n\npheatmap(mat,\n         scale = \"row\",            # z-score\n         show_rownames = TRUE,\n         show_colnames = FALSE,\n         annotation_col = df,\n         cluster_cols = TRUE,\n         main = \"Top 20 DEGs Heatmap\")",
+    "crumbs": [
+      "Home",
+      "3. Result interpretation",
+      "W8. DEG Results Processing"
+    ]
+  },
+  {
+    "objectID": "chapters/part3/W8_DEG Results Processing.html#comparing-the-number-of-degs",
+    "href": "chapters/part3/W8_DEG Results Processing.html#comparing-the-number-of-degs",
+    "title": "W8. DEG Results Processing",
+    "section": "1. Comparing the Number of DEGs",
+    "text": "1. Comparing the Number of DEGs\n\nSimple model (~ condition): ~17,000 DEGs\nPaired model (~ patient + condition): ~15,700 DEGs\n\nFrom a variance decomposition perspective: the paired model accounts for patient effects separately, so patient variance that was incorrectly attributed to condition in the simple model is now partitioned out. As a result, some genes lose significance, but the remaining DEGs are more likely to reflect true biological signal.",
+    "crumbs": [
+      "Home",
+      "3. Result interpretation",
+      "W8. DEG Results Processing"
+    ]
+  },
+  {
+    "objectID": "chapters/part3/W8_DEG Results Processing.html#gold-standard-genes",
+    "href": "chapters/part3/W8_DEG Results Processing.html#gold-standard-genes",
+    "title": "W8. DEG Results Processing",
+    "section": "2. Gold Standard Genes",
+    "text": "2. Gold Standard Genes\nValidate the change in p-values between models using known LUAD marker genes such as TOP2A, SFTPA1, SFTPB, SFTPC, and AGER.",
+    "crumbs": [
+      "Home",
+      "3. Result interpretation",
+      "W8. DEG Results Processing"
+    ]
+  },
+  {
+    "objectID": "chapters/part3/W8_DEG Results Processing.html#volcano-plot-with-highlight",
+    "href": "chapters/part3/W8_DEG Results Processing.html#volcano-plot-with-highlight",
+    "title": "W8. DEG Results Processing",
+    "section": "3. Volcano Plot with Highlight",
+    "text": "3. Volcano Plot with Highlight\n\n# Highlight specific genes\nhighlight_genes &lt;- c(\"TOP2A\", \"SFTPA1\", \"SFTPB\", \"SFTPC\", \"AGER\")\nhighlight_data &lt;- vol_data %&gt;% filter(gene_id %in% highlight_genes)\n\nggplot(vol_data, aes(x = log2FoldChange, y = -log10(padj),\n                     color = diffexpressed)) +\n  geom_point(alpha = 0.5, size = 1.5) +\n  scale_color_manual(values = c(\"DOWN\" = \"blue\", \"NO\" = \"grey\", \"UP\" = \"red\")) +\n  geom_point(data = highlight_data, color = \"purple\", size = 3) +\n  geom_text_repel(data = highlight_data,\n                  aes(label = gene_id), color = \"purple\") +\n  geom_vline(xintercept = c(-1, 1), linetype = \"dashed\") +\n  geom_hline(yintercept = -log10(0.05), linetype = \"dashed\") +\n  theme_minimal() +\n  labs(title = \"Volcano Plot (Paired Model)\",\n       x = \"Log2 Fold Change\", y = \"-Log10 Adjusted P-value\")",
+    "crumbs": [
+      "Home",
+      "3. Result interpretation",
+      "W8. DEG Results Processing"
     ]
   }
 ]
