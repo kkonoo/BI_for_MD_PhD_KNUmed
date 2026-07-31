@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
 <meta name="author" content="Eunji Ha">
-<meta name="dcterms.date" content="2026-06-08">
+<meta name="dcterms.date" content="2026-07-31">
 
 <title>W8. DEG Results Processing</title>
 <style>
@@ -70,7 +70,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <script src="../../site_libs/quarto-search/fuse.min.js"></script>
 <script src="../../site_libs/quarto-search/quarto-search.js"></script>
 <meta name="quarto:offset" content="../../">
-<link href="../../assets/img/logo.ico" rel="icon">
+<link href="../../assets/img/favicon.ico" rel="icon">
 <script src="../../site_libs/quarto-html/quarto.js" type="module"></script>
 <script src="../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
 <script src="../../site_libs/quarto-html/popper.min.js"></script>
@@ -151,8 +151,8 @@ window.Quarto = {
       <div class="navbar-container container-fluid">
       <div class="navbar-brand-container mx-auto">
     <a href="../../index.html" class="navbar-brand navbar-brand-logo">
-    <img src="../../images/logo.jpg" alt="" class="navbar-logo light-content">
-    <img src="../../images/logo.jpg" alt="" class="navbar-logo dark-content">
+    <img src="../../assets/img/logo.jpg" alt="" class="navbar-logo light-content">
+    <img src="../../assets/img/logo.jpg" alt="" class="navbar-logo dark-content">
     </a>
   </div>
             <div id="quarto-search" class="" title="Search"></div>
@@ -390,7 +390,7 @@ window.Quarto = {
     <div>
     <div class="quarto-title-meta-heading">Published</div>
     <div class="quarto-title-meta-contents">
-      <p class="date">June 8, 2026</p>
+      <p class="date">July 31, 2026</p>
     </div>
   </div>
   
@@ -482,6 +482,37 @@ p \times \frac{n_{total}}{i}
 </section>
 <section id="visualization-of-deg-results" class="level2">
 <h2 class="anchored" data-anchor-id="visualization-of-deg-results">2. Visualization of DEG Results</h2>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>download practice data
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>save the following files in <code>data/</code> in your R project</p>
+<table class="caption-top table">
+<thead>
+<tr class="header">
+<th>File</th>
+<th>Link</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>dds_DESeq2.rds</code></td>
+<td><a href="https://drive.google.com/file/d/12u96ISl9njFDB49iQ71coI7mjvft5jai/view?usp=sharing">📥 Download</a></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="cell">
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>dds <span class="ot">&lt;-</span> <span class="fu">readRDS</span>(<span class="st">'data/dds_DESeq2.rds'</span>)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>res <span class="ot">&lt;-</span> <span class="fu">results</span>(dds, <span class="at">contrast =</span> <span class="fu">c</span>(<span class="st">"condition"</span>, <span class="st">"Tumor"</span>, <span class="st">"Normal"</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</div>
 <section id="ma-plot-global-view" class="level4">
 <h4 class="anchored" data-anchor-id="ma-plot-global-view">MA Plot (Global View)</h4>
 <div class="columns">
@@ -506,21 +537,17 @@ p \times \frac{n_{total}}{i}
 <li><code>apeglm::lfcShrink()</code>: controls LFC in low-count genes (recommended)</li>
 </ul>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>dds <span class="ot">&lt;-</span> <span class="fu">readRDS</span>(<span class="st">'data_w7/dds_DESeq2.rds'</span>)</span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>res <span class="ot">&lt;-</span> <span class="fu">results</span>(dds, <span class="at">contrast =</span> <span class="fu">c</span>(<span class="st">"condition"</span>, <span class="st">"Tumor"</span>, <span class="st">"Normal"</span>),</span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>               <span class="at">lfcThreshold =</span> <span class="fl">0.25</span>, <span class="at">alpha =</span> <span class="fl">0.05</span>)</span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="co"># MA plot</span></span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="fu">plotMA</span>(res, <span class="at">ylim =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="dv">10</span>, <span class="dv">10</span>), <span class="at">main =</span> <span class="st">"Before Shrinkage"</span>)</span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="co"># LFC shrinkage (apeglm)</span></span>
-<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(apeglm)</span>
-<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>resLFC <span class="ot">&lt;-</span> <span class="fu">lfcShrink</span>(dds, <span class="at">coef =</span> <span class="st">"condition_Tumor_vs_Normal"</span>, <span class="at">type =</span> <span class="st">"apeglm"</span>)</span>
-<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">2</span>))</span>
-<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a><span class="fu">plotMA</span>(res, <span class="at">main =</span> <span class="st">"Before Shrinkage"</span>, <span class="at">ylim =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="dv">5</span>, <span class="dv">5</span>))</span>
-<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a><span class="fu">plotMA</span>(resLFC, <span class="at">main =</span> <span class="st">"After Shrinkage (Recommended)"</span>, <span class="at">ylim =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="dv">5</span>, <span class="dv">5</span>))</span>
-<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">1</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># MA plot</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plotMA</span>(res, <span class="at">ylim =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="dv">10</span>, <span class="dv">10</span>), <span class="at">main =</span> <span class="st">"Before Shrinkage"</span>)</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="co"># LFC shrinkage (apeglm)</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(apeglm)</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>resLFC <span class="ot">&lt;-</span> <span class="fu">lfcShrink</span>(dds, <span class="at">coef =</span> <span class="st">"condition_Tumor_vs_Normal"</span>, <span class="at">type =</span> <span class="st">"apeglm"</span>)</span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">2</span>))</span>
+<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a><span class="fu">plotMA</span>(res, <span class="at">main =</span> <span class="st">"Before Shrinkage"</span>, <span class="at">ylim =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="dv">5</span>, <span class="dv">5</span>))</span>
+<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a><span class="fu">plotMA</span>(resLFC, <span class="at">main =</span> <span class="st">"After Shrinkage (Recommended)"</span>, <span class="at">ylim =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="dv">5</span>, <span class="dv">5</span>))</span>
+<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a><span class="fu">par</span>(<span class="at">mfrow =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">1</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section>
 <section id="volcano-plot-gene-selection" class="level4">
@@ -535,31 +562,31 @@ p \times \frac{n_{total}}{i}
 <li>Identify genes with large |LFC| and low p-value</li>
 </ul>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggrepel)</span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>res_df <span class="ot">&lt;-</span> <span class="fu">as.data.frame</span>(resLFC) <span class="sc">%&gt;%</span></span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rownames_to_column</span>(<span class="st">"gene_id"</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">is_significant =</span> padj <span class="sc">&lt;</span> <span class="fl">0.05</span> <span class="sc">&amp;</span> <span class="fu">abs</span>(log2FoldChange) <span class="sc">&gt;</span> <span class="dv">1</span>)</span>
-<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>p_thr <span class="ot">&lt;-</span> <span class="fl">0.05</span>; lfc_thr <span class="ot">&lt;-</span> <span class="dv">1</span></span>
-<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>vol_data <span class="ot">&lt;-</span> res_df <span class="sc">%&gt;%</span></span>
-<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">diffexpressed =</span> <span class="fu">case_when</span>(</span>
-<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a>    log2FoldChange <span class="sc">&gt;</span> lfc_thr <span class="sc">&amp;</span> padj <span class="sc">&lt;</span> p_thr <span class="sc">~</span> <span class="st">"UP"</span>,</span>
-<span id="cb3-11"><a href="#cb3-11" aria-hidden="true" tabindex="-1"></a>    log2FoldChange <span class="sc">&lt;</span> <span class="sc">-</span>lfc_thr <span class="sc">&amp;</span> padj <span class="sc">&lt;</span> p_thr <span class="sc">~</span> <span class="st">"DOWN"</span>,</span>
-<span id="cb3-12"><a href="#cb3-12" aria-hidden="true" tabindex="-1"></a>    <span class="cn">TRUE</span> <span class="sc">~</span> <span class="st">"NO"</span></span>
-<span id="cb3-13"><a href="#cb3-13" aria-hidden="true" tabindex="-1"></a>  ))</span>
-<span id="cb3-14"><a href="#cb3-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-15"><a href="#cb3-15" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(vol_data, <span class="fu">aes</span>(<span class="at">x =</span> log2FoldChange, <span class="at">y =</span> <span class="sc">-</span><span class="fu">log10</span>(padj),</span>
-<span id="cb3-16"><a href="#cb3-16" aria-hidden="true" tabindex="-1"></a>                     <span class="at">color =</span> diffexpressed)) <span class="sc">+</span></span>
-<span id="cb3-17"><a href="#cb3-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">alpha =</span> <span class="fl">0.5</span>, <span class="at">size =</span> <span class="fl">1.5</span>) <span class="sc">+</span></span>
-<span id="cb3-18"><a href="#cb3-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_color_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">"DOWN"</span> <span class="ot">=</span> <span class="st">"blue"</span>, <span class="st">"NO"</span> <span class="ot">=</span> <span class="st">"grey"</span>, <span class="st">"UP"</span> <span class="ot">=</span> <span class="st">"red"</span>)) <span class="sc">+</span></span>
-<span id="cb3-19"><a href="#cb3-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_vline</span>(<span class="at">xintercept =</span> <span class="fu">c</span>(<span class="sc">-</span>lfc_thr, lfc_thr), <span class="at">linetype =</span> <span class="st">"dashed"</span>) <span class="sc">+</span></span>
-<span id="cb3-20"><a href="#cb3-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_hline</span>(<span class="at">yintercept =</span> <span class="sc">-</span><span class="fu">log10</span>(p_thr), <span class="at">linetype =</span> <span class="st">"dashed"</span>) <span class="sc">+</span></span>
-<span id="cb3-21"><a href="#cb3-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_text_repel</span>(<span class="at">data =</span> <span class="fu">head</span>(<span class="fu">arrange</span>(vol_data, padj), <span class="dv">10</span>),</span>
-<span id="cb3-22"><a href="#cb3-22" aria-hidden="true" tabindex="-1"></a>                  <span class="fu">aes</span>(<span class="at">label =</span> gene_id), <span class="at">color =</span> <span class="st">"black"</span>) <span class="sc">+</span></span>
-<span id="cb3-23"><a href="#cb3-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
-<span id="cb3-24"><a href="#cb3-24" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Volcano Plot"</span>,</span>
-<span id="cb3-25"><a href="#cb3-25" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="st">"Log2 Fold Change"</span>, <span class="at">y =</span> <span class="st">"-Log10 Adjusted P-value"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggrepel)</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>res_df <span class="ot">&lt;-</span> <span class="fu">as.data.frame</span>(resLFC) <span class="sc">%&gt;%</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rownames_to_column</span>(<span class="st">"gene_id"</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">is_significant =</span> padj <span class="sc">&lt;</span> <span class="fl">0.05</span> <span class="sc">&amp;</span> <span class="fu">abs</span>(log2FoldChange) <span class="sc">&gt;</span> <span class="dv">1</span>)</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>p_thr <span class="ot">&lt;-</span> <span class="fl">0.05</span>; lfc_thr <span class="ot">&lt;-</span> <span class="dv">1</span></span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>vol_data <span class="ot">&lt;-</span> res_df <span class="sc">%&gt;%</span></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">diffexpressed =</span> <span class="fu">case_when</span>(</span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>    log2FoldChange <span class="sc">&gt;</span> lfc_thr <span class="sc">&amp;</span> padj <span class="sc">&lt;</span> p_thr <span class="sc">~</span> <span class="st">"UP"</span>,</span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>    log2FoldChange <span class="sc">&lt;</span> <span class="sc">-</span>lfc_thr <span class="sc">&amp;</span> padj <span class="sc">&lt;</span> p_thr <span class="sc">~</span> <span class="st">"DOWN"</span>,</span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>    <span class="cn">TRUE</span> <span class="sc">~</span> <span class="st">"NO"</span></span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>  ))</span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(vol_data, <span class="fu">aes</span>(<span class="at">x =</span> log2FoldChange, <span class="at">y =</span> <span class="sc">-</span><span class="fu">log10</span>(padj),</span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>                     <span class="at">color =</span> diffexpressed)) <span class="sc">+</span></span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">alpha =</span> <span class="fl">0.5</span>, <span class="at">size =</span> <span class="fl">1.5</span>) <span class="sc">+</span></span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_color_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">"DOWN"</span> <span class="ot">=</span> <span class="st">"blue"</span>, <span class="st">"NO"</span> <span class="ot">=</span> <span class="st">"grey"</span>, <span class="st">"UP"</span> <span class="ot">=</span> <span class="st">"red"</span>)) <span class="sc">+</span></span>
+<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_vline</span>(<span class="at">xintercept =</span> <span class="fu">c</span>(<span class="sc">-</span>lfc_thr, lfc_thr), <span class="at">linetype =</span> <span class="st">"dashed"</span>) <span class="sc">+</span></span>
+<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_hline</span>(<span class="at">yintercept =</span> <span class="sc">-</span><span class="fu">log10</span>(p_thr), <span class="at">linetype =</span> <span class="st">"dashed"</span>) <span class="sc">+</span></span>
+<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_text_repel</span>(<span class="at">data =</span> <span class="fu">head</span>(<span class="fu">arrange</span>(vol_data, padj), <span class="dv">10</span>),</span>
+<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a>                  <span class="fu">aes</span>(<span class="at">label =</span> gene_id), <span class="at">color =</span> <span class="st">"black"</span>) <span class="sc">+</span></span>
+<span id="cb4-23"><a href="#cb4-23" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
+<span id="cb4-24"><a href="#cb4-24" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Volcano Plot"</span>,</span>
+<span id="cb4-25"><a href="#cb4-25" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="st">"Log2 Fold Change"</span>, <span class="at">y =</span> <span class="st">"-Log10 Adjusted P-value"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section>
 <section id="heatmap-pattern-inspection" class="level4">
@@ -575,27 +602,27 @@ p \times \frac{n_{total}}{i}
 <li>Apply <strong>vst/rlog transformation → z-score scaling</strong></li>
 </ul>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(pheatmap)</span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>vsd <span class="ot">&lt;-</span> <span class="fu">vst</span>(dds, <span class="at">blind =</span> <span class="cn">FALSE</span>)</span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Top 20 DEGs</span></span>
-<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>top_genes <span class="ot">&lt;-</span> res_df <span class="sc">%&gt;%</span></span>
-<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(padj <span class="sc">&lt;</span> <span class="fl">0.05</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(<span class="fu">abs</span>(log2FoldChange))) <span class="sc">%&gt;%</span></span>
-<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">head</span>(<span class="dv">20</span>) <span class="sc">%&gt;%</span></span>
-<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>  .<span class="sc">$</span>gene_id</span>
-<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a>mat <span class="ot">&lt;-</span> <span class="fu">assay</span>(vsd)[top_genes, ]</span>
-<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a>df <span class="ot">&lt;-</span> <span class="fu">as.data.frame</span>(<span class="fu">colData</span>(dds)[, <span class="fu">c</span>(<span class="st">"gender"</span>, <span class="st">"condition"</span>)])</span>
-<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a><span class="fu">pheatmap</span>(mat,</span>
-<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>         <span class="at">scale =</span> <span class="st">"row"</span>,            <span class="co"># z-score</span></span>
-<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>         <span class="at">show_rownames =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a>         <span class="at">show_colnames =</span> <span class="cn">FALSE</span>,</span>
-<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a>         <span class="at">annotation_col =</span> df,</span>
-<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a>         <span class="at">cluster_cols =</span> <span class="cn">TRUE</span>,</span>
-<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a>         <span class="at">main =</span> <span class="st">"Top 20 DEGs Heatmap"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(pheatmap)</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>vsd <span class="ot">&lt;-</span> <span class="fu">vst</span>(dds, <span class="at">blind =</span> <span class="cn">FALSE</span>)</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Top 20 DEGs</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>top_genes <span class="ot">&lt;-</span> res_df <span class="sc">%&gt;%</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(padj <span class="sc">&lt;</span> <span class="fl">0.05</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(<span class="fu">abs</span>(log2FoldChange))) <span class="sc">%&gt;%</span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">head</span>(<span class="dv">20</span>) <span class="sc">%&gt;%</span></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>  .<span class="sc">$</span>gene_id</span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>mat <span class="ot">&lt;-</span> <span class="fu">assay</span>(vsd)[top_genes, ]</span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>df <span class="ot">&lt;-</span> <span class="fu">as.data.frame</span>(<span class="fu">colData</span>(dds)[, <span class="fu">c</span>(<span class="st">"gender"</span>, <span class="st">"condition"</span>)])</span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a><span class="fu">pheatmap</span>(mat,</span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>         <span class="at">scale =</span> <span class="st">"row"</span>,            <span class="co"># z-score</span></span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>         <span class="at">show_rownames =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a>         <span class="at">show_colnames =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a>         <span class="at">annotation_col =</span> df,</span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a>         <span class="at">cluster_cols =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a>         <span class="at">main =</span> <span class="st">"Top 20 DEGs Heatmap"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 </section>
 </section>
@@ -616,22 +643,22 @@ p \times \frac{n_{total}}{i}
 <section id="volcano-plot-with-highlight" class="level4">
 <h4 class="anchored" data-anchor-id="volcano-plot-with-highlight">3. Volcano Plot with Highlight</h4>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Highlight specific genes</span></span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>highlight_genes <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"TOP2A"</span>, <span class="st">"SFTPA1"</span>, <span class="st">"SFTPB"</span>, <span class="st">"SFTPC"</span>, <span class="st">"AGER"</span>)</span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>highlight_data <span class="ot">&lt;-</span> vol_data <span class="sc">%&gt;%</span> <span class="fu">filter</span>(gene_id <span class="sc">%in%</span> highlight_genes)</span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(vol_data, <span class="fu">aes</span>(<span class="at">x =</span> log2FoldChange, <span class="at">y =</span> <span class="sc">-</span><span class="fu">log10</span>(padj),</span>
-<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>                     <span class="at">color =</span> diffexpressed)) <span class="sc">+</span></span>
-<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">alpha =</span> <span class="fl">0.5</span>, <span class="at">size =</span> <span class="fl">1.5</span>) <span class="sc">+</span></span>
-<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_color_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">"DOWN"</span> <span class="ot">=</span> <span class="st">"blue"</span>, <span class="st">"NO"</span> <span class="ot">=</span> <span class="st">"grey"</span>, <span class="st">"UP"</span> <span class="ot">=</span> <span class="st">"red"</span>)) <span class="sc">+</span></span>
-<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">data =</span> highlight_data, <span class="at">color =</span> <span class="st">"purple"</span>, <span class="at">size =</span> <span class="dv">3</span>) <span class="sc">+</span></span>
-<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_text_repel</span>(<span class="at">data =</span> highlight_data,</span>
-<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>                  <span class="fu">aes</span>(<span class="at">label =</span> gene_id), <span class="at">color =</span> <span class="st">"purple"</span>) <span class="sc">+</span></span>
-<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_vline</span>(<span class="at">xintercept =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="dv">1</span>, <span class="dv">1</span>), <span class="at">linetype =</span> <span class="st">"dashed"</span>) <span class="sc">+</span></span>
-<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_hline</span>(<span class="at">yintercept =</span> <span class="sc">-</span><span class="fu">log10</span>(<span class="fl">0.05</span>), <span class="at">linetype =</span> <span class="st">"dashed"</span>) <span class="sc">+</span></span>
-<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
-<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Volcano Plot (Paired Model)"</span>,</span>
-<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="st">"Log2 Fold Change"</span>, <span class="at">y =</span> <span class="st">"-Log10 Adjusted P-value"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Highlight specific genes</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>highlight_genes <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="st">"TOP2A"</span>, <span class="st">"SFTPA1"</span>, <span class="st">"SFTPB"</span>, <span class="st">"SFTPC"</span>, <span class="st">"AGER"</span>)</span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>highlight_data <span class="ot">&lt;-</span> vol_data <span class="sc">%&gt;%</span> <span class="fu">filter</span>(gene_id <span class="sc">%in%</span> highlight_genes)</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(vol_data, <span class="fu">aes</span>(<span class="at">x =</span> log2FoldChange, <span class="at">y =</span> <span class="sc">-</span><span class="fu">log10</span>(padj),</span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>                     <span class="at">color =</span> diffexpressed)) <span class="sc">+</span></span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">alpha =</span> <span class="fl">0.5</span>, <span class="at">size =</span> <span class="fl">1.5</span>) <span class="sc">+</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_color_manual</span>(<span class="at">values =</span> <span class="fu">c</span>(<span class="st">"DOWN"</span> <span class="ot">=</span> <span class="st">"blue"</span>, <span class="st">"NO"</span> <span class="ot">=</span> <span class="st">"grey"</span>, <span class="st">"UP"</span> <span class="ot">=</span> <span class="st">"red"</span>)) <span class="sc">+</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">data =</span> highlight_data, <span class="at">color =</span> <span class="st">"purple"</span>, <span class="at">size =</span> <span class="dv">3</span>) <span class="sc">+</span></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_text_repel</span>(<span class="at">data =</span> highlight_data,</span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>                  <span class="fu">aes</span>(<span class="at">label =</span> gene_id), <span class="at">color =</span> <span class="st">"purple"</span>) <span class="sc">+</span></span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_vline</span>(<span class="at">xintercept =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="dv">1</span>, <span class="dv">1</span>), <span class="at">linetype =</span> <span class="st">"dashed"</span>) <span class="sc">+</span></span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_hline</span>(<span class="at">yintercept =</span> <span class="sc">-</span><span class="fu">log10</span>(<span class="fl">0.05</span>), <span class="at">linetype =</span> <span class="st">"dashed"</span>) <span class="sc">+</span></span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Volcano Plot (Paired Model)"</span>,</span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="st">"Log2 Fold Change"</span>, <span class="at">y =</span> <span class="st">"-Log10 Adjusted P-value"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 
 
@@ -640,23 +667,615 @@ p \times \frac{n_{total}}{i}
 
 </main> <!-- /main -->
 <!-- AI Chat Widget 초기화 -->
+
 <!-- _quarto.yml의 include-after-body에 등록되어 모든 페이지에 자동 삽입됩니다 -->
+
 <script>
+
   // ★ Cloudflare Worker 배포 후 URL로 교체하세요
+
   const WORKER_URL = "https://falling-wave-447f.eh0129s.workers.dev/";
 
+
+
   // 각 .qmd 파일의 YAML에서 ai-context를 읽어옵니다
+
   // (없으면 빈 문자열 → 기본 안내 메시지)
+
   const metaContext = document.querySelector('meta[name="ai-context"]');
+
   const metaTitle   = document.querySelector('meta[name="ai-title"]') || { content: document.title };
 
+
+
   window.AI_CHAT_CONFIG = {
+
     workerUrl:      WORKER_URL,
+
     chapterContext: metaContext ? metaContext.content : "",
+
     chapterTitle:   metaTitle  ? metaTitle.content   : document.title,
+
   };
+
 </script>
-<script src="../_extensions/ai-chat/ai-chat.js" defer=""></script>
+
+<!-- 위젯 코드를 인라인으로 삽입 (외부 src 제거 → 페이지 깊이에 따른 경로 404 방지) -->
+
+<script>
+
+/**
+
+ * AI Chat Widget for Quarto
+
+ * 각 페이지의 YAML front matter에서 시스템 프롬프트를 읽어옵니다.
+
+ * window.AI_CHAT_CONFIG 에서 설정을 가져옵니다.
+
+ */
+
+
+
+(function () {
+
+  const cfg = window.AI_CHAT_CONFIG || {};
+
+  const WORKER_URL = cfg.workerUrl || "";
+
+  const CHAPTER_CONTEXT = cfg.chapterContext || "";
+
+  const CHAPTER_TITLE = cfg.chapterTitle || document.title;
+
+
+
+  if (!WORKER_URL) {
+
+    console.warn("[AI Chat] workerUrl이 설정되지 않았습니다.");
+
+    return;
+
+  }
+
+
+
+  /* ── 시스템 프롬프트 ───────────────────────── */
+
+  const SYSTEM_PROMPT = `당신은 "${CHAPTER_TITLE}" 강의자료를 도와주는 학습 도우미입니다.
+
+
+
+아래는 현재 챕터의 핵심 내용입니다:
+
+---
+
+${CHAPTER_CONTEXT}
+
+---
+
+
+
+규칙:
+
+- 위 챕터 내용을 중심으로 답변하세요.
+
+- 질문이 챕터 범위를 벗어나면 간단히 언급하고 챕터 내용으로 연결해주세요.
+
+- R 코드 예시가 도움이 될 때는 포함하세요.
+
+- 한국어로 답변하되, 전문 용어는 영어 병기 가능합니다.
+
+- 의학/과학 학생 대상이므로 정확성을 최우선으로 합니다.`;
+
+
+
+  /* ── DOM 생성 ────────────────────────────── */
+
+  const style = document.createElement("style");
+
+  style.textContent = `
+
+    #ai-chat-fab {
+
+      position: fixed; bottom: 28px; right: 28px; z-index: 9999;
+
+      width: 52px; height: 52px; border-radius: 50%;
+
+      background: #1a6e3c; color: #fff; border: none;
+
+      box-shadow: 0 4px 16px rgba(0,0,0,.22);
+
+      cursor: pointer; font-size: 22px;
+
+      display: flex; align-items: center; justify-content: center;
+
+      transition: background .2s, transform .15s;
+
+    }
+
+    #ai-chat-fab:hover { background: #155730; transform: scale(1.07); }
+
+
+
+    #ai-chat-panel {
+
+      position: fixed; bottom: 90px; right: 28px; z-index: 9998;
+
+      width: 360px; max-width: calc(100vw - 40px);
+
+      height: 500px; max-height: calc(100vh - 120px);
+
+      background: #fff; border-radius: 16px;
+
+      box-shadow: 0 8px 40px rgba(0,0,0,.18);
+
+      display: flex; flex-direction: column;
+
+      font-family: 'Noto Sans KR', 'Apple SD Gothic Neo', sans-serif;
+
+      overflow: hidden;
+
+      transform: scale(.92) translateY(12px);
+
+      opacity: 0; pointer-events: none;
+
+      transition: transform .22s cubic-bezier(.34,1.56,.64,1), opacity .18s;
+
+    }
+
+    #ai-chat-panel.open {
+
+      transform: scale(1) translateY(0);
+
+      opacity: 1; pointer-events: all;
+
+    }
+
+
+
+    #ai-chat-header {
+
+      background: #1a6e3c; color: #fff;
+
+      padding: 14px 16px 12px;
+
+      display: flex; align-items: center; gap: 10px;
+
+      font-size: 14px; font-weight: 600; letter-spacing: .01em;
+
+      flex-shrink: 0;
+
+    }
+
+    #ai-chat-header span { flex: 1; }
+
+    #ai-chat-close {
+
+      background: none; border: none; color: #fff;
+
+      font-size: 18px; cursor: pointer; padding: 0 2px; line-height: 1;
+
+      opacity: .8;
+
+    }
+
+    #ai-chat-close:hover { opacity: 1; }
+
+
+
+    #ai-chat-subtitle {
+
+      font-size: 11px; color: rgba(255,255,255,.72);
+
+      font-weight: 400; display: block; margin-top: 2px;
+
+    }
+
+
+
+    #ai-chat-messages {
+
+      flex: 1; overflow-y: auto; padding: 14px 14px 8px;
+
+      display: flex; flex-direction: column; gap: 10px;
+
+      scroll-behavior: smooth;
+
+    }
+
+    #ai-chat-messages::-webkit-scrollbar { width: 4px; }
+
+    #ai-chat-messages::-webkit-scrollbar-thumb {
+
+      background: #ddd; border-radius: 4px;
+
+    }
+
+
+
+    .ai-msg {
+
+      max-width: 88%; padding: 9px 13px;
+
+      border-radius: 14px; font-size: 13.5px; line-height: 1.55;
+
+      white-space: pre-wrap; word-break: break-word;
+
+    }
+
+    .ai-msg.user {
+
+      align-self: flex-end;
+
+      background: #1a6e3c; color: #fff;
+
+      border-bottom-right-radius: 4px;
+
+    }
+
+    .ai-msg.assistant {
+
+      align-self: flex-start;
+
+      background: #f3f4f6; color: #1f2937;
+
+      border-bottom-left-radius: 4px;
+
+    }
+
+    .ai-msg.assistant code {
+
+      background: #e5e7eb; padding: 1px 5px;
+
+      border-radius: 4px; font-size: 12.5px; font-family: monospace;
+
+    }
+
+    .ai-msg.assistant pre {
+
+      background: #1f2937; color: #f9fafb;
+
+      padding: 10px 12px; border-radius: 8px; overflow-x: auto;
+
+      font-size: 12px; margin: 6px 0;
+
+    }
+
+    .ai-msg.assistant pre code { background: none; padding: 0; color: inherit; }
+
+
+
+    .ai-typing {
+
+      align-self: flex-start;
+
+      display: flex; gap: 5px; padding: 10px 14px;
+
+      background: #f3f4f6; border-radius: 14px; border-bottom-left-radius: 4px;
+
+    }
+
+    .ai-typing span {
+
+      width: 7px; height: 7px; background: #9ca3af;
+
+      border-radius: 50%; animation: aiDot 1.2s infinite;
+
+    }
+
+    .ai-typing span:nth-child(2) { animation-delay: .2s; }
+
+    .ai-typing span:nth-child(3) { animation-delay: .4s; }
+
+    @keyframes aiDot {
+
+      0%, 60%, 100% { transform: translateY(0); opacity: .4; }
+
+      30% { transform: translateY(-5px); opacity: 1; }
+
+    }
+
+
+
+    #ai-chat-input-row {
+
+      display: flex; gap: 8px; padding: 10px 12px 12px;
+
+      border-top: 1px solid #f0f0f0; flex-shrink: 0;
+
+    }
+
+    #ai-chat-input {
+
+      flex: 1; border: 1px solid #e5e7eb; border-radius: 10px;
+
+      padding: 8px 12px; font-size: 13.5px; resize: none;
+
+      font-family: inherit; outline: none; max-height: 100px;
+
+      line-height: 1.45; color: #1f2937;
+
+      transition: border-color .15s;
+
+    }
+
+    #ai-chat-input:focus { border-color: #1a6e3c; }
+
+    #ai-chat-send {
+
+      width: 36px; height: 36px; border-radius: 9px;
+
+      background: #1a6e3c; color: #fff; border: none;
+
+      cursor: pointer; font-size: 16px; flex-shrink: 0;
+
+      align-self: flex-end;
+
+      display: flex; align-items: center; justify-content: center;
+
+      transition: background .15s;
+
+    }
+
+    #ai-chat-send:hover { background: #155730; }
+
+    #ai-chat-send:disabled { background: #9ca3af; cursor: not-allowed; }
+
+  `;
+
+  document.head.appendChild(style);
+
+
+
+  document.body.insertAdjacentHTML("beforeend", `
+
+    <button id="ai-chat-fab" title="AI 학습 도우미">💬</button>
+
+    <div id="ai-chat-panel">
+
+      <div id="ai-chat-header">
+
+        <div>
+
+          <span>AI 학습 도우미</span>
+
+          <small id="ai-chat-subtitle">${CHAPTER_TITLE}</small>
+
+        </div>
+
+        <button id="ai-chat-close">✕</button>
+
+      </div>
+
+      <div id="ai-chat-messages">
+
+        <div class="ai-msg assistant">안녕하세요! 이 챕터에 대해 궁금한 점을 물어보세요 😊</div>
+
+      </div>
+
+      <div id="ai-chat-input-row">
+
+        <textarea id="ai-chat-input" placeholder="질문을 입력하세요… (Shift+Enter: 줄바꿈)" rows="1"></textarea>
+
+        <button id="ai-chat-send">➤</button>
+
+      </div>
+
+    </div>
+
+  `);
+
+
+
+  /* ── 상태 ─────────────────────────────────── */
+
+  const panel = document.getElementById("ai-chat-panel");
+
+  const fab = document.getElementById("ai-chat-fab");
+
+  const closeBtn = document.getElementById("ai-chat-close");
+
+  const input = document.getElementById("ai-chat-input");
+
+  const sendBtn = document.getElementById("ai-chat-send");
+
+  const messages = document.getElementById("ai-chat-messages");
+
+  const history = []; // {role, content}[]
+
+
+
+  /* ── 토글 ─────────────────────────────────── */
+
+  fab.addEventListener("click", () => {
+
+    panel.classList.toggle("open");
+
+    if (panel.classList.contains("open")) input.focus();
+
+  });
+
+  closeBtn.addEventListener("click", () => panel.classList.remove("open"));
+
+
+
+  /* ── 자동 높이 조정 ───────────────────────── */
+
+  input.addEventListener("input", () => {
+
+    input.style.height = "auto";
+
+    input.style.height = Math.min(input.scrollHeight, 100) + "px";
+
+  });
+
+
+
+  /* ── 전송 ─────────────────────────────────── */
+
+  input.addEventListener("keydown", (e) => {
+
+    if (e.key === "Enter" && !e.shiftKey) {
+
+      e.preventDefault();
+
+      sendMessage();
+
+    }
+
+  });
+
+  sendBtn.addEventListener("click", sendMessage);
+
+
+
+  function appendMsg(role, text) {
+
+    const div = document.createElement("div");
+
+    div.className = `ai-msg ${role}`;
+
+    // 간단한 코드블록 렌더링
+
+    div.innerHTML = text
+
+      .replace(/```(\w*)\n([\s\S]*?)```/g, (_, lang, code) =>
+
+        `<pre><code>${escHtml(code.trim())}</code></pre>`
+
+      )
+
+      .replace(/`([^`]+)`/g, (_, c) => `<code>${escHtml(c)}</code>`)
+
+      .replace(/\n/g, "<br>");
+
+    messages.appendChild(div);
+
+    messages.scrollTop = messages.scrollHeight;
+
+    return div;
+
+  }
+
+
+
+  function escHtml(s) {
+
+    return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+  }
+
+
+
+  function showTyping() {
+
+    const el = document.createElement("div");
+
+    el.className = "ai-typing";
+
+    el.innerHTML = "<span></span><span></span><span></span>";
+
+    messages.appendChild(el);
+
+    messages.scrollTop = messages.scrollHeight;
+
+    return el;
+
+  }
+
+
+
+  async function sendMessage() {
+
+    const text = input.value.trim();
+
+    if (!text || sendBtn.disabled) return;
+
+
+
+    input.value = "";
+
+    input.style.height = "auto";
+
+    sendBtn.disabled = true;
+
+
+
+    appendMsg("user", text);
+
+    history.push({ role: "user", content: text });
+
+
+
+    const typing = showTyping();
+
+
+
+    try {
+
+      const res = await fetch(WORKER_URL, {
+
+        method: "POST",
+
+        headers: { "Content-Type": "application/json" },
+
+        body: JSON.stringify({
+
+          model: "claude-sonnet-4-6",
+
+          max_tokens: 1024,
+
+          system: SYSTEM_PROMPT,
+
+          messages: history,
+
+        }),
+
+      });
+
+
+
+      const data = await res.json();
+
+      typing.remove();
+
+
+
+      if (data.content && data.content[0]) {
+
+        const reply = data.content[0].text;
+
+        appendMsg("assistant", reply);
+
+        history.push({ role: "assistant", content: reply });
+
+      } else {
+
+        appendMsg("assistant", "오류가 발생했습니다. 다시 시도해주세요.");
+
+      }
+
+    } catch (err) {
+
+      typing.remove();
+
+      appendMsg("assistant", "네트워크 오류가 발생했습니다.");
+
+      console.error("[AI Chat]", err);
+
+    }
+
+
+
+    sendBtn.disabled = false;
+
+    input.focus();
+
+  }
+
+})();
+
+</script>
+
 <script id="quarto-html-after-body" type="application/javascript">
   window.document.addEventListener("DOMContentLoaded", function (event) {
     const icon = "";

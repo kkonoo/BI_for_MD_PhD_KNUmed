@@ -72,6 +72,23 @@ df$R_function <- p.adjust(df$P_raw, method = "BH")
 
 ## 2. Visualization of DEG Results
 
+::: callout-note
+## download practice data
+
+save the following files in `data/` in your R project
+
+| File | Link |
+|----|----|
+| `dds_DESeq2.rds` | [📥 Download](https://drive.google.com/file/d/12u96ISl9njFDB49iQ71coI7mjvft5jai/view?usp=sharing) |
+:::
+
+```{r}
+#| eval: false
+
+dds <- readRDS('data/dds_DESeq2.rds')
+res <- results(dds, contrast = c("condition", "Tumor", "Normal"))
+```
+
 #### MA Plot (Global View)
 
 ::::: columns
@@ -91,11 +108,6 @@ df$R_function <- p.adjust(df$P_raw, method = "BH")
 
 ```{r}
 #| eval: false
-
-dds <- readRDS('data_w7/dds_DESeq2.rds')
-res <- results(dds, contrast = c("condition", "Tumor", "Normal"),
-               lfcThreshold = 0.25, alpha = 0.05)
-
 # MA plot
 plotMA(res, ylim = c(-10, 10), main = "Before Shrinkage")
 
