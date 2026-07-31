@@ -88,10 +88,8 @@ save the following files in `data/` in your R project
 #| eval: false
 
 dds <- readRDS('data/dds_DESeq2.rds')
-dds
 
 res <- results(dds, contrast = c("condition", "Tumor", "Normal"))
-res
 ```
 
 ## MA Plot (Global View)
