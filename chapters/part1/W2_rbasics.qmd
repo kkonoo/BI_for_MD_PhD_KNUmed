@@ -13,7 +13,6 @@ format:
     code-copy: true    
     highlight-style: github 
     number-sections: false
-    css: ../html.css
 execute:
   echo: true
   eval: true

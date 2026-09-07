@@ -35,7 +35,7 @@ h4 {
 code, pre code {
   font-family: 'D2Coding', 'Fira Code', monospace;
   font-size: 1em;
-  font-weight: 500
+  font-weight: 500;
   border-radius: 6px;
 }
 
@@ -109,3 +109,39 @@ dd,
   justify-content: center;
 }
 
+
+/* ────────────────────────────────────────────
+   다크 모드 (theme dark: darkly, body.quarto-dark)
+   라이트 모드 규칙은 위에 그대로 두고, 여기서 색만 덮어쓴다.
+   ──────────────────────────────────────────── */
+body.quarto-dark h2 {
+  color: #c9bde6;
+  background-color: #2a2540;
+}
+body.quarto-dark h3 { color: #b8aad9; }
+body.quarto-dark h4 { color: #c9bde6; }
+
+body.quarto-dark pre:not(.sourceCode),
+body.quarto-dark pre.sourceCode,
+body.quarto-dark pre.sourceCode code {
+  background: #262b33;
+}
+body.quarto-dark pre:not(.sourceCode) code { color: #d0d4da; }
+body.quarto-dark code:not(pre code) {
+  background: #2f3540;
+  color: #e6c9f5;
+}
+
+body.quarto-dark .callout-body-container,
+body.quarto-dark .callout-title-container,
+body.quarto-dark dd {
+  color: #cfd5dc;
+}
+
+body.quarto-dark table { color: #dee2e6; }
+body.quarto-dark .table > :not(caption) > * > * { background-color: transparent; }
+body.quarto-dark thead th { border-bottom-color: #4a5260; }
+body.quarto-dark tbody tr { border-color: #3a414c; }
+
+body.quarto-dark blockquote { color: #adb5bd; border-left-color: #4a5260; }
+body.quarto-dark img { opacity: .92; }

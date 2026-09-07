@@ -1,0 +1,281 @@
+---
+title: "W12. 정리와 최종 과제"
+author: "하은지"
+date: last-modified
+format:
+  html
+execute:
+  echo: true
+  eval: false
+---
+
+<!-- 영문 원본: chapters/part4/W12_summary.qmd
+     코드 셀은 원본 _freeze 캐시를 그대로 옮겼습니다 (원본도 eval: false). -->
+
+## 전체 분석 파이프라인
+
+![](/assets/img/part4/W12_summary.png){fig-align="center"}
+
+| 분석 단계 | 주요 함수 | 확인할 점 |
+|--------------------|------------------------|----------------------------|
+| **1. 데이터** | `readRDS()`, `GEOquery` | N \> 30, 명확한 표현형 |
+| **2. DESeq2 객체** | `DESeqDataSetFromMatrix()` | design matrix와 기준 수준(reference)이 맞는가 |
+| **3. 필터링** | `rowSums()` | 저발현 유전자 제거, 오염 유전자 제거 |
+| **4. 정규화** | DESeq2 내부 처리 (RLE) | — |
+| **5. EDA** | `vst()`, `plotPCA()` | 배치 효과 없음, 이상치 없음 |
+| **6. DEG** | `DESeq()`, `lfcShrink()` | FDR ≤ 0.05, \|LFC\| ≥ 1 |
+| **7. 시각화** | `ggplot2`, `pheatmap` | Volcano plot, heatmap |
+| **8. 농축 분석** | `gseGO()`, `clusterProfiler` | NES, FDR (q-value) |
+
+------------------------------------------------------------------------
+
+### Step 1. 데이터 확보
+
+::: {.cell}
+
+```{.r .cell-code}
+library(GEOquery)
+library(TCGAbiolinks)
+library(SummarizedExperiment)
+library(tidyverse)
+
+# 방법 1: GEO에서 직접 내려받기
+# gse <- getGEO("GSE****", GSEMatrix = TRUE)
+
+# 방법 2: TCGA (대용량 데이터는 웹 브라우저 이용을 권장)
+# query <- GDCquery(project = "TCGA-LUAD", ...)
+# GDCdownload(query)
+# data <- GDCprepare(query)
+
+# 미리 저장해 둔 파일 불러오기
+countData <- readRDS('examples/data/w6_raw_counts_final.rds')
+colData   <- readRDS('examples/data/w6_meta_data_final.rds')
+
+cat("Count matrix:", nrow(countData), "genes x", ncol(countData), "samples\n")
+cat("Sample groups:\n"); print(table(colData$tissue_type))
+```
+:::
+
+::: callout-note
+## 연구 설계 체크리스트
+
+✅ **그룹당 N \> 30**: 충분한 통계적 검정력 확보\
+✅ **명확한 표현형**: 이분법적 비교 (Tumor vs. Normal, 반응군 vs. 비반응군)\
+✅ **배치 효과 가능성**: 서로 다른 기관이나 시점에서 온 시료인가?\
+✅ **교란 변수**: 나이, 성별, 흡연력, 치료력
+:::
+
+------------------------------------------------------------------------
+
+### Step 2. DESeq2 객체 만들기
+
+::: {.cell}
+
+```{.r .cell-code}
+library(DESeq2)
+
+# 팩터 수준 설정 — 대조군이 기준(reference)이어야 합니다!
+colData$condition <- factor(
+  colData$tissue_type,
+  levels = c("Normal", "Tumor")  # Normal이 기준
+)
+
+# design matrix와 함께 DESeq2 데이터셋 만들기
+dds <- DESeqDataSetFromMatrix(
+  countData = countData,
+  colData   = colData,
+  design    = ~ patient + condition  # 짝지은 환자 구조를 반영
+)
+```
+:::
+
+------------------------------------------------------------------------
+
+### Step 3. 사전 필터링: 저발현 유전자 제거
+
+::: {.cell}
+
+```{.r .cell-code}
+# 방법 1: 단순 기준 (전체 count < 10 제거)
+keep_simple <- rowSums(counts(dds)) >= 10
+
+# 방법 2: 그룹 크기를 고려한 필터링 (권장)
+# 가장 작은 그룹의 50% 이상에서 count가 1 이상인 유전자만 유지
+smallest_group <- min(table(colData$condition))
+keep_group     <- rowSums(counts(dds) >= 1) >= (smallest_group * 0.5)
+
+cat("Removed (simple):     ", sum(!keep_simple), "genes\n")
+cat("Removed (group-aware):", sum(!keep_group),  "genes\n")
+
+dds_filtered <- dds[keep_group, ]
+
+# 교란 요인이 되는 유전자군 제거
+all_genes  <- rownames(dds_filtered)
+mt_genes   <- grep("^MT-",      all_genes, value = TRUE)  # 미토콘드리아
+ribo_genes <- grep("^RPS|^RPL", all_genes, value = TRUE)  # 리보솜
+ig_genes   <- grep("^IG[HKL]",  all_genes, value = TRUE)  # 면역글로불린
+
+cat("Contaminating genes to remove:", length(c(mt_genes, ribo_genes, ig_genes)), "\n")
+
+contam       <- c(mt_genes, ribo_genes, ig_genes)
+dds_filtered <- dds_filtered[!(all_genes %in% contam), ]
+
+saveRDS(dds_filtered, 'examples/analysis/w6_dds_filtered.rds')
+```
+:::
+
+------------------------------------------------------------------------
+
+### Step 4 & 5. 정규화와 EDA
+
+::: {.cell}
+
+```{.r .cell-code}
+# 시각화를 위한 분산 안정화 변환(vst)
+vsd <- vst(dds_filtered, blind = FALSE)
+
+# PCA Plot: 배치 효과와 이상치 확인
+plotPCA(vsd, intgroup = "condition") +
+  theme_classic() +
+  labs(title = "PCA Plot: Sample Quality Check")
+```
+:::
+
+::: callout-warning
+## PCA Plot에서 무엇을 볼 것인가
+
+-   **PC1이 조건을 구분하는가?** → 생물학적 신호가 강함, 그대로 진행해도 좋음
+-   **뚜렷한 이상치가 있는가?** → 제외하고 다시 돌리는 것을 고려
+-   **뚜렷한 군집이 없는가?** → 배치 효과를 의심하고 `limma::removeBatchEffect()` 적용
+:::
+
+------------------------------------------------------------------------
+
+### Step 5 & 6. 차등 발현 분석
+
+::: {.cell}
+
+```{.r .cell-code}
+dds <- readRDS('examples/analysis/w6_dds_filtered.rds')
+
+# DESeq2 실행 (산포 추정 → GLM 적합 → Wald 검정)
+dds <- DESeq(dds)
+saveRDS(dds, 'examples/analysis/w7_dds_DESeq2.rds')
+
+# 결과 추출 (Tumor vs. Normal)
+res <- results(dds, contrast = c("condition", "Tumor", "Normal"))
+summary(res)
+
+# LFC 축소: 저발현 유전자의 효과크기 추정을 안정화
+library(apeglm)
+resLFC <- lfcShrink(dds, coef = "condition_Tumor_vs_Normal", type = "apeglm")
+saveRDS(resLFC, 'examples/analysis/w9_res_DESeq2_lfcShrink.rds')
+```
+:::
+
+------------------------------------------------------------------------
+
+### Step 7. 시각화
+
+::: {.cell}
+
+```{.r .cell-code}
+library(ggrepel)
+library(pheatmap)
+
+resLFC <- readRDS('examples/analysis/w9_res_DESeq2_lfcShrink.rds')
+
+res_df <- as.data.frame(resLFC) %>%
+  rownames_to_column("gene_id")
+
+# ---- Volcano Plot ----
+p_thr   <- 0.05
+lfc_thr <- 1
+
+vol_data <- res_df %>%
+  mutate(diffexpressed = case_when(
+    log2FoldChange >  lfc_thr & padj < p_thr ~ "UP",
+    log2FoldChange < -lfc_thr & padj < p_thr ~ "DOWN",
+    TRUE ~ "NO"
+  ))
+
+ggplot(vol_data, aes(x = log2FoldChange, y = -log10(padj), color = diffexpressed)) +
+  geom_point(alpha = 0.5, size = 1.5) +
+  scale_color_manual(values = c("DOWN" = "blue", "NO" = "grey", "UP" = "red")) +
+  geom_vline(xintercept = c(-lfc_thr, lfc_thr), linetype = "dashed") +
+  geom_hline(yintercept = -log10(p_thr), linetype = "dashed") +
+  geom_text_repel(
+    data = head(arrange(vol_data, padj), 10),
+    aes(label = gene_id), color = "black"
+  ) +
+  theme_minimal() +
+  labs(title = "Volcano Plot",
+       x     = "Log2 Fold Change",
+       y     = "-Log10 Adjusted P-value")
+```
+:::
+
+::: {.cell}
+
+```{.r .cell-code}
+# ---- 상위 20개 DEG 히트맵 ----
+vsd <- readRDS('examples/analysis/w6_dds_vsd.rds')
+
+top_genes <- res_df %>%
+  filter(padj < 0.05) %>%
+  arrange(desc(abs(log2FoldChange))) %>%
+  head(20) %>%
+  .$gene_id
+
+mat <- assay(vsd)[top_genes, ]
+
+# 시료 주석(annotation) 막대
+anno_col <- as.data.frame(colData(dds)[, c("gender", "condition")])
+
+pheatmap(
+  mat,
+  scale          = "row",   # 시료 간 z-score 정규화
+  show_rownames  = TRUE,
+  show_colnames  = FALSE,
+  annotation_col = anno_col,
+  cluster_cols   = TRUE,
+  main           = "Top 20 DEGs Heatmap"
+)
+```
+:::
+
+------------------------------------------------------------------------
+
+### Step 8. 기능 분석
+
+::: {.cell}
+
+```{.r .cell-code}
+# 전체 코드는 앞의 GSEA 절을 참고하세요
+# gseGO() → dotplot() → gseaplot2() → cnetplot()
+```
+:::
+
+------------------------------------------------------------------------
+
+## 📝 최종 과제
+
+#### 1. 데이터 선정
+
+-   공개 데이터베이스(GEO 또는 TCGA)에서 **Gene Count Matrix + 메타데이터**를 내려받으세요
+-   생물학적 맥락을 분명히 밝히세요 (예: "폐암: Tumor vs. Normal")
+
+#### 2. 분석 수행 (배운 것을 모두 적용)
+
+```         
+① PCA plot (vst/rlog)  → 이상치와 배치 효과 확인
+② DESeq2              → 적절한 design matrix로 DEG 도출
+③ GSEA                → GO Biological Process (BP) 분석 수행
+```
+
+#### 3. 생물학적 해석 (Discussion)
+
+-   상위 DEG와 농축된 경로가 기존에 알려진 생물학적 지식과 일치하나요?
+-   원 논문의 결론과 비교해 보세요
+
+**평가 중점:** 생물학적 해석의 깊이와 타당성

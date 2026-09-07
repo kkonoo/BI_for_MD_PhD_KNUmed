@@ -1,0 +1,681 @@
+---
+title: "W5. RNA-seq 데이터 전처리"
+author: "하은지"
+date: last-modified
+format:
+  html
+execute:
+  echo: true
+  eval: false
+---
+
+<!-- 영문 원본: chapters/part2/W5_QC.qmd
+     실행 결과와 그림은 원본 _freeze 캐시를 참조합니다 (CI에는 R이 없음).
+     그림은 영문 페이지가 생성한 W5_QC_files/ 를 공유합니다. -->
+
+## RNA-seq 데이터 분석의 전체 흐름
+
+RNA-seq 분석의 전반적인 workflow는 다음과 같습니다 (Conesa et al., *Genome Biol.*, 2016).
+
+1)  Read trimming (리드 다듬기)
+2)  Alignment (정렬)
+3)  Quantification (정량)
+4)  Normalization (정규화)
+5)  Differential analysis (차등 발현 분석)
+6)  Functional profiling (기능 분석)
+
+![](/assets/img/part2/W5_QC.png){fig-align="center"}
+
+------------------------------------------------------------------------
+
+## 0) 품질 확인: [FastQC](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/)
+
+![](/assets/img/part2/W5_QC.jpg){fig-align="center" width="734"}
+
+-   **Per base sequence quality**:\
+    `3' 말단`쪽 품질을 확인\
+    점수가 `초록색 구간`에 머무는지 확인
+-   **Per sequence GC content**:\
+    `정규분포`를 따라야 함\
+    봉우리가 여러 개면? … 오염(contamination) 의심
+-   **Adapter Content**: trimming이 필요한지 판단
+-   **Number of reads**: `Q20/Q30 비율` 확인
+
+------------------------------------------------------------------------
+
+## 1) 리드 다듬기 (Read Trimming): [TrimGalore](https://github.com/FelixKrueger/TrimGalore)
+
+![](/assets/img/part2/W6_trim.png){fig-align="center" width="398"}
+
+``` bash
+# TrimGalore의 주요 기능
+# 1) 품질이 낮은 리드 제거 (Phred score Q20, 오류율 1%) - sliding window 방식
+# 2) 어댑터 서열 제거 (Illumina Universal, TruSeq/Nextera)
+# 3) 최소 길이 필터링 - 너무 짧은 리드는 버림
+```
+
+------------------------------------------------------------------------
+
+## 2) 정렬 (Alignment): STAR
+
+-   **Bowtie2/BWA**: DNA용; 인덱싱과 mismatch 기반
+-   [**STAR**](https://github.com/alexdobin/STAR): RNA-seq 전용 spliced aligner
+    -   splice junction을 인식 → 엑손에만 매핑
+    -   RAM이 많이 필요함 (\>30GB)
+
+![](/assets/img/part2/W6_star.png){fig-align="center" width="303"}
+
+-   **QC 기준 (일반적으로)**: %Uniquely mapped reads \> 80%, #mapped reads \> 20M
+-   **결과 형식**: SAM (텍스트) 또는 [BAM (바이너리)]{.underline}
+-   [**Galaxy**](https://galaxy-main.usegalaxy.org/)**:** 웹 기반 전처리 도구
+
+![](/assets/img/part2/W5_galaxy.png){fig-align="center"}
+
+------------------------------------------------------------------------
+
+## 3) 정량 (Quantification)
+
+### 정렬 기반 (STAR + featureCounts)
+
+![](/assets/img/part2/W5_STAR.gif){fig-align="center" width="590"}
+
+-   전통적인 방식: 위치 인덱싱 → 참조 유전체에 매핑
+-   BAM 파일이 필요하고 계산량이 많음
+
+### 정렬 없이 / 유사 정렬 ([Salmon](https://salmon.readthedocs.io/en/latest/salmon.html), Kallisto)
+
+![](/assets/img/part2/W5_salmon.png){fig-align="center" width="333"}
+
+-   리드 전체를 매핑하는 대신 짧은 **k-mer (k=31)** 의 일치 여부를 확인
+
+-   BAM이 필요 없고 매우 빠름
+
+-   여러 곳에 매핑되는 리드(multi-mapping) → **EM 알고리즘**으로 isoform 수준의 확률을 부여
+
+    -   예: read A → isoform X (0.6), isoform Y (0.4)
+
+::: callout-tip
+## salmon 결과(transcript)를 tximport로 불러오기
+
+1)  aggregation: transcript –\> gene
+2)  correction: 시료별 평균 transcript 길이 (isoform switching) –\> gene count 보정
+3)  import: 실수(float) –\> 정수(integer)
+:::
+
+------------------------------------------------------------------------
+
+## 4) 필터링과 정규화
+
+### 필터링 예시 [(연구 설계에 따라 달라짐)]{.underline}
+
+-   **발현량이 낮은 유전자 제거**: N×`0.5` 개 이상의 시료에서 count가 0인 유전자 제거 (N: 가장 작은 그룹의 크기)
+
+![](/assets/img/part2/W5_filter.png){fig-align="center" width="565"}
+
+-   **교란 요인이 되는 유전자 제거**:
+    -   미토콘드리아 (`^MT-`)
+    -   리보솜 (`^RPS|^RPL`)
+    -   면역글로불린 (`^IG[HKL]`)
+
+------------------------------------------------------------------------
+
+### 정규화가 필요한 이유
+
+-   **라이브러리 크기 (시퀀싱 깊이, depth)**: 깊이가 클수록 count가 커짐
+
+![](/assets/img/part2/W5_library.png){fig-align="center" width="689"}
+
+-   유전자 길이: 긴 유전자일수록 count가 커짐
+
+![](/assets/img/part2/W5_depth.jpg){fig-align="center" width="519"}
+
+------------------------------------------------------------------------
+
+### 정규화 방법 비교
+
+| 방법 | 보정 대상 | 비교 범위 | 비고 |
+|------------------|------------------|------------------|-------------------|
+| Raw Count | × | × | edgeR/DESeq2의 입력값 |
+| RPKM/FPKM | 깊이 + 길이 | 시료 내 | 현재는 권장되지 않음 |
+| TPM | 깊이 + 길이 | 시료 내 + 시료 간 | 시료별 합 = 1M |
+| CPM | 깊이 | 시료 간 |  |
+| TMM/RLE | 깊이 + 조성(composition) | 시료 간 | DEG 분석의 표준 |
+
+------------------------------------------------------------------------
+
+### 실습: R에서 정규화하기
+
+::: {.cell}
+
+```{.r .cell-code}
+library(edgeR)
+library(DESeq2)
+library(tidyverse)
+library(ggplot2)
+
+set.seed(123)
+
+# 1. 가상 데이터 생성 (유전자 1000개 × 시료 6개) ----
+n_genes <- 1000; n_samples <- 6
+sample_names <- c(paste0("Ctrl_", 1:3), paste0("Treat_", 1:3))
+gene_names <- paste0("Gene_", 1:n_genes)
+
+## 1-2. Raw Count Matrix 만들기 (음이항분포, Negative Binomial) ####
+raw_counts <- matrix(rnbinom(n_genes * n_samples, mu = 100, size = 5), # 평균: 100, 분산 모수(dispersion): 5
+                     nrow = n_genes) # 유전자 1000개 만들기
+raw_counts[, 4:6] <- raw_counts[, 4:6] * 3  # 라이브러리 크기에 차이를 줌
+colnames(raw_counts) <- sample_names
+rownames(raw_counts) <- gene_names
+head(raw_counts)
+```
+
+::: {.cell-output .cell-output-stdout}
+
+```
+       Ctrl_1 Ctrl_2 Ctrl_3 Treat_1 Treat_2 Treat_3
+Gene_1     77    119     77     258     327     255
+Gene_2     33     27    107     156     396     204
+Gene_3    183     57    125     444     399     189
+Gene_4     32    109     62     480     228     204
+Gene_5    153     67     69     129     330     363
+Gene_6    108     88     95     267     321     108
+```
+
+
+:::
+
+```{.r .cell-code}
+gene_lengths <- round(runif(n_genes, min = 200, max = 5000))
+head(gene_lengths)
+```
+
+::: {.cell-output .cell-output-stdout}
+
+```
+[1] 2241 4573  468 2508 4727 1154
+```
+
+
+:::
+:::
+
+------------------------------------------------------------------------
+
+::: {.cell}
+
+```{.r .cell-code}
+# 2. CPM (counts per million) ####
+## 라이브러리 크기: 시료별 전체 count
+lib_sizes <- colSums(raw_counts)
+head(lib_sizes)
+```
+
+::: {.cell-output .cell-output-stdout}
+
+```
+ Ctrl_1  Ctrl_2  Ctrl_3 Treat_1 Treat_2 Treat_3 
+  99370   99638   96200  294987  293466  299811 
+```
+
+
+:::
+
+```{.r .cell-code}
+cpm_counts <- sweep(raw_counts, 
+                    2, # 1: 행 방향(유전자), 2: 열 방향(시료)
+                    lib_sizes, "/") * 1e6
+head(cpm_counts)
+```
+
+::: {.cell-output .cell-output-stdout}
+
+```
+          Ctrl_1    Ctrl_2    Ctrl_3   Treat_1   Treat_2   Treat_3
+Gene_1  774.8818 1194.3235  800.4158  874.6148 1114.2688  850.5358
+Gene_2  332.0922  270.9810 1112.2661  528.8369 1349.3897  680.4287
+Gene_3 1841.6021  572.0709 1299.3763 1505.1511 1359.6124  630.3972
+Gene_4  322.0288 1093.9601  644.4906 1627.1904  776.9213  680.4287
+Gene_5 1539.7001  672.4342  717.2557  437.3074 1124.4914 1210.7628
+Gene_6 1086.8471  883.1972  987.5260  905.1246 1093.8235  360.2269
+```
+
+
+:::
+
+```{.r .cell-code}
+raw_counts[1,1]/lib_sizes[1]* 1e6 # cpm_counts[1,1] 과 같은 값
+```
+
+::: {.cell-output .cell-output-stdout}
+
+```
+  Ctrl_1 
+774.8818 
+```
+
+
+:::
+
+```{.r .cell-code}
+# 3. RPKM (reads per kilobase million) ####
+## 유전자 길이 (kb)
+kb_lengths <- gene_lengths / 1000
+
+## RPKM 계산
+# 3-1. 유전자 길이 보정 (RPK) ####
+rpk <- sweep(raw_counts, 1, kb_lengths, "/")
+head(rpk)
+```
+
+::: {.cell-output .cell-output-stdout}
+
+```
+           Ctrl_1    Ctrl_2    Ctrl_3   Treat_1   Treat_2   Treat_3
+Gene_1  34.359661  53.10129  34.35966 115.12718 145.91700 113.78849
+Gene_2   7.216269   5.90422  23.39821  34.11327  86.59523  44.60967
+Gene_3 391.025641 121.79487 267.09402 948.71795 852.56410 403.84615
+Gene_4  12.759171  43.46093  24.72089 191.38756  90.90909  81.33971
+Gene_5  32.367252  14.17389  14.59700  27.29004  69.81172  76.79289
+Gene_6  93.587522  76.25650  82.32236 231.36915 278.16291  93.58752
+```
+
+
+:::
+
+```{.r .cell-code}
+# 3-2. 라이브러리 크기 보정 (백만 단위) (RPKM) ####
+rpkm_counts <- sweep(rpk, 2, lib_sizes, "/") * 1e6
+head(rpkm_counts)
+```
+
+::: {.cell-output .cell-output-stdout}
+
+```
+          Ctrl_1     Ctrl_2    Ctrl_3    Treat_1   Treat_2   Treat_3
+Gene_1  345.7750  532.94219  357.1690  390.27881  497.2194  379.5341
+Gene_2   72.6202   59.25671  243.2246  115.64331  295.0776  148.7926
+Gene_3 3935.0472 1222.37371 2776.4451 3216.13477 2905.1546 1347.0025
+Gene_4  128.4006  436.18825  256.9739  648.79998  309.7773  271.3033
+Gene_5  325.7246  142.25391  151.7359   92.51267  237.8869  256.1377
+Gene_6  941.8086  765.33551  855.7418  784.33677  947.8540  312.1551
+```
+
+
+:::
+
+```{.r .cell-code}
+# 4. TPM (transcripts per million) ####
+## 4-1. RPK (Reads Per Kilobase) ####
+rpk <- sweep(raw_counts, 1, kb_lengths, "/")
+
+## 4-2. 시료별 RPK 합 ####
+rpk_sums <- colSums(rpk)
+head(rpk_sums)
+```
+
+::: {.cell-output .cell-output-stdout}
+
+```
+   Ctrl_1    Ctrl_2    Ctrl_3   Treat_1   Treat_2   Treat_3 
+ 69097.87  66430.49  64690.06 199762.10 196381.76 205465.06 
+```
+
+
+:::
+
+```{.r .cell-code}
+## 4-3. TPM 계산 (시료별 RPK 합으로 보정) ####
+tpm_counts <- sweep(rpk, 2, rpk_sums, "/") * 1e6
+colSums(tpm_counts)  # 시료마다 합이 100만이 됨
+```
+
+::: {.cell-output .cell-output-stdout}
+
+```
+ Ctrl_1  Ctrl_2  Ctrl_3 Treat_1 Treat_2 Treat_3 
+  1e+06   1e+06   1e+06   1e+06   1e+06   1e+06 
+```
+
+
+:::
+
+```{.r .cell-code}
+colSums(rpkm_counts)
+```
+
+::: {.cell-output .cell-output-stdout}
+
+```
+  Ctrl_1   Ctrl_2   Ctrl_3  Treat_1  Treat_2  Treat_3 
+695359.4 666718.5 672453.9 677189.5 669180.6 685315.3 
+```
+
+
+:::
+:::
+
+------------------------------------------------------------------------
+
+::: {.cell}
+
+```{.r .cell-code}
+# 5. edgeR의 TMM ####
+# 5-1. edgeR 객체(DGEList) 만들기 ####
+dge <- DGEList(counts = raw_counts)
+# 5-2. TMM으로 정규화 계수 구하기 ####
+dge2 <- calcNormFactors(dge, method = "TMM")
+## 5-3. count 정규화 (CPM이지만 TMM 계수를 사용) ####
+tmm_counts <- cpm(dge2, normalized.lib.sizes = TRUE)
+head(tmm_counts)
+```
+
+::: {.cell-output .cell-output-stdout}
+
+```
+          Ctrl_1    Ctrl_2    Ctrl_3   Treat_1   Treat_2   Treat_3
+Gene_1  772.8742 1187.1730  810.3052  869.3685 1119.3007  848.6924
+Gene_2  331.2318  269.3586 1126.0085  525.6647 1355.4835  678.9539
+Gene_3 1836.8310  568.6459 1315.4305 1496.1226 1365.7523  629.0308
+Gene_4  321.1945 1087.4105  652.4535 1617.4298  780.4299  678.9539
+Gene_5 1535.7111  668.4083  726.1176  434.6843 1129.5696 1208.1385
+Gene_6 1084.0314  877.9094  999.7272  899.6953 1098.7631  359.4462
+```
+
+
+:::
+
+```{.r .cell-code}
+cpm_counts2 <- cpm(dge2, normalized.lib.sizes = FALSE)
+head(cpm_counts2)
+```
+
+::: {.cell-output .cell-output-stdout}
+
+```
+          Ctrl_1    Ctrl_2    Ctrl_3   Treat_1   Treat_2   Treat_3
+Gene_1  774.8818 1194.3235  800.4158  874.6148 1114.2688  850.5358
+Gene_2  332.0922  270.9810 1112.2661  528.8369 1349.3897  680.4287
+Gene_3 1841.6021  572.0709 1299.3763 1505.1511 1359.6124  630.3972
+Gene_4  322.0288 1093.9601  644.4906 1627.1904  776.9213  680.4287
+Gene_5 1539.7001  672.4342  717.2557  437.3074 1124.4914 1210.7628
+Gene_6 1086.8471  883.1972  987.5260  905.1246 1093.8235  360.2269
+```
+
+
+:::
+:::
+
+------------------------------------------------------------------------
+
+::: {.cell}
+
+```{.r .cell-code}
+# 6. DESeq2의 RLE ####
+## 6-1. DESeq2 객체용 메타데이터 ####
+colData <- data.frame(condition = factor(rep(c("Ctrl", "Treat"), each = 3)))
+rownames(colData) <- sample_names
+## 6-2. DESeqDataSet (dds) 만들기 ####
+dds <- DESeqDataSetFromMatrix(countData = raw_counts,
+                              colData = colData,
+                              design = ~ condition)
+dds
+```
+
+::: {.cell-output .cell-output-stdout}
+
+```
+class: DESeqDataSet 
+dim: 1000 6 
+metadata(1): version
+assays(1): counts
+rownames(1000): Gene_1 Gene_2 ... Gene_999 Gene_1000
+rowData names(0):
+colnames(6): Ctrl_1 Ctrl_2 ... Treat_2 Treat_3
+colData names(1): condition
+```
+
+
+:::
+
+```{.r .cell-code}
+## 6-3. Size Factor 추정 ####
+dds2 <- estimateSizeFactors(dds)
+dds2 # colData에 sizeFactor가 생성됨
+```
+
+::: {.cell-output .cell-output-stdout}
+
+```
+class: DESeqDataSet 
+dim: 1000 6 
+metadata(1): version
+assays(1): counts
+rownames(1000): Gene_1 Gene_2 ... Gene_999 Gene_1000
+rowData names(0):
+colnames(6): Ctrl_1 Ctrl_2 ... Treat_2 Treat_3
+colData names(2): condition sizeFactor
+```
+
+
+:::
+
+```{.r .cell-code}
+dds2@colData
+```
+
+::: {.cell-output .cell-output-stdout}
+
+```
+DataFrame with 6 rows and 2 columns
+        condition sizeFactor
+         <factor>  <numeric>
+Ctrl_1      Ctrl    0.595939
+Ctrl_2      Ctrl    0.590028
+Ctrl_3      Ctrl    0.574036
+Treat_1     Treat   1.797617
+Treat_2     Treat   1.777084
+Treat_3     Treat   1.827412
+```
+
+
+:::
+
+```{.r .cell-code}
+## 6-4. 정규화된 count ####
+deseq_counts <- counts(dds2, normalized = TRUE)
+head(deseq_counts)
+```
+
+::: {.cell-output .cell-output-stdout}
+
+```
+          Ctrl_1    Ctrl_2   Ctrl_3   Treat_1  Treat_2   Treat_3
+Gene_1 129.20775 201.68533 134.1380 143.52338 184.0093 139.54164
+Gene_2  55.37475  45.76054 186.3996  86.78158 222.8369 111.63331
+Gene_3 307.07817  96.60558 217.7565 246.99372 224.5251 103.42498
+Gene_4  53.69673 184.73698 108.0072 267.02024 128.3000 111.63331
+Gene_5 256.73748 113.55392 120.2016  71.76169 185.6974 198.64163
+Gene_6 181.22646 149.14545 165.4949 148.53001 180.6330  59.09999
+```
+
+
+:::
+
+```{.r .cell-code}
+raw_counts2 <- counts(dds2, normalized = FALSE)
+head(raw_counts2)
+```
+
+::: {.cell-output .cell-output-stdout}
+
+```
+       Ctrl_1 Ctrl_2 Ctrl_3 Treat_1 Treat_2 Treat_3
+Gene_1     77    119     77     258     327     255
+Gene_2     33     27    107     156     396     204
+Gene_3    183     57    125     444     399     189
+Gene_4     32    109     62     480     228     204
+Gene_5    153     67     69     129     330     363
+Gene_6    108     88     95     267     321     108
+```
+
+
+:::
+:::
+
+------------------------------------------------------------------------
+
+::: {.cell}
+
+```{.r .cell-code}
+# 7. 시각화 ####
+## 7-1. count 형태 바꾸기 (ggplot용 long 형태) ####
+transform_to_long <- function(count_matrix, method_name) {
+  as.data.frame(count_matrix) %>%
+    rownames_to_column("Gene") %>%
+    pivot_longer(-Gene, names_to = "Sample", values_to = "Count") %>%
+    mutate(Method = method_name,
+           # Log2 변환 (0 때문에 pseudocount +1)
+           LogCount = log2(Count + 1))
+}
+
+## 함수 적용 ####
+transform_to_long(raw_counts, "1. Raw") %>% head
+```
+
+::: {.cell-output .cell-output-stdout}
+
+```
+# A tibble: 6 × 5
+  Gene   Sample  Count Method LogCount
+  <chr>  <chr>   <dbl> <chr>     <dbl>
+1 Gene_1 Ctrl_1     77 1. Raw     6.29
+2 Gene_1 Ctrl_2    119 1. Raw     6.91
+3 Gene_1 Ctrl_3     77 1. Raw     6.29
+4 Gene_1 Treat_1   258 1. Raw     8.02
+5 Gene_1 Treat_2   327 1. Raw     8.36
+6 Gene_1 Treat_3   255 1. Raw     8   
+```
+
+
+:::
+
+```{.r .cell-code}
+transform_to_long(cpm_counts, "2. CPM") %>% head
+```
+
+::: {.cell-output .cell-output-stdout}
+
+```
+# A tibble: 6 × 5
+  Gene   Sample  Count Method LogCount
+  <chr>  <chr>   <dbl> <chr>     <dbl>
+1 Gene_1 Ctrl_1   775. 2. CPM     9.60
+2 Gene_1 Ctrl_2  1194. 2. CPM    10.2 
+3 Gene_1 Ctrl_3   800. 2. CPM     9.65
+4 Gene_1 Treat_1  875. 2. CPM     9.77
+5 Gene_1 Treat_2 1114. 2. CPM    10.1 
+6 Gene_1 Treat_3  851. 2. CPM     9.73
+```
+
+
+:::
+
+```{.r .cell-code}
+df_all <- rbind(
+  transform_to_long(raw_counts, "1. Raw"),
+  transform_to_long(cpm_counts, "2. CPM"),
+  transform_to_long(rpkm_counts, "3. RPKM"),
+  transform_to_long(tpm_counts, "4. TPM"),
+  transform_to_long(tmm_counts, "5. TMM (edgeR)"),
+  transform_to_long(deseq_counts, "6. DESeq2")
+)
+head(df_all)
+```
+
+::: {.cell-output .cell-output-stdout}
+
+```
+# A tibble: 6 × 5
+  Gene   Sample  Count Method LogCount
+  <chr>  <chr>   <dbl> <chr>     <dbl>
+1 Gene_1 Ctrl_1     77 1. Raw     6.29
+2 Gene_1 Ctrl_2    119 1. Raw     6.91
+3 Gene_1 Ctrl_3     77 1. Raw     6.29
+4 Gene_1 Treat_1   258 1. Raw     8.02
+5 Gene_1 Treat_2   327 1. Raw     8.36
+6 Gene_1 Treat_3   255 1. Raw     8   
+```
+
+
+:::
+
+```{.r .cell-code}
+tail(df_all)
+```
+
+::: {.cell-output .cell-output-stdout}
+
+```
+# A tibble: 6 × 5
+  Gene      Sample  Count Method    LogCount
+  <chr>     <chr>   <dbl> <chr>        <dbl>
+1 Gene_1000 Ctrl_1  168.  6. DESeq2     7.40
+2 Gene_1000 Ctrl_2  222.  6. DESeq2     7.80
+3 Gene_1000 Ctrl_3  105.  6. DESeq2     6.72
+4 Gene_1000 Treat_1 204.  6. DESeq2     7.68
+5 Gene_1000 Treat_2 143.  6. DESeq2     7.17
+6 Gene_1000 Treat_3  91.9 6. DESeq2     6.54
+```
+
+
+:::
+:::
+
+------------------------------------------------------------------------
+
+::: {.cell}
+
+```{.r .cell-code}
+## 7-2. 시각화 (상자 그림) ####
+df_all %>%
+ggplot(aes(x = Sample, y = LogCount, fill = Sample)) +
+  # 상자 그림
+  geom_boxplot() + 
+  # 방법별로 나누어 그리기
+  facet_wrap(~Method, scales = "free_y") + 
+  # 테마
+  theme_bw() + 
+  # x축 글자
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) + 
+  # 그래프 제목
+  labs(title = "Normalization Method Comparison",
+       y = "Log2(Counts + 1)",
+       x = "")
+```
+
+::: {.cell-output-display}
+![](/chapters/part2/W5_QC_files/figure-html/unnamed-chunk-6-1.png){width=672}
+:::
+:::
+
+------------------------------------------------------------------------
+
+### TMM vs RLE
+
+-   **TMM**: 기준 시료(reference sample)를 정하고 극단값을 잘라낸 뒤, housekeeping 유전자 집합을 기준으로 정규화
+-   **RLE**: 각 유전자에 대해 시료 전체의 기하평균 대비 비율의 중앙값을 size factor로 사용
+
+![](/assets/img/part2/W5_TMM_RLE.jpg){fig-align="center" width="731"}
+
+------------------------------------------------------------------------
+
+## 📝 5주차 과제
+
+> 없습니다. 화면 캡처(스크린샷)만 제출해 주세요.
+
+------------------------------------------------------------------------
+
+## 참고자료 {.smaller}
+
+-   [SAM/BAM](https://hhj6212.github.io/biology/tech/2020/08/26/Bioinformatics-fileformats.html)
+-   [정규화 방법 비교](https://academic.oup.com/bib/article/14/6/671/189645)

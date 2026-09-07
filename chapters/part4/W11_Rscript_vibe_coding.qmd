@@ -13,15 +13,16 @@ editor:
 
 ## 1. Vibe coding?
 
-> AI에게 자연어로 설명 → 코드 생성 → 실행 → 수정 반복 코드를 "외우는"
-> 것이 아니라, **AI에게 잘 시키는 법**을 배우는 것입니다.
+> Describe what you want to an AI in plain language → get code → run it →
+> fix it → repeat. The point is not to **memorize** code, but to learn
+> **how to direct an AI well**.
 
-### Claude가 만드는 코드의 구조: 함수 정의 → main() 호출
+### The structure of AI-generated code: function definitions → main()
 
-바이브코딩을 시작하기 전에, AI가 어떤 **패턴**으로 코드를 만드는지
-알아야 합니다.
+Before you start vibe coding, you need to know the **pattern** an AI
+tends to follow when it writes code.
 
-Claude에게 실제 분석을 요청하면 이 구조가 그대로 적용됩니다:
+When you ask Claude for a real analysis, this is the structure you get:
 
 ```{r}
 #| eval: false
@@ -91,82 +92,88 @@ main()
 ```
 
 ::: callout-tip
-## AI 코드를 받으면 이렇게 읽으세요
+## How to read AI-generated code
 
-1.  **`main()` 먼저** → 전체 흐름 파악 (데이터 로드 → Table 1 → 생존분석
-    → 저장)
-2.  **각 함수의 input/output** → 인자와 `return`값 확인
-3.  **함수 하나씩 실행** → RStudio 콘솔에서 `load_data()`부터 순서대로
-4.  **에러나면 해당 함수만 디버깅** → 전체를 다시 돌릴 필요 없음
+1.  **Start with `main()`** → get the overall flow (load data → Table 1
+    → survival analysis → save)
+2.  **Check each function's input/output** → its arguments and what it
+    `return`s
+3.  **Run the functions one at a time** → in the RStudio console, start
+    with `load_data()` and work down
+4.  **If it breaks, debug just that function** → no need to re-run
+    everything
 :::
 
 ------------------------------------------------------------------------
 
-## 프롬프트의 3요소
+## The three ingredients of a prompt
 
-좋은 프롬프트 = **역할 + 맥락 + 구체적 요청**
+A good prompt = **role + context + a specific request**
 
-### 나쁜 프롬프트
+### A bad prompt
 
 ```         
-통계 분석 해줘
+Do some statistics for me
 ```
 
-→ AI가 뭘 해야 할지 모름. 쓸모없는 결과가 나옴.
+→ The AI has no idea what you want. You get something useless.
 
-### 좋은 프롬프트 (주기적인 프롬프트 엔지니어링 follow-up 필요!! 3\~6개월)
+### A good prompt (revisit your prompt engineering every 3–6 months!!)
 
 ```         
-너는 임상통계 전문가야.
+You are a clinical biostatistician.
 
-나는 올리고전이 환자 대상 SBRT 논문을 쓰고 있어.
-데이터프레임 df_pt에 다음 변수가 있어:
-- Age_Tx: 치료 시 나이 (연속형)
-- Sex: 성별 (M/F)
-- Primary: 원발 부위 (Colon, Rectum, Lung 등)
-- Death: 사망 여부 (0/1)
-- OS: 전체 생존 기간 (개월)
-- size_cm: 종양 크기 (cm)
-- PTVmean_BED10: PTV 평균 BED10 (Gy)
+I am writing a paper on SBRT in patients with oligometastatic disease.
+The data frame df_pt has the following variables:
+- Age_Tx: age at treatment (continuous)
+- Sex: sex (M/F)
+- Primary: primary site (Colon, Rectum, Lung, etc.)
+- Death: death (0/1)
+- OS: overall survival (months)
+- size_cm: tumor size (cm)
+- PTVmean_BED10: mean PTV BED10 (Gy)
 
-다음을 수행하는 R 코드를 작성해줘:
-1. gtsummary로 Table 1 생성 (Death 기준 그룹 비교, p-value 포함)
-2. 변수명은 논문용 라벨로 변환
-3. results/Table1.docx로 저장
+Write R code that does the following:
+1. Build Table 1 with gtsummary (compare groups by Death, include p-values)
+2. Relabel the variables with publication-ready labels
+3. Save it to results/Table1.docx
 ```
 
 ::: callout-tip
-## 프롬프트 작성 팁
+## Tips for writing prompts
 
-1.  **`colnames(df)` 결과를 붙여넣기** — AI가 변수명을 정확히 알아야 함
-2.  **변수 타입 명시** — 연속형/범주형/생존시간 구분
-3.  **원하는 출력 형태 지정** — "Word로 저장", "tiff 300dpi", "forest
-    plot" 등
-4.  **패키지 지정** — "gtsummary로", "survminer로" 등
+1.  **Paste the output of `colnames(df)`** — the AI has to know your
+    exact variable names
+2.  **State the variable types** — continuous / categorical / survival
+    time
+3.  **Specify the output you want** — "save as Word", "tiff at 300 dpi",
+    "forest plot", and so on
+4.  **Name the packages** — "with gtsummary", "with survminer", etc.
 :::
 
 ------------------------------------------------------------------------
 
-## 실전 워크플로우
+## A realistic workflow
 
-바이브코딩의 현실적인 작업 흐름은 이렇습니다:
+In practice, vibe coding looks like this:
 
 ```         
-1. RStudio에서 rds 로드
-2. AI가 만든 코드를 콘솔에 붙여넣기 & 실행
-3. 에러 → 에러 메시지를 AI에게 복붙 → 수정 코드 받기
-4. 중간 결과 확인 (head, str, plot 등)
-5. 만족하면 .R 파일로 저장
-6. input → output 구조의 스크립트 완성
+1. Load the rds file in RStudio
+2. Paste the AI's code into the console and run it
+3. Error → paste the error message back to the AI → get fixed code
+4. Check intermediate results (head, str, plot, ...)
+5. Once you are happy with it, save it as a .R file
+6. You end up with a script that has a clear input → output structure
 ```
 
-핵심은 **처음부터 완벽한 스크립트를 만들려 하지 않는 것**입니다. RStudio
-콘솔에서 한 줄씩 돌려보고, 중간 과정을 계속 트러블슈팅해서 최종적으로
-동작하는 코드가 완성되면 그때 파일로 저장합니다.
+The key is **not trying to write a perfect script from the start**. Run
+things line by line in the RStudio console, keep troubleshooting the
+intermediate steps, and only save to a file once the code actually
+works.
 
 ------------------------------------------------------------------------
 
-### ① RStudio에서 데이터 로드 & 구조 파악
+### ① Load the data in RStudio and inspect its structure
 
 ```{r}
 library(tidyverse)
@@ -177,36 +184,39 @@ resdir <- "examples/results/"
 
 df_pt <- readRDS(paste0(indir, "w11_2_df_pt_processed.rds"))
 
-# 이 결과를 복사해서 AI에게 붙여넣기
+# Copy this output and paste it to the AI
 colnames(df_pt)
 str(df_pt)
 ```
 
 ------------------------------------------------------------------------
 
-### ② AI에게 프롬프트 작성
+### ② Write the prompt
 
-`colnames()`과 `str()` 결과를 붙여넣고, 원하는 분석을 요청합니다.
+Paste the output of `colnames()` and `str()`, then ask for the analysis
+you want.
 
 ```         
-위 데이터에서 생존분석을 해줘.
+Run a survival analysis on the data above.
 
-- Kaplan-Meier curve: Death/OS 기준, Multiplicity(single vs multiple)로 그룹 비교
-- Log-rank test p-value를 그래프에 표시
-- Risk table 포함
-- survminer 패키지 사용
-- 300 dpi tiff로 저장
+- Kaplan-Meier curve: based on Death/OS, comparing groups by Multiplicity (single vs multiple)
+- Show the log-rank test p-value on the plot
+- Include a risk table
+- Use the survminer package
+- Save as a 300 dpi tiff
 ```
 
 ------------------------------------------------------------------------
 
-### ③ AI가 준 코드를 콘솔에서 실행
+### ③ Run the AI's code in the console
 
-AI가 생성한 코드를 **한 블록씩** RStudio 콘솔에 붙여넣어 실행합니다.
+Paste the generated code into the RStudio console and run it **one block
+at a time**.
 
-이때 위에서 본 **함수 + main 구조**로 코드가 올 가능성이 높습니다.\
-그 경우 `main()`을 바로 실행하지 말고, **함수 정의부를 먼저 실행**한 뒤
-함수를 하나씩 테스트하세요.
+The code will most likely arrive in the **function + main** structure we
+saw above.\
+In that case, do not run `main()` right away — **run the function
+definitions first**, then test the functions one by one.
 
 ```{r}
 library(survival)
@@ -232,45 +242,47 @@ print(p)
 
 ------------------------------------------------------------------------
 
-### ④ 에러가 나면?
+### ④ What if you get an error?
 
-에러 메시지를 **그대로 복붙**해서 AI에게 주면 됩니다.
+Just **paste the error message verbatim** to the AI.
 
 ```         
-이 코드를 실행했더니 다음 에러가 났어:
+I ran this code and got the following error:
 
 Error in data.frame(..., check.names = FALSE) : 
   arguments imply differing number of rows: 54, 0, 108
 
-고쳐줘.
+Please fix it.
 ```
 
-→ AI가 `Death`가 factor라서 `Surv()`에서 인식 못하는 걸 잡아줌
+→ The AI spots that `Death` is a factor, so `Surv()` cannot use it
 
-이런 식으로 **실행 → 에러 → AI에게 복붙 → 수정**을 반복합니다.
+You keep repeating **run → error → paste to AI → fix**.
 
 ::: callout-important
-## 무지성 에러 복붙의 함정
+## The trap of mindlessly pasting errors
 
-에러가 나면 바로 AI에게 던지고 싶지만, **그 전에 30초만 직접 확인**하면
-훨씬 효율적입니다.
+When something breaks, it is tempting to throw it straight at the AI.
+But **spending 30 seconds checking it yourself first** is far more
+efficient.
 
-**왜?** AI는 대화가 길어질수록 앞의 맥락을 잊습니다. 에러를 복붙하고 →
-AI가 부분 수정하고 → 또 에러 → 또 복붙... 이걸 반복하면 원래 깔끔했던
-코드가 **누더기**가 됩니다. 한 번에 고칠 수 있는 걸 돌아돌아 가게 되는
-거예요.
+**Why?** The AI forgets earlier context as the conversation gets longer.
+Paste an error → the AI patches part of it → another error → paste
+again... repeat that and code that started out clean turns into a
+**patchwork mess**. You take the long way round to a fix that could have
+happened in one step.
 
-**에러가 났을 때 먼저 해볼 것:**
+**What to try first when you hit an error:**
 
 ``` r
-# 1. 모르는 함수가 나왔으면 도움말 보기
+# 1. If you don't know the function, read its help page
 ?survfit
 ?ggsurvplot
 ?tbl_summary
 
-# 2. RStudio에서는 Help 탭에 함수 이름 검색해도 됨
-#    → Arguments 섹션에서 각 인자가 뭘 받는지 확인
-#    → Examples 섹션에서 실제 사용법 확인
+# 2. In RStudio you can also search the function name in the Help tab
+#    → the Arguments section tells you what each argument expects
+#    → the Examples section shows real usage
 ```
 
 ![](/assets/img/part4/W11_question.png){fig-align="center" width="277"
@@ -278,48 +290,48 @@ height="41"}
 
 ![](/assets/img/part4/W11_help.png){fig-align="center"}
 
-도움말의 **Arguments** 섹션만 훑어봐도 "아, 이 인자에 숫자를 넣어야
-하는데 문자를 넣었구나" 같은 단서를 바로 잡을 수 있습니다.
+Just skimming the **Arguments** section is often enough to catch things
+like "ah, this argument wants a number and I gave it a string".
 
-**실전 예시:**
+**A concrete example:**
 
 ``` r
-# AI가 만든 코드에서 에러 발생
+# Error from the AI-generated code
 ggsurvplot(fit, pval.coord = "top-right")  # Error!
 
-# ?ggsurvplot → pval.coord는 c(x, y) 숫자 벡터임을 확인
-ggsurvplot(fit, pval.coord = c(0.1, 0.1))  # 해결 ✅
+# ?ggsurvplot → pval.coord takes a numeric vector c(x, y)
+ggsurvplot(fit, pval.coord = c(0.1, 0.1))  # fixed ✅
 ```
 
-이렇게 **본인이 1차로 걸러낸 뒤** AI에게 물어보면, AI도 정확한 맥락에서
-답을 주기 때문에 수정이 한 번에 끝납니다.
+If you **filter the problem yourself first** and then ask, the AI
+answers with the right context and the fix lands on the first try.
 :::
 
 ::: callout-tip
-## 에러 대응 순서
+## What to do when you hit an error
 
-1.  **에러 메시지 읽기** — 어떤 함수에서 터졌는지 확인
-2.  **`?함수명`으로 용법 확인** — 인자 타입, 필수/선택 여부
-3.  **그래도 모르겠으면** — 에러 + `?함수명`에서 본 내용을 같이 AI에게
-    주기
+1.  **Read the error message** — find out which function failed
+2.  **Check usage with `?function_name`** — argument types, required vs.
+    optional
+3.  **If you still can't tell** — give the AI the error *and* what you
+    found in `?function_name`
 
 ```         
-이 코드에서 에러가 났어:
-[에러 메시지]
+I got an error with this code:
+[error message]
 
-?ggsurvplot 도움말을 보니 pval.coord는 
-numeric vector를 받는 것 같은데, 
-어떻게 고쳐야 해?
+Looking at ?ggsurvplot, pval.coord seems to take
+a numeric vector — how should I fix this?
 ```
 
-이렇게 주면 AI가 헛다리 짚을 확률이 크게 줄어듭니다.
+Asking this way makes it far less likely that the AI guesses wrong.
 :::
 
-### ⑤ 동작 확인되면 스크립트로 저장
+### ⑤ Once it works, save it as a script
 
-콘솔에서 다 돌아가는 걸 확인했으면, 코드를 모아서 `.R` 파일로
-저장합니다. 이때 상단에 **input/output을 명시**하고, 경로를 `paste0()`로
-정리합니다.
+When everything runs in the console, collect the code into a `.R` file.
+State the **input and output at the top**, and tidy up the paths with
+`paste0()`.
 
 ```{r}
 #| eval: false
@@ -327,7 +339,7 @@ numeric vector를 받는 것 같은데,
 # Input:  analysis/2_df_pt_processed.rds
 # Output: results/KM_OS.tiff, results/KM_OS.pdf
 
-# ----- 디렉토리 -----
+# ----- directories -----
 indir  <- "examples/analysis/"
 resdir <- "examples/results/"
 
@@ -335,7 +347,7 @@ library(tidyverse)
 library(survival)
 library(survminer)
 
-# 1. 데이터 로드
+# 1. Load data
 df_pt <- readRDS(paste0(indir, "w11_2_df_pt_processed.rds"))
 
 # 2. KM fit
@@ -353,7 +365,7 @@ p <- ggsurvplot(
   ggtheme = theme_minimal()
 )
 
-# 4. 저장
+# 4. Save
 tiff(paste0(resdir, "w11_KM_OS.tiff"), width = 7, height = 5, units = "in", res = 300)
 print(p)
 dev.off()
@@ -368,45 +380,47 @@ Rscript 03_KM_plot.R
 ```
 
 ::: callout-note
-## 스크립트 상단에 Input/Output 적기
+## Write Input/Output at the top of the script
 
 ``` r
 # Input:  examples/analysis/w11_2_df_pt_processed.rds
 # Output: examples/results/w11_KM_OS.tiff, results/KM_OS.pdf
 ```
 
-이렇게 적어두면 나중에 파일만 봐도 **이 스크립트가 뭘 읽고 뭘 만드는지**
-바로 알 수 있습니다.
+With this, you can tell **what the script reads and what it produces**
+just by opening the file later.
 :::
 
 ------------------------------------------------------------------------
 
-## AI가 틀리기 쉬운 통계적 함정 (사전 지식이 중요한 이유)
+## Statistical traps AI falls into (why domain knowledge matters)
 
 ::: callout-warning
-1.  **Reference level 방향** — `relevel(factor, ref = "baseline")`을
-    빠뜨리는 경우 많음
-2.  **환자 vs 병변 단위 혼동** — OS는 환자 단위, LFFS는 병변 단위
-3.  **다중비교 보정 누락** — subgroup 여러 개 비교하면서 Bonferroni 안
-    하는 경우
-4.  **결측치 처리** — 기본값이 `na.rm = FALSE`라 결과가 `NA`로 나올 수
-    있음
-5.  **생존 시간/이벤트 뒤바꿈** — `Surv(time, event)` 순서 주의
+1.  **Reference level direction** — `relevel(factor, ref = "baseline")`
+    is often left out
+2.  **Patient vs. lesion as the unit** — OS is per patient, LFFS is per
+    lesion
+3.  **Missing multiple-comparison correction** — comparing several
+    subgroups without Bonferroni
+4.  **Missing-value handling** — the default is `na.rm = FALSE`, so
+    results can come back as `NA`
+5.  **Survival time and event swapped** — watch the order in
+    `Surv(time, event)`
 
-**이것들은 사람이 알아야 합니다.** 우리가 W2-W3에서 직접 R 문법을 배운
-이유입니다.
+**These are things a human has to know.** That is exactly why we learned
+R syntax ourselves back in W2–W3.
 :::
 
 ------------------------------------------------------------------------
 
-## 바이브코딩 체크리스트
+## Vibe coding checklist
 
 ```         
-✅ colnames()와 str() 결과를 AI에게 제공했는가?
-✅ 분석 단위(환자/병변)를 명시했는가?
-✅ 원하는 출력 형태를 지정했는가? (docx, tiff, html)
-✅ 사용할 패키지를 지정했는가?
-✅ AI 결과의 reference level, 단위, p-value를 직접 확인했는가?
-✅ 콘솔에서 동작 확인 후 .R 파일로 저장했는가?
-✅ 스크립트 상단에 Input/Output을 명시했는가?
+✅ Did you give the AI the output of colnames() and str()?
+✅ Did you state the unit of analysis (patient / lesion)?
+✅ Did you specify the output format? (docx, tiff, html)
+✅ Did you name the packages to use?
+✅ Did you check the reference level, units and p-values yourself?
+✅ Did you confirm it runs in the console before saving it as a .R file?
+✅ Did you write Input/Output at the top of the script?
 ```

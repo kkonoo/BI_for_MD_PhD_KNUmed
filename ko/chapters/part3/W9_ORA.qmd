@@ -1,0 +1,198 @@
+---
+title: "W9. 과대표현 분석 (Over-Representation Analysis, ORA)"
+author: "하은지"
+date: last-modified
+format:
+  html
+execute:
+  echo: true
+  eval: false
+---
+
+<!-- 영문 원본: chapters/part3/W9_ORA.qmd
+     코드 셀은 원본 _freeze 캐시를 그대로 옮겼습니다 (원본도 eval: false).
+
+     원본의 setup 청크(include=FALSE, 화면에 표시되지 않음)에 있던 설치 안내:
+     # if (!require("BiocManager")) install.packages("BiocManager")
+     # BiocManager::install(c("clusterProfiler", "msigdbr", "enrichplot",
+     #                        "org.Hs.eg.db", "AnnotationDbi", "DESeq2"))
+     # install.packages(c("tidyverse", "ggrepel", "pheatmap", "ggridges"))
+-->
+
+------------------------------------------------------------------------
+
+## 1. 들어가며: 유전자 집합 (Gene sets)
+
+### DEG 분석을 마치고 나면…
+
+지난주에 FDR≤0.05, \|LFC\|≥1 기준으로 약 5,500개의 DEG(Tumor vs. Normal)를 찾았습니다 … ***그래서 뭐?*** "이 유전자들이 특정 생물학적 과정에 [**기능적으로 모여 있는가**]{.underline}?"
+
+![](/assets/img/part3/W8_vol.png){fig-align="center" width="549"}
+
+ORA를 돌리기 전에, 유전자와 생물학적 경로를 연결해 주는 **데이터베이스**부터 알아야 합니다.
+
+------------------------------------------------------------------------
+
+### 주요 유전자 집합 데이터베이스
+
+| 데이터베이스 | 특징 | 주로 쓰이는 상황 |
+|----|----|----|
+| [KEGG](https://www.genome.jp/kegg/) | 대사 경로와 질환 경로 | 대사 질환, 신호전달 캐스케이드 |
+| [Gene Ontology(GO)](https://geneontology.org/) | 계층 구조로 정리된 유전자 기능 분류 | 모든 분야에서 가장 널리 쓰임 |
+| [Reactome](https://reactome.org/) | 동료 검토를 거쳐 수작업으로 정리한 경로 | 상세한 생화학적 기전 |
+| [MSigDB](https://www.gsea-msigdb.org/gsea/msigdb) / [**Enrichr**](https://maayanlab.cloud/Enrichr/#libraries) | 225개 이상의 다양한 유전자 집합 모음 | 탐색적 분석 |
+
+![](/assets/img/part3/W9_ORA.png){fig-align="center" width="672"}
+
+------------------------------------------------------------------------
+
+### GO의 세 가지 범주
+
+-   **`BP (Biological Process)`**: 이 유전자가 무엇을 하는가? (예: 세포 분열, 염증) … *임상 연구에서 가장 많이 사용*
+-   `MF (Molecular Function)`: 분자 수준에서 어떤 활성을 갖는가? (예: kinase 활성, ATP 결합)
+-   `CC (Cellular Component)`: 어디에 위치하는가? (예: 핵, 막)
+
+------------------------------------------------------------------------
+
+## 2. 통계 원리: 피셔 정확검정 (Fisher's Exact Test)
+
+### 직관: 항아리 문제 (Urn Problem)
+
+> **Q:** 내 DEG 목록에 "염증" 경로의 유전자가 **우연히 기대되는 것보다 더 많이** 들어 있는가?
+
+![](/assets/img/part3/W9_urn.png){fig-align="center"}
+
+### 2×2 분할표
+
+|                  | **경로에 포함 (빨강)** | **경로에 없음 (흰색)** | **합계**   |
+|------------------|:----------------------:|:----------------------:|:----------:|
+| **DEG (뽑은 것)** |     100 *(a, hit)*     |       400 *(b)*        |    500     |
+| **비 DEG**       |       900 *(c)*        |      18,600 *(d)*      |   19,500   |
+| **합계**         |         1,000          |         19,000         | 20,000 (N) |
+
+### 두 가지 효과크기 지표
+
+**오즈비 (Odds Ratio, OR):** $$OR = \frac{a/c}{b/d} = \frac{a \times d}{b \times c} = \frac{100 \times 18{,}600}{400 \times 900} \approx 5.2$$
+
+**Fold Enrichment (FE)** — 더 직관적이고 보수적: $$FE = \frac{a/(a+c)}{(a+b)/N} = \frac{\text{DEG 중 경로 유전자의 비율}}{\text{배경 집합에서 경로 유전자의 비율}}$$
+
+::: callout-important
+## OR vs. FE — 무엇을 쓸까?
+
+-   **OR**: 두 그룹(선택된 것 vs. 아닌 것)을 비교. DEG 목록이 작으면 효과크기가 과대평가될 수 있음
+-   **FE**: 배경 대비 얼마나 더 농축되었는가. 논문에서 더 흔히 보고됨
+-   **실무에서는**: 둘 다 보고하되, 결정적인 결과는 **p-value(초기하 검정)** 와 **FDR 보정 p-value** 입니다
+:::
+
+------------------------------------------------------------------------
+
+### P-value: 초기하분포 (Hypergeometric Distribution)
+
+|   | **경로에 포함 (빨강)** | **경로에 없음 (흰색)** | **합계** |
+|----|:--:|:--:|:--:|
+| **DEG (뽑은 것)** | 100 ***(k)*** | 400 ***(n-k)*** | 500 **(n)** |
+| **비 DEG** | 900 *(K-k)* | 18,600 *(N-n -K-k)* | 19,500 (N-n) |
+| **합계** | 1,000 **(K)** | 19,000 **(N-K)** | 20,000 **(N)** |
+
+-   $N$: 전체 유전자 수 (배경, background)
+-   $K$: 해당 경로에 속한 유전자 수
+-   $n$: DEG 수
+-   $k$: 그 경로에 해당하는 DEG 수
+
+$$P(X = k) = \frac{\binom{K}{k}\binom{N-K}{n-k}}{\binom{N}{n}}$$
+
+$$\text{p-value} = \sum_{i=k}^{\min(n,K)} P(X=i) \quad \text{(단측 검정)}$$
+
+::: callout-warning
+## 배경 유전자(background)의 중요성
+
+암 유전자 패널(n = 500)을 검사해서 DEG 50개를 찾았다고 해 봅시다.\
+적절한 배경 없이 ORA를 돌리면 → 결과는 **당연하다는 듯이** 암 관련 경로로 농축됩니다 (선택 편향!).
+
+**올바른 방법:** DESeq2가 실제로 검정한 유전자 전체(즉 `padj` 가 NA가 **아닌** 유전자)를 배경 집합으로 사용하세요.
+:::
+
+------------------------------------------------------------------------
+
+## 실습: Enrichr
+
+### R에서 데이터 준비하기
+
+::: {.cell}
+
+```{.r .cell-code}
+library(DESeq2)
+library(tidyverse)
+
+# 1. LFC 축소(shrinkage)된 결과 불러오기
+resLFC <- readRDS('examples/data/w9_res_DESeq2_lfcShrink.rds')
+res_df <- resLFC %>%
+  as.data.frame() %>%
+  mutate(gene_id = rownames(.)) %>%
+  arrange(padj)
+
+# 2. DEG 목록 추출 (|LFC| >= 1 & FDR <= 0.05)
+genes <- res_df %>%
+  filter(abs(log2FoldChange) >= 1, padj <= 0.05) %>%
+  .$gene_id
+
+cat("Number of DEGs:", length(genes), "\n")
+
+# 3. 파일로 저장 (Enrichr 업로드용)
+write.table(genes,
+            file      = 'examples/analysis/w9_myDEGs.txt',
+            sep       = "\t",
+            quote     = FALSE,
+            row.names = FALSE,
+            col.names = FALSE)
+
+# 4. 배경 유전자 목록 저장
+total <- res_df %>%
+  filter(!is.na(padj)) %>%
+  .$gene_id
+
+write.table(total,
+            file      = 'examples/analysis/w9_myDEGs.txt',
+            sep       = "\t",
+            quote     = FALSE,
+            row.names = FALSE,
+            col.names = FALSE)
+
+cat("Number of background genes:", length(total), "\n")
+```
+:::
+
+------------------------------------------------------------------------
+
+### Enrichr 사용법
+
+1)  <https://maayanlab.cloud/Enrichr/> 로 이동
+
+2)  DEG 목록(`myDEGs.txt`)을 붙여 넣기
+
+3)  배경 유전자 목록(`total.txt`)을 업로드
+
+    ![](/assets/img/part3/W9_enrichr.png)
+
+4)  **Pathways** 탭 → **Reactome**, **KEGG** 살펴보기
+
+5)  **Ontologies** 탭 → **GO Biological Process** 살펴보기
+
+    ![](/assets/img/part3/W9_enrichr_library.png)
+
+::: callout-tip
+## Enrichr 결과 해석하기
+
+-   **Combined Score** = log(p-value) × z-score (Enrichr 고유의 지표)
+-   **Adjusted P-value ≤ 0.05** 를 통과한 경로만 유의한 것으로 봅니다
+-   **여러 데이터베이스에서 일관되게** 나타나는 경로일수록 신뢰도가 높습니다
+:::
+
+------------------------------------------------------------------------
+
+## 📝 9주차 과제
+
+이번 주는 과제가 없습니다 — 다음 주 GSEA를 기대해 주세요!\
+*(W8 복습: 단순 모형 vs. 짝지은 모형 비교, Gold Standard 유전자 검증, Volcano Plot)*
+
+> 화면 캡처(스크린샷)만 제출해 주세요

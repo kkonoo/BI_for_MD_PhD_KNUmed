@@ -1,11 +1,16 @@
 project:
   type: website
   execute-dir: project
+  render:
+    - "*.qmd"
+    - "chapters/**/*.qmd"
+    - "ko/**/*.qmd"
   resources:
     - _extensions/ai-chat/ai-chat.js
 
 website:
   favicon: assets/img/favicon.ico
+  page-navigation: true
   navbar:
     logo: assets/img/logo.jpg
     left:
@@ -19,25 +24,56 @@ website:
         text: 3. Result interpretation
       - href: chapters/part4/W11_Rscript_vibe_coding.qmd
         text: 4. Practice and wrap-up
+    # EN/KO 캡슐은 assets/lang-switch.js 가 navbar 오른쪽에 삽입하고,
+    # Quarto 기본 테마 토글(.quarto-color-scheme-toggle)을 그 옆의 원형 버튼으로 재배치합니다.
 
   sidebar:
-    style: "floating"
-    search: true
-    contents:
-      - text: "Home"
-        href: index.qmd
-      - section: "1. R basics"
-        contents: chapters/part1/*.qmd
-      - section: "2. DEG analysis"
-        contents: chapters/part2/*.qmd
-      - section: "3. Result interpretation"
-        contents:
-          - chapters/part3/W8_DEG Results Processing.qmd
-          - chapters/part3/W9_ORA.qmd
-          - chapters/part3/W10_GSEA.qmd
-      - section: "4. Practice and wrap-up"
-        contents: chapters/part4/*.qmd
-          
+    # ── EN (원본) ──
+    - id: en
+      style: "floating"
+      search: true
+      contents:
+        - text: "Home"
+          href: index.qmd
+        - section: "1. R basics"
+          contents: chapters/part1/*.qmd
+        - section: "2. DEG analysis"
+          contents: chapters/part2/*.qmd
+        - section: "3. Result interpretation"
+          contents:
+            - chapters/part3/W8_DEG Results Processing.qmd
+            - chapters/part3/W9_ORA.qmd
+            - chapters/part3/W10_GSEA.qmd
+        - section: "4. Practice and wrap-up"
+          contents: chapters/part4/*.qmd
+    # ── KO (번역 완료 페이지만 등록: 번역이 끝난 주차를 여기에 순서대로 추가) ──
+    - id: ko
+      style: "floating"
+      search: true
+      contents:
+        - text: "홈"
+          href: ko/index.qmd
+        - section: "1. R 기초"
+          contents:
+            - ko/chapters/part1/W1_intro.qmd
+            - ko/chapters/part1/W2_rbasics.qmd
+            - ko/chapters/part1/W3_wrangling.qmd
+            - ko/chapters/part1/W4_publicdb.qmd
+        - section: "2. DEG 분석"
+          contents:
+            - ko/chapters/part2/W5_QC.qmd
+            - ko/chapters/part2/W6_EDA.qmd
+            - ko/chapters/part2/W7_DEG Analysis.qmd
+        - section: "3. 결과 해석"
+          contents:
+            - ko/chapters/part3/W8_DEG Results Processing.qmd
+            - ko/chapters/part3/W9_ORA.qmd
+            - ko/chapters/part3/W10_GSEA.qmd
+        - section: "4. 실습과 마무리"
+          contents:
+            - ko/chapters/part4/W11_Rscript_vibe_coding.qmd
+            - ko/chapters/part4/W12_summary.qmd
+
   page-footer:
     left: "Copyright 2026, Eunji"
 
@@ -45,7 +81,10 @@ format:
   html:
     theme:
       light: cosmo
+      dark: darkly
+    respect-user-color-scheme: true
     css: assets/html.css
+    include-in-header: assets/lang-switch.html
     toc: true
     toc-depth: 4
     toc-title: "Contents"
@@ -77,24 +116,3 @@ execute:
   eval: false
   warning: false
   message: false
-
-    # right:
-    #   - text: "EN"
-    #     href: en/index.qmd
-    #   - text: "KO"
-    #     href: ko/index.qmd
-
-
-  #     background: dark
-    # pdf:
-    # mainfont: "KoPubWorldDotum"
-    # mainfontoptions:
-    #   - Path=C:/Windows/Fonts/
-    #   - Extension=.ttf
-    #   - UprightFont=KoPubWorld Dotum Medium
-    #   - BoldFont=KoPubWorld Dotum Bold
-    # pdf-engine: xelatex
-    # include-in-header:
-    #   text: |
-    #     \usepackage{emoji}
-    #     \setemojifont{Segoe UI Emoji}

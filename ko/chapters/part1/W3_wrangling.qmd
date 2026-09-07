@@ -1,0 +1,995 @@
+---
+title: "W3. 데이터 정리와 시각화"
+subtitle: "tidyverse 활용 (dplyr + ggplot2)"
+author: "하은지"
+date: last-modified
+format:
+  html
+execute:
+  eval: false
+---
+
+<!-- 영문 원본: chapters/part1/W3_wrangling.qmd
+     실행 결과와 그림은 원본 _freeze 캐시를 그대로 참조합니다 (CI에는 R이 없음).
+     그림은 영문 페이지가 생성한 W3_wrangling_files/ 를 공유합니다.
+     원본 코드가 바뀌면 이 페이지의 셀도 함께 갱신하세요. -->
+
+## 준비: 예제 데이터
+
+이 문서의 모든 예제는 아래에서 만드는 `patients` 데이터를 사용합니다.
+
+::: {.cell}
+
+```{.r .cell-code}
+library(tidyverse)
+
+set.seed(42)
+
+n <- 40
+
+patients <- tibble(
+  pt_id     = paste0("P", sprintf("%03d", 1:n)),
+  gender    = sample(c("M", "F"), n, replace = TRUE),
+  height    = round(rnorm(n, mean = 168, sd = 10)),
+  weight    = round(rnorm(n, mean = 70,  sd = 15)),
+  Age       = round(runif(n, min = 30, max = 72)),
+  Diagnosis = sample(c("Diabetes", "Hypertension", "Healthy"),
+                     n, replace = TRUE, prob = c(0.35, 0.35, 0.30)),
+  disease   = Diagnosis,
+  HbA1c     = round(
+    case_when(
+      Diagnosis == "Diabetes"     ~ rnorm(n, mean = 8.0, sd = 1.0),
+      Diagnosis == "Hypertension" ~ rnorm(n, mean = 5.8, sd = 0.7),
+      TRUE                        ~ rnorm(n, mean = 5.2, sd = 0.5)
+    ), 1)
+)
+
+# 비교용 data.frame 버전
+patients_df <- as.data.frame(patients)
+
+patients
+```
+
+::: {.cell-output .cell-output-stdout}
+
+```
+# A tibble: 40 × 8
+   pt_id gender height weight   Age Diagnosis    disease      HbA1c
+   <chr> <chr>   <dbl>  <dbl> <dbl> <chr>        <chr>        <dbl>
+ 1 P001  M         165     64    67 Hypertension Hypertension   5.9
+ 2 P002  M         150     73    52 Diabetes     Diabetes       7.1
+ 3 P003  M         166     79    66 Hypertension Hypertension   6.1
+ 4 P004  M         180     91    49 Hypertension Hypertension   6  
+ 5 P005  F         187     59    37 Diabetes     Diabetes       7.6
+ 6 P006  F         164     90    49 Diabetes     Diabetes       9.1
+ 7 P007  F         165     75    71 Hypertension Hypertension   6.3
+ 8 P008  F         150     86    50 Hypertension Hypertension   6.2
+ 9 P009  M         173     84    41 Diabetes     Diabetes       8.7
+10 P010  F         162     81    41 Healthy      Healthy        5.8
+# ℹ 30 more rows
+```
+
+
+:::
+:::
+
+------------------------------------------------------------------------
+
+## tidyverse
+
+`tidyverse` 는 `dplyr`, `ggplot2`, `tidyr` 같은 유용한 패키지를 한데 묶은 메타 패키지입니다.
+
+::: {.cell}
+
+```{.r .cell-code}
+# 설치 (한 번만)
+install.packages("tidyverse")
+```
+:::
+
+::: {.cell}
+
+```{.r .cell-code}
+# 세션마다 불러오기
+library(tidyverse)
+```
+:::
+
+### data.frame vs. tibble
+
+`tibble` 은 `data.frame` 의 개선판으로, 출력할 때 열의 자료형을 함께 보여주고 큰 데이터도 깔끔하게 다룹니다.
+
+::: {.cell}
+
+```{.r .cell-code}
+# data.frame: 모든 행을 출력하고 자료형 정보는 없음
+patients_df
+```
+
+::: {.cell-output .cell-output-stdout}
+
+```
+   pt_id gender height weight Age    Diagnosis      disease HbA1c
+1   P001      M    165     64  67 Hypertension Hypertension   5.9
+2   P002      M    150     73  52     Diabetes     Diabetes   7.1
+3   P003      M    166     79  66 Hypertension Hypertension   6.1
+4   P004      M    180     91  49 Hypertension Hypertension   6.0
+5   P005      F    187     59  37     Diabetes     Diabetes   7.6
+6   P006      F    164     90  49     Diabetes     Diabetes   9.1
+7   P007      F    165     75  71 Hypertension Hypertension   6.3
+8   P008      F    150     86  50 Hypertension Hypertension   6.2
+9   P009      M    173     84  41     Diabetes     Diabetes   8.7
+10  P010      F    162     81  41      Healthy      Healthy   5.8
+11  P011      M    173     54  53 Hypertension Hypertension   5.9
+12  P012      F    175     69  57 Hypertension Hypertension   5.6
+13  P013      M    178     79  44 Hypertension Hypertension   6.0
+14  P014      F    162     56  33     Diabetes     Diabetes   7.7
+15  P015      M    173     62  49 Hypertension Hypertension   5.1
+16  P016      M    151     79  65      Healthy      Healthy   5.0
+17  P017      F    160     82  54 Hypertension Hypertension   6.1
+18  P018      F    159     77  45     Diabetes     Diabetes   7.2
+19  P019      F    144     57  53     Diabetes     Diabetes   7.5
+20  P020      F    168     54  67     Diabetes     Diabetes   9.3
+21  P021      M    170     93  51      Healthy      Healthy   4.8
+22  P022      M    164     74  37 Hypertension Hypertension   6.0
+23  P023      M    176     71  53 Hypertension Hypertension   6.6
+24  P024      M    161     68  70      Healthy      Healthy   5.8
+25  P025      M    154     52  43     Diabetes     Diabetes   8.6
+26  P026      F    172     79  64 Hypertension Hypertension   5.0
+27  P027      M    160     67  43      Healthy      Healthy   5.7
+28  P028      M    182     67  38 Hypertension Hypertension   5.1
+29  P029      M    164     84  32      Healthy      Healthy   5.6
+30  P030      M    175     82  40      Healthy      Healthy   4.7
+31  P031      F    171     91  45 Hypertension Hypertension   5.0
+32  P032      F    160     63  37      Healthy      Healthy   5.2
+33  P033      F    184     80  43     Diabetes     Diabetes   6.3
+34  P034      F    174     91  31 Hypertension Hypertension   5.7
+35  P035      M    169     53  72      Healthy      Healthy   5.8
+36  P036      F    171     57  64 Hypertension Hypertension   5.8
+37  P037      M    175     53  34 Hypertension Hypertension   5.7
+38  P038      F    169     48  67     Diabetes     Diabetes   8.6
+39  P039      F    138     71  53     Diabetes     Diabetes   8.5
+40  P040      F    171     80  48     Diabetes     Diabetes   8.0
+```
+
+
+:::
+
+```{.r .cell-code}
+# tibble: 자료형 표시(<chr>, <dbl>, ...) + 기본 10행까지만 출력
+patients
+```
+
+::: {.cell-output .cell-output-stdout}
+
+```
+# A tibble: 40 × 8
+   pt_id gender height weight   Age Diagnosis    disease      HbA1c
+   <chr> <chr>   <dbl>  <dbl> <dbl> <chr>        <chr>        <dbl>
+ 1 P001  M         165     64    67 Hypertension Hypertension   5.9
+ 2 P002  M         150     73    52 Diabetes     Diabetes       7.1
+ 3 P003  M         166     79    66 Hypertension Hypertension   6.1
+ 4 P004  M         180     91    49 Hypertension Hypertension   6  
+ 5 P005  F         187     59    37 Diabetes     Diabetes       7.6
+ 6 P006  F         164     90    49 Diabetes     Diabetes       9.1
+ 7 P007  F         165     75    71 Hypertension Hypertension   6.3
+ 8 P008  F         150     86    50 Hypertension Hypertension   6.2
+ 9 P009  M         173     84    41 Diabetes     Diabetes       8.7
+10 P010  F         162     81    41 Healthy      Healthy        5.8
+# ℹ 30 more rows
+```
+
+
+:::
+:::
+
+------------------------------------------------------------------------
+
+### 파이프 연산자 (`%>%`)
+
+::: {.cell}
+
+```{.r .cell-code}
+# 기존 방식
+head(patients)
+```
+
+::: {.cell-output .cell-output-stdout}
+
+```
+# A tibble: 6 × 8
+  pt_id gender height weight   Age Diagnosis    disease      HbA1c
+  <chr> <chr>   <dbl>  <dbl> <dbl> <chr>        <chr>        <dbl>
+1 P001  M         165     64    67 Hypertension Hypertension   5.9
+2 P002  M         150     73    52 Diabetes     Diabetes       7.1
+3 P003  M         166     79    66 Hypertension Hypertension   6.1
+4 P004  M         180     91    49 Hypertension Hypertension   6  
+5 P005  F         187     59    37 Diabetes     Diabetes       7.6
+6 P006  F         164     90    49 Diabetes     Diabetes       9.1
+```
+
+
+:::
+
+```{.r .cell-code}
+# 파이프 방식 (Ctrl + Shift + M)
+patients %>% head()
+```
+
+::: {.cell-output .cell-output-stdout}
+
+```
+# A tibble: 6 × 8
+  pt_id gender height weight   Age Diagnosis    disease      HbA1c
+  <chr> <chr>   <dbl>  <dbl> <dbl> <chr>        <chr>        <dbl>
+1 P001  M         165     64    67 Hypertension Hypertension   5.9
+2 P002  M         150     73    52 Diabetes     Diabetes       7.1
+3 P003  M         166     79    66 Hypertension Hypertension   6.1
+4 P004  M         180     91    49 Hypertension Hypertension   6  
+5 P005  F         187     59    37 Diabetes     Diabetes       7.6
+6 P006  F         164     90    49 Diabetes     Diabetes       9.1
+```
+
+
+:::
+:::
+
+------------------------------------------------------------------------
+
+## 1. 데이터 정리: dplyr
+
+### dplyr의 핵심 동사 5개
+
+#### select(): 열 선택
+
+![](/assets/img/part1/W3_select.png){fig-align="center" width="164"}
+
+::: {.cell}
+
+```{.r .cell-code}
+patients %>% select(pt_id, disease)
+```
+
+::: {.cell-output .cell-output-stdout}
+
+```
+# A tibble: 40 × 2
+   pt_id disease     
+   <chr> <chr>       
+ 1 P001  Hypertension
+ 2 P002  Diabetes    
+ 3 P003  Hypertension
+ 4 P004  Hypertension
+ 5 P005  Diabetes    
+ 6 P006  Diabetes    
+ 7 P007  Hypertension
+ 8 P008  Hypertension
+ 9 P009  Diabetes    
+10 P010  Healthy     
+# ℹ 30 more rows
+```
+
+
+:::
+:::
+
+#### filter(): 행 필터링
+
+![](/assets/img/part1/W3_fjilter.png){fig-align="center" width="180"}
+
+::: {.cell}
+
+```{.r .cell-code}
+patients %>% filter(disease == "Diabetes")
+```
+
+::: {.cell-output .cell-output-stdout}
+
+```
+# A tibble: 13 × 8
+   pt_id gender height weight   Age Diagnosis disease  HbA1c
+   <chr> <chr>   <dbl>  <dbl> <dbl> <chr>     <chr>    <dbl>
+ 1 P002  M         150     73    52 Diabetes  Diabetes   7.1
+ 2 P005  F         187     59    37 Diabetes  Diabetes   7.6
+ 3 P006  F         164     90    49 Diabetes  Diabetes   9.1
+ 4 P009  M         173     84    41 Diabetes  Diabetes   8.7
+ 5 P014  F         162     56    33 Diabetes  Diabetes   7.7
+ 6 P018  F         159     77    45 Diabetes  Diabetes   7.2
+ 7 P019  F         144     57    53 Diabetes  Diabetes   7.5
+ 8 P020  F         168     54    67 Diabetes  Diabetes   9.3
+ 9 P025  M         154     52    43 Diabetes  Diabetes   8.6
+10 P033  F         184     80    43 Diabetes  Diabetes   6.3
+11 P038  F         169     48    67 Diabetes  Diabetes   8.6
+12 P039  F         138     71    53 Diabetes  Diabetes   8.5
+13 P040  F         171     80    48 Diabetes  Diabetes   8  
+```
+
+
+:::
+:::
+
+#### mutate(): 새 열 만들기
+
+![](/assets/img/part1/W3_mutate.png){fig-align="center" width="211"}
+
+::: {.cell}
+
+```{.r .cell-code}
+patients %>% mutate(bmi = round(weight / (height / 100)^2, 1))
+```
+
+::: {.cell-output .cell-output-stdout}
+
+```
+# A tibble: 40 × 9
+   pt_id gender height weight   Age Diagnosis    disease      HbA1c   bmi
+   <chr> <chr>   <dbl>  <dbl> <dbl> <chr>        <chr>        <dbl> <dbl>
+ 1 P001  M         165     64    67 Hypertension Hypertension   5.9  23.5
+ 2 P002  M         150     73    52 Diabetes     Diabetes       7.1  32.4
+ 3 P003  M         166     79    66 Hypertension Hypertension   6.1  28.7
+ 4 P004  M         180     91    49 Hypertension Hypertension   6    28.1
+ 5 P005  F         187     59    37 Diabetes     Diabetes       7.6  16.9
+ 6 P006  F         164     90    49 Diabetes     Diabetes       9.1  33.5
+ 7 P007  F         165     75    71 Hypertension Hypertension   6.3  27.5
+ 8 P008  F         150     86    50 Hypertension Hypertension   6.2  38.2
+ 9 P009  M         173     84    41 Diabetes     Diabetes       8.7  28.1
+10 P010  F         162     81    41 Healthy      Healthy        5.8  30.9
+# ℹ 30 more rows
+```
+
+
+:::
+:::
+
+#### arrange(): 행 정렬
+
+![](/assets/img/part1/W3_arrange.png){fig-align="center" width="204"}
+
+::: {.cell}
+
+```{.r .cell-code}
+patients %>% arrange(desc(weight))
+```
+
+::: {.cell-output .cell-output-stdout}
+
+```
+# A tibble: 40 × 8
+   pt_id gender height weight   Age Diagnosis    disease      HbA1c
+   <chr> <chr>   <dbl>  <dbl> <dbl> <chr>        <chr>        <dbl>
+ 1 P021  M         170     93    51 Healthy      Healthy        4.8
+ 2 P004  M         180     91    49 Hypertension Hypertension   6  
+ 3 P031  F         171     91    45 Hypertension Hypertension   5  
+ 4 P034  F         174     91    31 Hypertension Hypertension   5.7
+ 5 P006  F         164     90    49 Diabetes     Diabetes       9.1
+ 6 P008  F         150     86    50 Hypertension Hypertension   6.2
+ 7 P009  M         173     84    41 Diabetes     Diabetes       8.7
+ 8 P029  M         164     84    32 Healthy      Healthy        5.6
+ 9 P017  F         160     82    54 Hypertension Hypertension   6.1
+10 P030  M         175     82    40 Healthy      Healthy        4.7
+# ℹ 30 more rows
+```
+
+
+:::
+:::
+
+#### group_by() & summarise(): 그룹별 요약
+
+![](/assets/img/part1/W3_group_by.png){fig-align="center" width="258"}
+
+::: {.cell}
+
+```{.r .cell-code}
+patients %>%
+  group_by(disease) %>%
+  summarize(
+    n           = n(),
+    mean_weight = round(mean(weight), 1),
+    mean_HbA1c  = round(mean(HbA1c),  1)
+  )
+```
+
+::: {.cell-output .cell-output-stdout}
+
+```
+# A tibble: 3 × 4
+  disease          n mean_weight mean_HbA1c
+  <chr>        <int>       <dbl>      <dbl>
+1 Diabetes        13        67.8        8  
+2 Healthy          9        74.4        5.4
+3 Hypertension    18        73.6        5.8
+```
+
+
+:::
+:::
+
+### join: 데이터 합치기
+
+![](/assets/img/part1/W3_join.png){fig-align="center" width="251"}
+
+::: {.cell}
+
+```{.r .cell-code}
+# 검사 결과 — 일부 환자는 빠져 있고, 코호트 밖 환자가 하나 섞여 있음
+lab_results <- tibble(
+  pt_id = c("P001", "P002", "P003", "P999"),
+  hba1c = c(7.5, 5.8, 6.2, 8.0)
+)
+```
+:::
+
+![](/assets/img/part1/W3_left.png){fig-align="center"}
+
+::: {.cell}
+
+```{.r .cell-code}
+# left_join: 코호트의 모든 환자를 유지
+patients %>%
+  select(pt_id, disease) %>%
+  left_join(lab_results, by = "pt_id")
+```
+
+::: {.cell-output .cell-output-stdout}
+
+```
+# A tibble: 40 × 3
+   pt_id disease      hba1c
+   <chr> <chr>        <dbl>
+ 1 P001  Hypertension   7.5
+ 2 P002  Diabetes       5.8
+ 3 P003  Hypertension   6.2
+ 4 P004  Hypertension  NA  
+ 5 P005  Diabetes      NA  
+ 6 P006  Diabetes      NA  
+ 7 P007  Hypertension  NA  
+ 8 P008  Hypertension  NA  
+ 9 P009  Diabetes      NA  
+10 P010  Healthy       NA  
+# ℹ 30 more rows
+```
+
+
+:::
+:::
+
+![](/assets/img/part1/W3_right.png){fig-align="center" width="112"}
+
+::: {.cell}
+
+```{.r .cell-code}
+# right_join: 검사 결과를 기준으로
+patients %>%
+  select(pt_id, disease) %>%
+  right_join(lab_results, by = "pt_id")
+```
+
+::: {.cell-output .cell-output-stdout}
+
+```
+# A tibble: 4 × 3
+  pt_id disease      hba1c
+  <chr> <chr>        <dbl>
+1 P001  Hypertension   7.5
+2 P002  Diabetes       5.8
+3 P003  Hypertension   6.2
+4 P999  <NA>           8  
+```
+
+
+:::
+:::
+
+![](/assets/img/part1/W3_inner.png){fig-align="center" width="123"}
+
+::: {.cell}
+
+```{.r .cell-code}
+# inner_join: 교집합 (검사 결과가 있는 환자만)
+patients %>%
+  select(pt_id, disease) %>%
+  inner_join(lab_results, by = "pt_id")
+```
+
+::: {.cell-output .cell-output-stdout}
+
+```
+# A tibble: 3 × 3
+  pt_id disease      hba1c
+  <chr> <chr>        <dbl>
+1 P001  Hypertension   7.5
+2 P002  Diabetes       5.8
+3 P003  Hypertension   6.2
+```
+
+
+:::
+:::
+
+![](/assets/img/part1/W3_full.png){fig-align="center"}
+
+::: {.cell}
+
+```{.r .cell-code}
+# full_join: 모든 데이터를 합침
+patients %>%
+  select(pt_id, disease) %>%
+  full_join(lab_results, by = "pt_id")
+```
+
+::: {.cell-output .cell-output-stdout}
+
+```
+# A tibble: 41 × 3
+   pt_id disease      hba1c
+   <chr> <chr>        <dbl>
+ 1 P001  Hypertension   7.5
+ 2 P002  Diabetes       5.8
+ 3 P003  Hypertension   6.2
+ 4 P004  Hypertension  NA  
+ 5 P005  Diabetes      NA  
+ 6 P006  Diabetes      NA  
+ 7 P007  Hypertension  NA  
+ 8 P008  Hypertension  NA  
+ 9 P009  Diabetes      NA  
+10 P010  Healthy       NA  
+# ℹ 31 more rows
+```
+
+
+:::
+:::
+
+### 데이터 구조 바꾸기: tidyr
+
+#### pivot_longer(): Wide → Long
+
+![](/assets/img/part1/W3_pivet_long.png){fig-align="center" width="390"}
+
+::: {.cell}
+
+```{.r .cell-code}
+bp_wide <- tibble(
+  pt_id      = c("P001", "P002", "P003"),
+  sbp_visit1 = c(120, 130, 110),
+  sbp_visit2 = c(118, 135, 115),
+  sbp_visit3 = c(115, 132, 112)
+)
+
+bp_wide
+```
+
+::: {.cell-output .cell-output-stdout}
+
+```
+# A tibble: 3 × 4
+  pt_id sbp_visit1 sbp_visit2 sbp_visit3
+  <chr>      <dbl>      <dbl>      <dbl>
+1 P001         120        118        115
+2 P002         130        135        132
+3 P003         110        115        112
+```
+
+
+:::
+
+```{.r .cell-code}
+bp_long <- bp_wide %>%
+  pivot_longer(
+    cols      = starts_with("sbp"),
+    names_to  = "visit",
+    values_to = "sbp"
+  )
+
+bp_long
+```
+
+::: {.cell-output .cell-output-stdout}
+
+```
+# A tibble: 9 × 3
+  pt_id visit        sbp
+  <chr> <chr>      <dbl>
+1 P001  sbp_visit1   120
+2 P001  sbp_visit2   118
+3 P001  sbp_visit3   115
+4 P002  sbp_visit1   130
+5 P002  sbp_visit2   135
+6 P002  sbp_visit3   132
+7 P003  sbp_visit1   110
+8 P003  sbp_visit2   115
+9 P003  sbp_visit3   112
+```
+
+
+:::
+:::
+
+#### pivot_wider(): Long → Wide
+
+![](/assets/img/part1/W3_pivot_wider.png){fig-align="center"}
+
+::: {.cell}
+
+```{.r .cell-code}
+bp_long %>%
+  pivot_wider(
+    names_from  = visit,
+    values_from = sbp
+  )
+```
+
+::: {.cell-output .cell-output-stdout}
+
+```
+# A tibble: 3 × 4
+  pt_id sbp_visit1 sbp_visit2 sbp_visit3
+  <chr>      <dbl>      <dbl>      <dbl>
+1 P001         120        118        115
+2 P002         130        135        132
+3 P003         110        115        112
+```
+
+
+:::
+:::
+
+#### separate(): 열 나누기
+
+![](/assets/img/part1/W3_separate.png){fig-align="center" width="482"}
+
+::: {.cell}
+
+```{.r .cell-code}
+bp_raw <- tibble(
+  pt_id   = c("P001", "P002"),
+  bp_full = c("120/80", "130/85")
+)
+
+bp_raw %>%
+  separate(bp_full, into = c("sbp", "dbp"), sep = "/", convert = TRUE)
+```
+
+::: {.cell-output .cell-output-stdout}
+
+```
+# A tibble: 2 × 3
+  pt_id   sbp   dbp
+  <chr> <int> <int>
+1 P001    120    80
+2 P002    130    85
+```
+
+
+:::
+:::
+
+#### unite(): 열 합치기
+
+![](/assets/img/part1/W3_unite.png){fig-align="center" width="351"}
+
+::: {.cell}
+
+```{.r .cell-code}
+dates <- tibble(
+  pt_id = c("P001", "P002"),
+  year  = c("2024", "2025"),
+  month = c("12", "01"),
+  day   = c("25", "15")
+)
+
+dates %>%
+  unite(col = "exam_date", year, month, day, sep = "-")
+```
+
+::: {.cell-output .cell-output-stdout}
+
+```
+# A tibble: 2 × 2
+  pt_id exam_date 
+  <chr> <chr>     
+1 P001  2024-12-25
+2 P002  2025-01-15
+```
+
+
+:::
+:::
+
+------------------------------------------------------------------------
+
+## 2. 시각화: ggplot2
+
+ggplot2는 세 가지 요소로 이루어집니다.
+
+1)  **data**: 데이터 프레임
+2)  **aes**: x축, y축, color, fill, group 등
+3)  **geom**: 그래프의 종류
+
+::: {.cell}
+
+```{.r .cell-code}
+dataframe %>%
+  ggplot(aes(x = xx, y = yy)) +
+  geom_function() +
+  ...
+```
+:::
+
+#### 미학 요소 (Aesthetics)
+
+| 속성             | 설명              | 예시                              |
+|------------------|-------------------|-----------------------------------|
+| `color` / `fill` | 색                | `"red"`, `"#RRGGBB"`              |
+| `linetype`       | 선 종류           | `"solid"`, `"dashed"`, `"dotted"` |
+| `size`           | 점 / 글자 크기    | mm 단위                           |
+| `linewidth`      | 선 두께           | mm 단위                           |
+| `shape`          | 점 모양           | 0~25 정수                         |
+| `alpha`          | 투명도            | 0 (투명) ~ 1 (불투명)             |
+
+::: callout-tip
+**`aes()` 안에 쓰면**: 변수에 자동으로 대응됩니다 → `aes(color = Diagnosis)`
+
+**`geom_` 안에 쓰면**: 고정값이 됩니다 → `geom_bar(color = 'black')`
+:::
+
+------------------------------------------------------------------------
+
+### ① 막대 그래프 (Bar Plot): 범주형 자료의 빈도
+
+::: {.cell}
+
+```{.r .cell-code}
+patients %>%
+  ggplot(aes(x = Diagnosis)) +
+  geom_bar(fill = "steelblue", width = 0.6) +
+  labs(title = "Number of Patients by Diagnosis",
+       x = "Diagnosis", y = "Count") +
+  theme_classic()
+```
+
+::: {.cell-output-display}
+![](/chapters/part1/W3_wrangling_files/figure-html/unnamed-chunk-21-1.png){width=672}
+:::
+:::
+
+------------------------------------------------------------------------
+
+### ② 히스토그램 (Histogram): 연속형 변수의 분포
+
+::: {.cell}
+
+```{.r .cell-code}
+patients %>%
+  ggplot(aes(x = Age)) +
+  geom_histogram(binwidth = 10, fill = "lightgrey", color = "black") +
+  labs(title = "Age Distribution", x = "Age", y = "Count") +
+  theme_classic()
+```
+
+::: {.cell-output-display}
+![](/chapters/part1/W3_wrangling_files/figure-html/unnamed-chunk-22-1.png){width=672}
+:::
+:::
+
+------------------------------------------------------------------------
+
+### ③ 상자 그림 (Box Plot): 그룹 간 연속형 값 비교
+
+::: {.cell}
+
+```{.r .cell-code}
+patients %>%
+  ggplot(aes(x = Diagnosis, y = HbA1c, fill = Diagnosis)) +
+  geom_boxplot() +
+  labs(title = "HbA1c by Diagnosis", x = "Diagnosis", y = "HbA1c (%)") +
+  theme_classic()
+```
+
+::: {.cell-output-display}
+![](/chapters/part1/W3_wrangling_files/figure-html/unnamed-chunk-23-1.png){width=672}
+:::
+:::
+
+------------------------------------------------------------------------
+
+### ④ 산점도 (Scatter Plot): 두 연속형 변수의 관계
+
+::: {.cell}
+
+```{.r .cell-code}
+patients %>%
+  ggplot(aes(x = Age, y = HbA1c)) +
+  geom_point(size = 3, color = 'darkblue') +
+  geom_smooth(method = "lm", formula = y ~ x, se = TRUE) +
+  labs(title = "Age vs HbA1c", x = "Age", y = "HbA1c (%)") +
+  theme_classic()
+```
+
+::: {.cell-output-display}
+![](/chapters/part1/W3_wrangling_files/figure-html/unnamed-chunk-24-1.png){width=672}
+:::
+:::
+
+------------------------------------------------------------------------
+
+### ⑤ 선 그래프 (Line Plot): 시간에 따른 변화
+
+::: {.cell}
+
+```{.r .cell-code}
+bp_long %>%
+  ggplot(aes(x = visit, y = sbp, group = pt_id, color = pt_id)) +
+  geom_line(linewidth = 1) +
+  geom_point(size = 3) +
+  labs(title = "Systolic BP Across Visits",
+       x = "Visit", y = "SBP (mmHg)", color = "Patient") +
+  theme_classic()
+```
+
+::: {.cell-output-display}
+![](/chapters/part1/W3_wrangling_files/figure-html/unnamed-chunk-25-1.png){width=672}
+:::
+:::
+
+------------------------------------------------------------------------
+
+### 그래프 꾸미기
+
+::: {.cell}
+
+```{.r .cell-code}
+patients %>%
+  ggplot(aes(x = Diagnosis, y = HbA1c, fill = Diagnosis)) +
+  geom_boxplot(alpha = 0.5) +
+  scale_fill_brewer(palette = "Set2") +
+  labs(title = "HbA1c Levels by Diagnosis",
+       x = "Diagnosis", y = "HbA1c (%)") +
+  theme(legend.position = "none") +
+  theme_classic()
+```
+
+::: {.cell-output-display}
+![](/chapters/part1/W3_wrangling_files/figure-html/unnamed-chunk-26-1.png){width=672}
+:::
+:::
+
+------------------------------------------------------------------------
+
+### 주요 테마 (Theme)
+
+| 테마              | 설명                          |
+|-------------------|-------------------------------|
+| `theme_classic()` | 흰 배경, 축만 표시            |
+| `theme_bw()`      | 흰 배경 + 격자선              |
+| `theme_minimal()` | 장식을 최소화                 |
+| `theme_light()`   | 밝은 톤                       |
+
+::: {.cell}
+::: {.cell-output-display}
+![](/chapters/part1/W3_wrangling_files/figure-html/unnamed-chunk-27-1.png){width=672}
+:::
+:::
+
+------------------------------------------------------------------------
+
+### 그래프 저장하기
+
+::: {.cell}
+
+```{.r .cell-code}
+# 확장자에 따라 형식이 자동으로 결정됨
+ggsave("results/w3_my_result.png")
+
+# 고해상도 TIFF (논문 투고용)
+ggsave("results/w3_Figure1.tiff",
+       width = 6, height = 4, units = "in", dpi = 300)
+
+# PDF (발표용; 확대해도 깨지지 않음)
+ggsave("results/w3_Figure1.pdf", width = 6, height = 4)
+```
+:::
+
+------------------------------------------------------------------------
+
+## 📝 3주차 과제
+
+아래 데이터(`my_data`)를 사용하세요.
+
+::: {.cell}
+
+```{.r .cell-code}
+set.seed(7)
+my_data <- tibble(
+  Sample_ID  = paste0("S", sprintf("%02d", 1:20)),
+  Group      = sample(c("Control", "Treatment"), 20, replace = TRUE),
+  Gender     = sample(c("Male", "Female"), 20, replace = TRUE),
+  Age        = round(runif(20, 25, 65)),
+  Gene_A     = round(rnorm(20, mean = 5, sd = 2), 2),
+  Gene_B     = round(rnorm(20, mean = 8, sd = 3), 2),
+  Gene_C     = round(rnorm(20, mean = 3, sd = 1), 2)
+)
+
+my_data %>% head
+```
+
+::: {.cell-output .cell-output-stdout}
+
+```
+# A tibble: 6 × 7
+  Sample_ID Group     Gender   Age Gene_A Gene_B Gene_C
+  <chr>     <chr>     <chr>  <dbl>  <dbl>  <dbl>  <dbl>
+1 S01       Treatment Male      57   3.26   7.21   3.43
+2 S02       Control   Female    40   6.44   7.98   2.08
+3 S03       Control   Female    55   5.22   9.1    2.38
+4 S04       Treatment Female    42   4.84  13.1    2.13
+5 S05       Control   Male      61   4.16  10.2    1.36
+6 S06       Treatment Male      38   3.88   9.44   1.67
+```
+
+
+:::
+:::
+
+#### 1. 데이터 다루기
+
+::: {.cell}
+
+```{.r .cell-code}
+# 1. select: Sample_ID, Group, Gene_A 선택
+my_data %>% select(___, ___, ___)
+
+# 2. filter: Gender == "Male" 인 행만
+my_data %>% filter(___ == ___)
+
+# 3. arrange: Gene_A 내림차순 정렬
+my_data %>% arrange(desc(___))
+
+# 4. group_by & summarize: 그룹별 Gene_A 평균
+my_data %>%
+  group_by(___) %>%
+  summarize(mean_GeneA = mean(___))
+
+# 5. pivot_longer: Gene_A, Gene_B, Gene_C 를 long 형태로
+my_long <- my_data %>%
+  pivot_longer(
+    cols      = c(Gene_A, Gene_B, Gene_C),
+    names_to  = "___",
+    values_to = "___"
+  )
+```
+:::
+
+#### 2. 시각화
+
+::: {.cell}
+
+```{.r .cell-code}
+# 1. 상자 그림: x = Gene_Name, y = Expression, fill = Group
+my_long %>%
+  ggplot(aes(x = ___, y = ___, fill = ___)) +
+  geom_boxplot()
+
+# 2. 산점도: Age vs Gene_A, color = Group
+my_data %>%
+  ggplot(aes(x = ___, y = ___, color = ___)) +
+  geom_point(size = 3)
+```
+:::
+
+> 화면 캡처(스크린샷)를 제출해 주세요
+
+------------------------------------------------------------------------
+
+## 참고자료 {.smaller}
+
+#### 데이터 정리 … 치트시트
+
+![](/assets/img/part1/cheatsheets.png){fig-align="center" width="591"}
+
+#### 시각화
+
+[From Data to Viz](https://www.data-to-viz.com/) — 자료 유형별 그래프 추천\
+[The R Graph Gallery](https://r-graph-gallery.com/) — R 그래프 예제 모음\
+[R Gallery Book](https://bookdown.org/content/b298e479-b1ab-49fa-b83d-a57c2571571e/)

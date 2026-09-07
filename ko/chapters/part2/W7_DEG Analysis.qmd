@@ -1,0 +1,211 @@
+---
+title: "W7. DEG 분석"
+author: "하은지"
+date: last-modified
+format:
+  html
+execute:
+  echo: true
+  eval: false
+---
+
+<!-- 영문 원본: chapters/part2/W7_DEG Analysis.qmd
+     코드 셀은 원본 _freeze 캐시를 그대로 옮겼습니다 (원본도 eval: false). -->
+
+## 1. DEG (차등 발현 유전자, Differentially Expressed Genes)
+
+> 조건(예: Case vs. Control) 사이에서 발현량이 유의하게 변하는 유전자
+
+![](/assets/img/part2/W7_DEG.png){fig-align="center" width="460"}
+
+-   **핵심 난점**: 생물학적 신호에는 항상 기술적 잡음과 개인 간 변이가 섞여 있음
+-   **최종 목표**: 관측된 전체 분산에서 [생물학적 신호만 뽑아내기]{.underline}
+
+------------------------------------------------------------------------
+
+## 2. 회귀 분석 (Regression analysis)
+
+### 1) 선형 회귀 (Linear regression)
+
+::::: columns
+::: {.column width="38%"}
+![](/assets/img/part2/W7_LM_var.png){fig-align="center" width="740"}
+:::
+
+::: {.column width="62%"}
+![](/assets/img/part2/W7_LM.png){fig-align="center"}
+:::
+:::::
+
+------------------------------------------------------------------------
+
+### 2) 분산 분해 (Variance decomposition)
+
+> "통계란 변동(variation)의 출처를 추적하는 과정이다."
+
+$$
+Total\ Variance = \mathbf{Condition} + \mathbf{Batch} + Residual
+$$
+
+-   **Condition (신호)**: 진짜 생물학적 효과
+-   **Batch (계통적 잡음)**: 실험 날짜, 장비, 실험자 등 통제 가능한 잡음
+-   **Residual (무작위 잡음)**: 피할 수 없는 확률적 오차
+
+**전략**: Batch를 통계 모형에 넣어 "[걷어내면]{.underline}" → Condition 신호가 드러남
+
+------------------------------------------------------------------------
+
+## 3. DESeq2의 통계 모형
+
+### 1) RNA-seq 데이터의 특성
+
+-   **Count 자료**: 0을 포함하는 이산적인 정수
+-   **과대산포 (Overdispersion)**: 분산 \>\>\> 평균 → 일반적인 선형 회귀는 적절하지 않음
+
+![](/assets/img/part2/W7_overdis.png){fig-align="center"}
+
+------------------------------------------------------------------------
+
+### 2) 음이항분포 (Negative Binomial Distribution)
+
+$$
+Var(\mu) = \mu + \alpha\mu^2
+$$
+
+-   $\mu$: 평균 발현량 (표본 추출에서 오는 고유한 오차)
+-   $\alpha\mu^2$: 과대산포 (생물학적 반복 간의 변동)
+
+------------------------------------------------------------------------
+
+### 3) GLM (일반화 선형 모형, Generalized Linear Model)
+
+$$
+\log(\mu) = \beta_0 + \beta_1(condition) + \beta_2(batch) + \cdots
+$$
+
+::::: columns
+::: {.column width="38%"}
+![](/assets/img/part2/W7_GLM.png){fig-align="center" width="740"}
+:::
+
+::: {.column width="62%"}
+![](/assets/img/part2/W7_GLM_parts.png){fig-align="center"}
+:::
+:::::
+
+------------------------------------------------------------------------
+
+### 4) 산포 모수 α 추정 (Shrinkage)
+
+표본이 작을 때(예: n=3) 유전자별 α 추정이 부정확한 문제를 보완합니다.
+
+1.  **Gene-wise**: 유전자마다 원래의 산포를 계산
+2.  **Trend line**: 전체 유전자에 대해 공통 추세선을 적합
+3.  **Shrink**: 튀는 추정값을 추세선 쪽으로 당김 → 정확도 향상, 위양성 감소
+
+![](/assets/img/part2/W7_dispersion.png){fig-align="center"}
+
+------------------------------------------------------------------------
+
+### 5) LFC 계산과 통계 검정
+
+-   **β₁(condition)** = log₂FoldChange (case/control)
+    -   Control: X=0 → log(μ_control) = β₀
+
+    -   Case: X=1 → log(μ_case) = β₀ + β₁
+
+        ∴ β₁ = log₂(μ_case / μ_control)
+-   **Wald 검정**: $z = \frac{\beta_1}{SE(\beta_1)}$ → p-value
+-   **LRT (우도비 검정, Likelihood Ratio Test)**: 시계열이나 3개 이상 그룹 비교에 사용 (χ² 기반)
+
+------------------------------------------------------------------------
+
+## 4. Design Matrix
+
+![](/assets/img/part2/W7_design.png){fig-align="center"}
+
+::: {.cell}
+
+```{.r .cell-code}
+# design 공식: 배치·교란변수를 앞에, condition을 마지막에
+# design = ~ Batch + Confounding + Condition
+
+# 기준 수준(reference level) 설정 방법
+# 방법 A: 미리 지정해 두기
+dds$Condition <- relevel(dds$Condition, ref = "Control")
+
+# 방법 B: 나중에 contrast로 지정하기
+results(dds, contrast = c("Condition", "Treatment", "Control"))
+```
+:::
+
+------------------------------------------------------------------------
+
+### Design Matrix (심화)
+
+| 분석 유형 | 임상 상황 | Design Formula |
+|----|----|----|
+| 짝지은 시료 (Paired) | Tumor vs. Normal, 치료 전 vs. 후 | `~ Patient + Treatment` |
+| 상호작용항 (Interaction) | 약물 반응 × 질환 아형 | `~ Disease + Drug + Disease:Drug` |
+| 시계열 (Time-Series) | 여러 시점 | `~ Time` (LRT 사용) |
+| 임의 효과 (Random Effect) | 같은 개인에서 얻은 여러 조직 | DESeq2에서는 지원하지 않음 → `limma-voom` 사용 |
+| 숨은 배치 (sva) | 측정되지 않은 기술적·생물학적 요인 | `~ Age + Gender + SV1 + SV2 + Condition` |
+
+------------------------------------------------------------------------
+
+## 5. 실습
+
+::: callout-note
+## 실습 데이터 내려받기
+
+아래 파일을 R 프로젝트의 analysis/ 폴더에 저장하세요.
+
+| 파일 | 링크 |
+|----|----|
+| `dds_filtered.rds` | [📥 내려받기](https://drive.google.com/file/d/15OlQlqKIPGo9kDsx8Qk1BYTx4XGCnaiT/view?usp=drive_link) |
+:::
+
+::: {.cell}
+
+```{.r .cell-code}
+library(DESeq2)
+library(tidyverse)
+
+dds <- readRDS('analysis/dds_filtered.rds')
+
+# DESeq2 실행 (짝지은 모형: ~ patient + condition)
+dds <- DESeq(dds)
+saveRDS(dds, file = 'analysis/dds_DESeq2.rds')
+
+# 단순 모형 (~ condition 만)
+dds@design <- as.formula('~ condition')
+dds_smpl <- DESeq(dds)
+
+# dispersion plot 확인
+plotDispEsts(dds)
+plotDispEsts(dds_smpl)
+
+# 결과 추출 (contrast 지정)
+res <- results(dds, contrast = c("condition", "Tumor", "Normal"))
+```
+:::
+
+::: callout-note
+### 다중공선성 (Collinearity)
+
+짝지은 설계(paired design)에서는 환자 ID를 모형에 넣는 순간, 나이나 성별처럼 한 환자 안에서 변하지 않는 변수는 함께 넣을 수 없습니다 (내포 구조, nested structure) → **다중공선성**
+:::
+
+------------------------------------------------------------------------
+
+## 📝 7주차 과제
+
+#### 1. 잡음 시각화: Dispersion Plot
+
+-   두 모형 모두에 대해 plotDispEsts() 로 dispersion plot을 그려 보세요.
+-   파란 점(Final)과 파란 원(Outliers)의 분포를 관찰하세요.
+
+#### 2. Design Matrix (이론)
+
+-   \~ patient + age_in_index + gender + condition 공식의 Design Matrix로 DESeq2를 실행해 보세요.
+-   환자 ID가 이미 들어 있을 때, 왜 이 행렬에는 나이나 성별을 함께 넣을 수 없을까요?

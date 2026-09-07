@@ -1,0 +1,306 @@
+---
+title: "W6. 탐색적 데이터 분석 (EDA)"
+author: "하은지"
+date: last-modified
+format:
+  html
+execute:
+  echo: true
+  eval: false
+---
+
+<!-- 영문 원본: chapters/part2/W6_EDA.qmd
+     코드 셀은 원본 _freeze 캐시를 그대로 옮겼습니다 (원본도 eval: false). -->
+
+## 1. 탐색적 데이터 분석 (Exploratory Data Analysis, EDA)
+
+[통계 분석에 들어가기 전에]{.underline} 데이터를 시각화해서 **전반적인 특성과 품질을 파악**하는 단계
+
+-   **품질 관리 (Quality Control)**: 이상치(outlier) 시료 찾아내기
+-   **배치 효과 탐지 (Batch Effect Detection)**: 실험 날짜, 장비 등 기술적 잡음이 생물학적 신호를 가리고 있지는 않은지 확인
+-   **이분산성 (Heteroscedasticity)**: 발현량이 클수록 분산도 커짐 → 발현량이 높은 소수의 유전자가 분석 전체를 좌우할 수 있음
+
+------------------------------------------------------------------------
+
+### 데이터 변환: vst vs. rlog
+
+통계 분석을 위해 RNA-seq 데이터를 변환해 주어야 합니다.
+
+![](/assets/img/part2/W6_hetero.png){fig-align="center" width="692"}
+
+::: callout-caution
+vst/rlog로 변환한 값은 **시각화 전용**입니다. 차등 발현 분석에는 반드시 raw count를 사용하세요!
+:::
+
+------------------------------------------------------------------------
+
+### vst (Variance Stabilizing Transformation)
+
+::::: columns
+::: {.column width="50%"}
+-   n ≥ 30 (표본이 클 때)에 적합
+-   전체 경향(global trend) 기반 → 빠름
+-   발현량이 높은 유전자에는 `asinh` 변환
+:::
+
+::: {.column width="50%"}
+![](/assets/img/part2/W6_vst.png){fig-align="center"}
+:::
+:::::
+
+------------------------------------------------------------------------
+
+### rlog (Regularized Log)
+
+:::::: columns
+::: {.column width="50%"}
+-   n \< 30 (표본이 작을 때)에 적합
+-   유전자별 축소 추정(shrinkage, 베이지안 추정) → 느림
+-   count가 낮은 유전자의 잡음을 억제
+:::
+
+::: {.column width="50%"}
+![](/assets/img/part2/W6_rlog.png){fig-align="center" width="478"}
+:::
+
+------------------------------------------------------------------------
+
+::: callout-note
+## 이렇게 생각해 보세요
+
+```         
+유전자 A (발현량 낮음):
+시료 1: 1, 시료 2: 5 ➡️ logFC = log2(5/1) = 2.32 … 잡음 ↑
+
+유전자 B (발현량 높음):
+시료 1: 1000, 시료 2: 1004 ➡️ logFC = log2(1004/1000) = 0.005 … 잡음 ↓ (안정화됨)
+```
+:::
+::::::
+
+![](/assets/img/part2/W6_vst_trans.png){fig-align="center"}
+
+------------------------------------------------------------------------
+
+## 2. 시각적 탐색 (QC Part II)
+
+시각화로 확인할 것:
+
+-   그룹 간에 차이가 있는가?
+-   이상치 시료가 있는가?
+-   배치 효과가 있는가?
+
+::: callout-note
+## 실습 데이터 내려받기
+
+아래 파일을 R 프로젝트의 `data/` 폴더에 저장하세요.
+
++------------------------+------------------------------------------------------------------------------------------------------+
+| 파일                   | 링크                                                                                                 |
++========================+======================================================================================================+
+| `raw_counts_final.rds` | [📥 내려받기](https://drive.google.com/file/d/1Kq4f2v5hDkCsxrazGMF1aLZO5yu-m9h6/view?usp=drive_link) |
++------------------------+------------------------------------------------------------------------------------------------------+
+| `meta_data_final.rds`  | [📥 내려받기](https://drive.google.com/file/d/1-h3BRVmfl6hvlNfU-uma_wXQXNClDs-e/view?usp=drive_link) |
++------------------------+------------------------------------------------------------------------------------------------------+
+:::
+
+------------------------------------------------------------------------
+
+### 시각화를 위한 데이터 변환
+
+::: {.cell}
+
+```{.r .cell-code}
+# 1. 데이터 읽기 (count table과 메타데이터) ####
+countData <- readRDS('data/raw_counts_final.rds')
+dim(countData)
+head(countData[,1:5])
+
+colData <- readRDS("data/meta_data_final.rds")
+head(colData)
+table(colData$tissue_type)
+
+# count table과 메타데이터의 시료 ID 확인
+all(colnames(countData) == colData$barcode) # TRUE 여야 함
+
+# 팩터 수준(level) 설정 (condition)
+# 기본값: 알파벳순 … 기준(ref) = Control/Normal
+colData$condition <- factor(colData$tissue_type, levels = c("Normal", "Tumor")) 
+colData$condition
+# case / control … treatment / control … KO / control
+
+
+# 2. DESeq2 객체 (dds) ####
+# countData, colData, design
+dds <- DESeqDataSetFromMatrix(countData = countData,
+                              colData = colData,
+                              design = ~ patient + condition) # condition에 따른 DEG
+colData$patient = gsub('-','_',colData$patient)
+dds
+
+# 3. 사전 필터링 (잡음 제거) ####
+dim(counts(dds))
+
+head(counts(dds)[,1:4])
+head(counts(dds)[,1:4]>=1)
+head(rowSums(counts(dds)[,1:4]>=1))
+head(rowSums(counts(dds)>=1))
+rowSums(counts(dds)) %>% head
+
+## 3-1. 발현량이 낮은 유전자 (속도와 통계적 검정력을 위해) ####
+### 방법 1: 단순 기준 (전체 count < 10?) ####
+keep <- rowSums(counts(dds)) >= 10
+head(keep)
+cat(paste("   Removed", sum(!keep), "low count genes.\n"))
+cat(paste("   Remaining genes:", sum(keep), "\n"))
+dds_filtered <- dds[keep, ]
+
+### 방법 2: 그룹 크기를 고려 (권장) ####
+# 가장 작은 그룹에서 전체 count < 10 인가?
+# 예: Control(3), Case(10) -> 최소 3개 시료에서 count가 0이 아닌가?
+main_condition = 'condition'
+smallestGroupSize <- min(table(colData[[main_condition]]))
+smallestGroupSize*0.4
+keep <- rowSums(counts(dds) >= 1) >= (smallestGroupSize*0.5)
+cat(paste("   Removed", sum(!keep), "low count genes.\n"))
+cat(paste("   Remaining genes:", sum(keep), "\n"))
+dds_filtered <- dds[keep, ]
+
+## 3-2. 교란 요인이 되는 유전자 ####
+all_genes <- rownames(dds_filtered)
+head(all_genes)
+# 미토콘드리아: "^MT-" 로 시작
+mt_genes <- grep("^MT-", all_genes, value = TRUE)
+mt_genes
+# 리보솜: "^RPS|^RPL" 로 시작
+ribo_genes <- grep("^RPS|^RPL", all_genes, value = TRUE)
+ribo_genes
+# 면역글로불린: "^IG[HKL]" 로 시작 : "IGH", "IGK", "IGL"
+ig_genes <- grep("^IG[HKL]", all_genes, value = TRUE)
+ig_genes
+# 제외할 유전자 목록
+contam_list <- c(mt_genes, ribo_genes, ig_genes)
+length(contam_list)
+# !: 'NOT' (부정)
+keep_indices <- !(all_genes %in% contam_list)
+dds_filtered <- dds_filtered[keep_indices, ]
+dds_filtered
+saveRDS(dds_filtered, 'dds_filtered.rds')
+
+# 4. 분산 안정화 변환 (vst) ####
+## 4-1. vst (정규화와 변환) ####
+vsd <- vst(dds_filtered, blind=FALSE) 
+# blind = FALSE: design을 사용 (권장), blind = TRUE: 기술적 잡음만 사용
+
+# 결과를 눈으로 확인
+vsd_data = assay(vsd)
+```
+:::
+
+------------------------------------------------------------------------
+
+### 시료 상관관계 히트맵 (Sample Correlation Heatmap)
+
+::: {.cell}
+
+```{.r .cell-code}
+library(pheatmap)
+library(RColorBrewer)
+
+sampleDists <- dist(t(vsd_data))
+sampleDistMatrix <- as.matrix(sampleDists)
+rownames(sampleDistMatrix) <- paste(vsd$condition, vsd$type, sep = "-")
+colnames(sampleDistMatrix) <- NULL
+
+colors <- colorRampPalette(rev(brewer.pal(9, "Blues")))(255)
+pheatmap(sampleDistMatrix,
+         clustering_distance_rows = sampleDists,
+         clustering_distance_cols = sampleDists,
+         col = colors)
+```
+:::
+
+![](/assets/img/part2/W6_heatmap.png){fig-align="center" width="395"}
+
+------------------------------------------------------------------------
+
+### PCA Plot
+
+::: {.cell}
+
+```{.r .cell-code}
+# PCA
+pca_res <- prcomp(t(vsd_data))
+pca_coords <- as.data.frame(pca_res$x[, 1:2])
+
+ggplot(pca_coords, aes(x = PC1, y = PC2)) +
+  geom_point(size = 3) +
+  ggtitle("PCA Result") +
+  theme_bw()
+```
+:::
+
+![](/assets/img/part2/W6_PCA.png){fig-align="center"}
+
+------------------------------------------------------------------------
+
+### PCA vs. MDS
+
+![](/assets/img/part2/W6_PCA_theory.png){fig-align="center"}
+
+| | PCA | MDS |
+|--------|--------------------------------|-------------------------------------|
+| 입력 | **원자료 행렬** (시료 × 유전자) | **거리 행렬** (시료 × 시료) |
+| 목표 | **분산**을 보존 | 시료 쌍 사이의 **거리**를 보존 |
+| 방법 | 고유값 분해 (eigen decomposition) | 좌표 재구성 |
+| 장점 | loading으로 중요한 유전자를 알 수 있음 | 다양한 거리 척도를 쓸 수 있음 ([유클리드]{.underline}-PCA, 상관, Bray-Curtis) |
+| 활용 | 일반적인 QC, 시료 군집화 | 마이크로바이옴, 비유클리드 거리 |
+
+------------------------------------------------------------------------
+
+## 3. 배치 효과 (Batch Effect)
+
+-   실험 날짜, 시퀀싱 플랫폼, 실험자 등에서 생기는 기술적 잡음
+-   PCA plot에서 배치 메타데이터와 함께 확인
+-   **보정 전략**:
+    -   시각화용: `limma::removeBatchEffect()` 의 잔차(residual) 사용
+    -   통계 검정용: design matrix에 배치를 포함 (다음 주에 다룹니다)
+
+::: {.cell}
+
+```{.r .cell-code}
+library(limma)
+
+mat <- assay(vsd)
+mm <- model.matrix(~condition, colData(vsd))
+mat2 <- removeBatchEffect(mat, batch = vsd$patient, design = mm)
+
+# 배치 효과 제거 후 PCA
+rv <- rowVars(mat2)
+select <- order(rv, decreasing = TRUE)[seq_len(min(500, length(rv)))]
+pca <- prcomp(t(mat2[select, ]))
+percentVar <- round(100 * pca$sdev^2 / sum(pca$sdev^2))
+
+pcaData2 <- data.frame(PC1 = pca$x[, 1], PC2 = pca$x[, 2],
+                        condition = colData(vsd)$condition)
+
+ggplot(pcaData2, aes(x = PC1, y = PC2, color = condition)) +
+  geom_point(size = 3) +
+  xlab(paste0("PC1: ", percentVar[1], "% variance")) +
+  ylab(paste0("PC2: ", percentVar[2], "% variance")) +
+  ggtitle("PCA - After Patient Effect Removal") +
+  theme_bw()
+```
+:::
+
+![](/assets/img/part2/W6_batch.png){fig-align="center"}
+
+------------------------------------------------------------------------
+
+## 📝 6주차 과제
+
+> 화면 캡처(스크린샷)만 제출해 주세요.
+
+## 참고자료 {.smaller}
+
+[DESeq2](https://link.springer.com/article/10.1186/s13059-014-0550-8)

@@ -1,0 +1,253 @@
+---
+title: "W8. DEG 결과 처리"
+author: "하은지"
+date: last-modified
+format:
+  html
+execute:
+  eval: false
+---
+
+<!-- 영문 원본: chapters/part3/W8_DEG Results Processing.qmd
+     코드 셀은 원본 _freeze 캐시를 그대로 옮겼습니다 (원본도 eval: false). -->
+
+## 1. DEG 결과의 유의성
+
+#### DEG 분석과 다중검정 문제
+
+![](/assets/img/part3/W8_multiple.png){fig-align="center"}
+
+-   **p-value**: 귀무가설(H₀: 그룹 간 차이 없음) 하에서 그 결과가 [우연히]{.underline} 관찰될 확률
+-   **다중검정 문제 (Multiple testing problem)**: 유전자 1만 개를 p \< 0.05로 검정하면 우연히 유의해지는 결과가 약 500개 → 위양성(false positive)이 급격히 증가
+
+#### 다중검정 보정
+
+-   **Bonferroni**: $\alpha / n_{total}$ → 지나치게 보수적
+-   **FDR (거짓 발견율, False Discovery Rate)**: $FDR = \frac{FP}{FP + TP}$
+
+![](/assets/img/part3/W8_FDR.png){fig-align="center"}
+
+#### Benjamini-Hochberg (BH) 절차
+
+> "순위가 높을수록 엄격하게, 낮을수록 관대하게"
+
+$$
+FDR \leq \frac{n_{total} \cdot p_{cut}}{i} \leq \alpha(0.05)
+$$
+
+$$
+p_{cut} \leq \frac{i}{n_{total}} \cdot \alpha
+$$
+
+-   **보정된 p-value (padj) …** (누적 최솟값을 적용) $$
+    p \times \frac{n_{total}}{i} 
+    $$
+
+::: {.cell}
+
+```{.r .cell-code}
+##| eval: true
+ 
+## BH 절차를 직접 구현
+pvalues <- c(0.04, 0.001, 0.05, 0.0001, 0.2)
+genes <- c("GeneA", "GeneB", "GeneC", "GeneD", "GeneE")
+df <- data.frame(Gene = genes, P_raw = pvalues)
+df <- df[order(df$P_raw), ]
+m <- nrow(df)
+alpha <- 0.05
+df$Rank <- 1:m
+df$BH_Threshold <- (df$Rank / m) * alpha
+df$Pass <- df$P_raw <= df$BH_Threshold
+df$padj_calc <- pmin(df$P_raw * (m / df$Rank), 1)
+df$padj_final <- rev(cummin(rev(df$padj_calc)))
+
+## R 내장 함수
+df$R_function <- p.adjust(df$P_raw, method = "BH")
+
+df
+```
+:::
+
+#### 독립 필터링 (Independent Filtering, DESeq2)
+
+-   count가 낮은 유전자 → 통계적 유의성을 얻기 어려움
+-   사전 필터링 → 전체 검정 횟수 n이 줄어듦 → 검정력 증가
+-   `DESeq2::results()` 에서 padj가 NA로 나오는 경우:
+    1.  count가 낮은 유전자 (독립 필터링으로 제외됨)
+    2.  이상치 유전자 (Cook's distance 기준)
+
+![](/assets/img/part3/W8_independent.png){fig-align="center" width="392"}
+
+## 2. DEG 결과 시각화
+
+::: callout-note
+## 실습 데이터 내려받기
+
+아래 파일을 R 프로젝트의 `data/` 폴더에 저장하세요.
+
+| 파일 | 링크 |
+|----|----|
+| `dds_DESeq2.rds` | [📥 내려받기](https://drive.google.com/file/d/12u96ISl9njFDB49iQ71coI7mjvft5jai/view?usp=sharing) |
+:::
+
+::: {.cell}
+
+```{.r .cell-code}
+##| eval: false
+
+dds <- readRDS('data/dds_DESeq2.rds')
+
+res <- results(dds, contrast = c("condition", "Tumor", "Normal"))
+```
+:::
+
+#### MA Plot (전체 조망)
+
+::::: columns
+::: {.column width="50%"}
+![](/assets/img/part3/W8_MA.png){fig-align="center"}
+:::
+
+::: {.column width="50%"}
+![](/assets/img/part3/W8_MA_2.png){fig-align="center"}
+:::
+:::::
+
+-   X축: 평균 발현량 (Mean Average, A), Y축: 로그 비 (M = log₂FC)
+-   데이터의 치우침과 저발현 유전자의 LFC 과대추정을 확인
+-   Y=0을 중심으로 대칭이어야 함
+-   `apeglm::lfcShrink()`: 저발현 유전자의 LFC를 억제 (권장)
+
+::: {.cell}
+
+```{.r .cell-code}
+##| eval: false
+## MA plot
+plotMA(res, ylim = c(-10, 10), main = "Before Shrinkage")
+
+## LFC 축소 (apeglm)
+library(apeglm)
+resLFC <- lfcShrink(dds, coef = "condition_Tumor_vs_Normal", type = "apeglm")
+
+par(mfrow = c(1, 2))
+plotMA(res, main = "Before Shrinkage", ylim = c(-5, 5))
+plotMA(resLFC, main = "After Shrinkage (Recommended)", ylim = c(-5, 5))
+par(mfrow = c(1, 1))
+```
+:::
+
+#### Volcano Plot (유전자 선별)
+
+![](/assets/img/part3/W8_vol.png){fig-align="center"}
+
+-   X축: log₂(Fold Change), Y축: −log₁₀(보정 p-value)
+-   \|LFC\|가 크고 p-value가 낮은 유전자를 찾아냄
+
+::: {.cell}
+
+```{.r .cell-code}
+##| eval: false
+
+library(ggrepel)
+
+res_df <- as.data.frame(resLFC) %>%
+  rownames_to_column("gene_id") %>%
+  mutate(is_significant = padj < 0.05 & abs(log2FoldChange) > 1)
+
+p_thr <- 0.05; lfc_thr <- 1
+vol_data <- res_df %>%
+  mutate(diffexpressed = case_when(
+    log2FoldChange > lfc_thr & padj < p_thr ~ "UP",
+    log2FoldChange < -lfc_thr & padj < p_thr ~ "DOWN",
+    TRUE ~ "NO"
+  ))
+
+ggplot(vol_data, aes(x = log2FoldChange, y = -log10(padj),
+                     color = diffexpressed)) +
+  geom_point(alpha = 0.5, size = 1.5) +
+  scale_color_manual(values = c("DOWN" = "blue", "NO" = "grey", "UP" = "red")) +
+  geom_vline(xintercept = c(-lfc_thr, lfc_thr), linetype = "dashed") +
+  geom_hline(yintercept = -log10(p_thr), linetype = "dashed") +
+  geom_text_repel(data = head(arrange(vol_data, padj), 10),
+                  aes(label = gene_id), color = "black") +
+  theme_minimal() +
+  labs(title = "Volcano Plot",
+       x = "Log2 Fold Change", y = "-Log10 Adjusted P-value")
+```
+:::
+
+#### Heatmap (패턴 확인)
+
+![](/assets/img/part3/W8_heatmap.png){fig-align="center"}
+
+-   상위 유의 유전자들의 발현 패턴을 시각화
+-   Case/Control 간 패턴을 살피고 이상치 시료를 찾아냄
+-   **vst/rlog 변환 → z-score 스케일링** 적용
+
+::: {.cell}
+
+```{.r .cell-code}
+##| eval: false
+
+library(pheatmap)
+
+vsd <- vst(dds, blind = FALSE)
+
+## 상위 20개 DEG
+top_genes <- res_df %>%
+  filter(padj < 0.05) %>%
+  arrange(desc(abs(log2FoldChange))) %>%
+  head(20) %>%
+  .$gene_id
+
+mat <- assay(vsd)[top_genes, ]
+df <- as.data.frame(colData(dds)[, c("gender", "condition")])
+
+pheatmap(mat,
+         scale = "row",            ## z-score
+         show_rownames = TRUE,
+         show_colnames = FALSE,
+         annotation_col = df,
+         cluster_cols = TRUE,
+         main = "Top 20 DEGs Heatmap")
+```
+:::
+
+## 📝 8주차 과제: 단순 모형 vs. 짝지은 모형
+
+#### 1. DEG 개수 비교
+
+-   단순 모형 (`~ condition`): 약 17,000개 DEG
+-   짝지은 모형 (`~ patient + condition`): 약 15,700개 DEG
+
+**분산 분해 관점에서 보면**: 짝지은 모형은 환자 효과를 따로 설명하므로, 단순 모형에서 condition의 몫으로 잘못 돌아갔던 환자 간 분산이 분리됩니다. 그 결과 일부 유전자는 유의성을 잃지만, 남은 DEG는 진짜 생물학적 신호를 반영할 가능성이 더 높습니다.
+
+#### 2. Gold Standard 유전자
+
+`TOP2A`, `SFTPA1`, `SFTPB`, `SFTPC`, `AGER` 같이 잘 알려진 LUAD 표지 유전자로 두 모형 사이의 p-value 변화를 확인해 보세요.
+
+#### 3. 특정 유전자를 강조한 Volcano Plot
+
+::: {.cell}
+
+```{.r .cell-code}
+##| eval: false
+
+## 특정 유전자 강조
+highlight_genes <- c("TOP2A", "SFTPA1", "SFTPB", "SFTPC", "AGER")
+highlight_data <- vol_data %>% filter(gene_id %in% highlight_genes)
+
+ggplot(vol_data, aes(x = log2FoldChange, y = -log10(padj),
+                     color = diffexpressed)) +
+  geom_point(alpha = 0.5, size = 1.5) +
+  scale_color_manual(values = c("DOWN" = "blue", "NO" = "grey", "UP" = "red")) +
+  geom_point(data = highlight_data, color = "purple", size = 3) +
+  geom_text_repel(data = highlight_data,
+                  aes(label = gene_id), color = "purple") +
+  geom_vline(xintercept = c(-1, 1), linetype = "dashed") +
+  geom_hline(yintercept = -log10(0.05), linetype = "dashed") +
+  theme_minimal() +
+  labs(title = "Volcano Plot (Paired Model)",
+       x = "Log2 Fold Change", y = "-Log10 Adjusted P-value")
+```
+:::
