@@ -5,7 +5,6 @@ author: "하은지"
 date: last-modified
 format:
   html:
-    theme: cosmo
     toc: true
     toc-depth: 5
     toc-float: true
