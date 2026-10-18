@@ -244,6 +244,15 @@ ggplot(pca_coords, aes(x = PC1, y = PC2)) +
 
 ------------------------------------------------------------------------
 
+**직접 해 보기** — [PCA·SVD: 저랭크 근사 ↗](https://kkonoo.github.io/edu_sims/sims/pca-svd/?lang=ko){target="_blank"}
+
+::: {.column-page}
+```{=html}
+<iframe src="https://kkonoo.github.io/edu_sims/sims/pca-svd/?embed=1&lang=ko" title="PCA·SVD: 저랭크 근사" loading="lazy"
+        style="width: 100%; height: 1300px; border: 0;"></iframe>
+```
+:::
+
 ### PCA vs. MDS
 
 ![](/assets/img/part2/W6_PCA_theory.png){fig-align="center"}
@@ -296,6 +305,15 @@ ggplot(pcaData2, aes(x = PC1, y = PC2, color = condition)) +
 ![](/assets/img/part2/W6_batch.png){fig-align="center"}
 
 ------------------------------------------------------------------------
+
+**직접 해 보기** — [교란변수와 배치효과 ↗](https://kkonoo.github.io/edu_sims/sims/confounding/?lang=ko){target="_blank"}
+
+::: {.column-page}
+```{=html}
+<iframe src="https://kkonoo.github.io/edu_sims/sims/confounding/?embed=1&lang=ko" title="교란변수와 배치효과" loading="lazy"
+        style="width: 100%; height: 1300px; border: 0;"></iframe>
+```
+:::
 
 ## 📝 6주차 과제
 
