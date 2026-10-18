@@ -24,8 +24,8 @@ website:
         text: 3. Result interpretation
       - href: chapters/part4/W11_Rscript_vibe_coding.qmd
         text: 4. Practice and wrap-up
-    # EN/KO 캡슐은 assets/lang-switch.js 가 navbar 오른쪽에 삽입하고,
-    # Quarto 기본 테마 토글(.quarto-color-scheme-toggle)을 그 옆의 원형 버튼으로 재배치합니다.
+    # EN/KO 언어 버튼은 assets/lang-switch.html 이 navbar 오른쪽(테마 버튼 왼쪽)에 삽입합니다.
+    # 버튼 모양(언어·테마 사각 타일)은 assets/html.css 의 "Site controls" 블록이 정합니다.
 
   sidebar:
     # ── EN (원본) ──
