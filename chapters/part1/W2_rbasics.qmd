@@ -96,7 +96,7 @@ matrix_c <- rbind(matrix_a, 1:2) # add row
 
 #### Matrix Indexing
 
-![](/assets/img/part1//W2_matrix.png){fig-align="center"}
+![Inside the brackets, write [row, column]. Leaving one side empty selects the whole row or column.](/assets/img/part1/W2_matrix_en.png){fig-align="center" width="317"}
 
 ```{r}
 #| eval: false
@@ -118,7 +118,7 @@ matrix_c[-1, ]      # exclude row 1
 :::
 
 ::: {.column width="30%"}
-![](/assets/img/part1//W2_df.png){fig-align="center"}
+![Each column can have its own type (x is numeric, y is character).](/assets/img/part1/W2_df.png){fig-align="center" width="180"}
 :::
 :::::
 
@@ -422,7 +422,7 @@ if (!require("BiocManager", quietly = TRUE)) {
 
 your current folder where R can read and write files
 
-![](/assets/img/part1//W2_directory.png){fig-align="center"}
+![](/assets/img/part1/W2_directory.png){fig-align="center"}
 
 ```{r}
 # check the current working directory 
@@ -447,7 +447,7 @@ R env file to fix your working directory
 RStudio → File → New Project → New Directory (or Existing Directory)
 ```
 
-![](/assets/img/part1//R%20project.png){fig-align="center"}
+![](/assets/img/part1/R%20project.png){fig-align="center"}
 
 ------------------------------------------------------------------------
 
@@ -476,7 +476,7 @@ my_project/
 └── logs/ or docs/     ← whatever
 ```
 
-![](/assets/img/part1//folder_structure.png){fig-align="center"}
+![](/assets/img/part1/folder_structure.png){fig-align="center"}
 
 ::: callout-tip
 ## when you need R Project

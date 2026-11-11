@@ -335,7 +335,7 @@ matrix_c <- rbind(matrix_a, 1:2) # 행 추가
 
 #### 행렬 인덱싱
 
-![](/assets/img/part1//W2_matrix.png){fig-align="center"}
+![대괄호 안에 [행, 열] 순서로 번호를 쓴다. 한쪽을 비우면 그 행이나 열 전체를 고른다.](/assets/img/part1/W2_matrix.png){fig-align="center" width="290"}
 
 ::: {.cell}
 
@@ -359,7 +359,7 @@ matrix_c[-1, ]      # 1행 제외
 :::
 
 ::: {.column width="30%"}
-![](/assets/img/part1//W2_df.png){fig-align="center"}
+![열마다 자료형이 다를 수 있다 (x는 숫자, y는 문자).](/assets/img/part1/W2_df.png){fig-align="center" width="180"}
 :::
 :::::
 
@@ -1112,7 +1112,7 @@ if (!require("BiocManager", quietly = TRUE)) {
 
 R이 파일을 읽고 쓰는 기준이 되는 현재 폴더
 
-![](/assets/img/part1//W2_directory.png){fig-align="center"}
+![](/assets/img/part1/W2_directory.png){fig-align="center"}
 
 ::: {.cell}
 
@@ -1151,7 +1151,7 @@ setwd('C:\\Users\\USER\\BI_for_MD_PhD_KNUmed')
 RStudio → File → New Project → New Directory (또는 Existing Directory)
 ```
 
-![](/assets/img/part1//R%20project.png){fig-align="center"}
+![](/assets/img/part1/R%20project.png){fig-align="center"}
 
 ------------------------------------------------------------------------
 
@@ -1180,7 +1180,7 @@ my_project/
 └── logs/ 또는 docs/   ← 그 외
 ```
 
-![](/assets/img/part1//folder_structure.png){fig-align="center"}
+![](/assets/img/part1/folder_structure.png){fig-align="center"}
 
 ::: callout-tip
 ## R 프로젝트가 필요한 이유
