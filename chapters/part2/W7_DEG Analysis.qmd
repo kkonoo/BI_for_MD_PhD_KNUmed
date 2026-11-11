@@ -13,7 +13,7 @@ execute:
 
 > genes whose expression changes significantly between conditions (e.g., Case vs. Control)
 
-![](/assets/img/part2/W7_DEG.png){fig-align="center" width="460"}
+![Distribution of gene X expression in Control and Case. Values spread within each group, so the question is whether the difference in means is large relative to that spread (illustrative data).](/assets/img/part2/W7_DEG_en.png){fig-align="center" width="460"}
 
 -   **key challenge**: biological signal is always mixed with technical and inter-individual noise
 -   **Ultimate goal**: [extract only the biological signal]{.underline} from the total observed variance
@@ -24,15 +24,9 @@ execute:
 
 ### 1) Linear regression
 
-::::: columns
-::: {.column width="38%"}
-![](/assets/img/part2/W7_LM_var.png){fig-align="center" width="740"}
-:::
+![In linear regression the mean follows a straight line and the spread (σ²) is assumed to be the same at every X (illustrative data).](/assets/img/part2/W7_LM_var_en.png){fig-align="center"}
 
-::: {.column width="62%"}
-![](/assets/img/part2/W7_LM.png){fig-align="center"}
-:::
-:::::
+![A linear model has a mean part and a variance part. β₁ is the effect of the condition; the variance σ² is one constant shared by every gene.](/assets/img/part2/W7_LM_en.png){fig-align="center"}
 
 ------------------------------------------------------------------------
 
@@ -59,7 +53,7 @@ $$
 -   **Count data**: discrete integers including zero
 -   **Overdispersion**: variance \>\>\> mean → standard linear regression is not appropriate
 
-![](/assets/img/part2/W7_overdis.png){fig-align="center"}
+![In ideal data the variance does not depend on the mean; in RNA-seq it grows as μ + α·μ², far above the line Var = μ (illustrative data).](/assets/img/part2/W7_overdis_en.png){fig-align="center"}
 
 ------------------------------------------------------------------------
 
@@ -80,15 +74,9 @@ $$
 \log(\mu) = \beta_0 + \beta_1(condition) + \beta_2(batch) + \cdots
 $$
 
-::::: columns
-::: {.column width="38%"}
-![](/assets/img/part2/W7_GLM.png){fig-align="center" width="740"}
-:::
+![In the GLM, log(μ) follows a straight line and the spread grows with the mean as μ + α·μ². Compare it with the linear regression plot in section 2 (illustrative data).](/assets/img/part2/W7_GLM_en.png){fig-align="center"}
 
-::: {.column width="62%"}
-![](/assets/img/part2/W7_GLM_parts.png){fig-align="center"}
-:::
-:::::
+![The DESeq2 model also splits into a mean part and a variance part. β₁ is the LFC, and the variance μ + α·μ² differs from gene to gene.](/assets/img/part2/W7_GLM_parts_en.png){fig-align="center"}
 
 ------------------------------------------------------------------------
 
@@ -115,11 +103,13 @@ Addresses inaccurate per-gene α estimation in small samples (e.g., n=3):
 -   **Wald Test**: $z = \frac{\beta_1}{SE(\beta_1)}$ → p-value
 -   **LRT (Likelihood Ratio Test)**: used for time-series or ≥3 group comparisons (χ²-based)
 
+![Control sits at log μ = β₀ and Case at log μ = β₀ + β₁. The gap between them, β₁, is the log₂FoldChange.](/assets/img/part2/W7_LFC_en.png){fig-align="center"}
+
 ------------------------------------------------------------------------
 
 ## 4. Design Matrix
 
-![](/assets/img/part2/W7_design.png){fig-align="center"}
+![The sample table becomes the design matrix X. The condition column codes Case as 1 and Control as 0, and its coefficient β₁ is the condition effect.](/assets/img/part2/W7_design.png){fig-align="center"}
 
 ```{r}
 #| eval: false

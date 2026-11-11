@@ -16,7 +16,7 @@ execute:
 
 > 조건(예: Case vs. Control) 사이에서 발현량이 유의하게 변하는 유전자
 
-![](/assets/img/part2/W7_DEG.png){fig-align="center" width="460"}
+![Control과 Case에서 유전자 X의 발현량 분포. 같은 그룹 안에서도 값이 퍼져 있으므로, 평균의 차이가 이 퍼짐에 비해 큰지를 따진다 (설명용 가상 자료).](/assets/img/part2/W7_DEG.png){fig-align="center" width="460"}
 
 -   **핵심 난점**: 생물학적 신호에는 항상 기술적 잡음과 개인 간 변이가 섞여 있음
 -   **최종 목표**: 관측된 전체 분산에서 [생물학적 신호만 뽑아내기]{.underline}
@@ -27,15 +27,9 @@ execute:
 
 ### 1) 선형 회귀 (Linear regression)
 
-::::: columns
-::: {.column width="38%"}
-![](/assets/img/part2/W7_LM_var.png){fig-align="center" width="740"}
-:::
+![선형 회귀에서는 평균이 직선을 따라가고, 퍼짐(σ²)은 어느 X에서나 같다고 가정한다 (설명용 가상 자료).](/assets/img/part2/W7_LM_var.png){fig-align="center"}
 
-::: {.column width="62%"}
-![](/assets/img/part2/W7_LM.png){fig-align="center"}
-:::
-:::::
+![선형 회귀 모형은 평균 모형과 분산 모형으로 나뉜다. β₁이 조건의 효과이고, 분산 σ²는 모든 유전자에 같은 상수로 둔다.](/assets/img/part2/W7_LM.png){fig-align="center"}
 
 ------------------------------------------------------------------------
 
@@ -62,7 +56,7 @@ $$
 -   **Count 자료**: 0을 포함하는 이산적인 정수
 -   **과대산포 (Overdispersion)**: 분산 \>\>\> 평균 → 일반적인 선형 회귀는 적절하지 않음
 
-![](/assets/img/part2/W7_overdis.png){fig-align="center"}
+![이상적인 자료에서는 분산이 평균과 무관하지만, RNA-seq에서는 분산이 μ + α·μ²로 커져 Var = μ 선보다 훨씬 위에 놓인다 (설명용 가상 자료).](/assets/img/part2/W7_overdis.png){fig-align="center"}
 
 ------------------------------------------------------------------------
 
@@ -83,15 +77,9 @@ $$
 \log(\mu) = \beta_0 + \beta_1(condition) + \beta_2(batch) + \cdots
 $$
 
-::::: columns
-::: {.column width="38%"}
-![](/assets/img/part2/W7_GLM.png){fig-align="center" width="740"}
-:::
+![GLM에서는 log(μ)가 직선을 따르고, 퍼짐은 μ + α·μ²로 평균과 함께 커진다. 2절의 선형 회귀 그림과 비교해 보자 (설명용 가상 자료).](/assets/img/part2/W7_GLM.png){fig-align="center"}
 
-::: {.column width="62%"}
-![](/assets/img/part2/W7_GLM_parts.png){fig-align="center"}
-:::
-:::::
+![DESeq2 모형도 평균 모형과 분산 모형으로 나뉜다. β₁이 LFC이고, 분산 μ + α·μ²는 유전자마다 다르다.](/assets/img/part2/W7_GLM_parts.png){fig-align="center"}
 
 ------------------------------------------------------------------------
 
@@ -118,11 +106,13 @@ $$
 -   **Wald 검정**: $z = \frac{\beta_1}{SE(\beta_1)}$ → p-value
 -   **LRT (우도비 검정, Likelihood Ratio Test)**: 시계열이나 3개 이상 그룹 비교에 사용 (χ² 기반)
 
+![Control의 log μ는 β₀, Case의 log μ는 β₀ + β₁이다. 두 그룹의 간격 β₁이 곧 log₂FoldChange다.](/assets/img/part2/W7_LFC.png){fig-align="center"}
+
 ------------------------------------------------------------------------
 
 ## 4. Design Matrix
 
-![](/assets/img/part2/W7_design.png){fig-align="center"}
+![표본 정보 표를 design matrix X로 바꾼다. condition 열은 Case = 1, Control = 0이 되고, 이 열에 붙는 계수 β₁이 조건의 효과다.](/assets/img/part2/W7_design.png){fig-align="center"}
 
 ::: {.cell}
 
