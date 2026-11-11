@@ -97,7 +97,7 @@ library(tidyverse)
 
 ### data.frame vs. tibble
 
-`tibble` 은 `data.frame` 의 개선판으로, 출력할 때 열의 자료형을 함께 보여주고 큰 데이터도 깔끔하게 다룹니다.
+`tibble` 은 `data.frame` 의 개선판입니다. 출력할 때 열의 자료형을 함께 보여주고 큰 데이터도 깔끔하게 다룹니다.
 
 ::: {.cell}
 
