@@ -22,6 +22,8 @@ editor:
 | 방향 무시 | 발현 증가·감소 정보가 버려짐 |
 | 경계 문제 | 중요한 경로의 유전자가 전부 p~adj~=0.06 이면 ORA는 이 경로를 통째로 놓침 |
 
+![ORA는 기준선으로 잘라 낸 DEG 목록만 보므로, 경로 유전자가 모두 기준선 바로 위에 있으면 놓친다. GSEA는 순위 전체를 따라가므로 누적합이 여전히 솟는다 (설명용 가상 자료).](/assets/img/part3/W10_threshold.png){fig-align="center"}
+
 **✅ 해결책: GSEA**
 
 -   **모든 유전자**를 연속형 지표로 순위 매겨 사용
@@ -34,7 +36,7 @@ editor:
 
 ### 1) 입력: 순위가 매겨진 유전자 목록
 
-![](/assets/img/part3//W10_ranked_genes.png){fig-align="center"
+![](/assets/img/part3/W10_ranked_genes.png){fig-align="center"
 width="639"}
 
 **순위 지표(ranking metric) 선택지:**
@@ -63,7 +65,7 @@ width="639"}
 순위 목록을 따라 걸어가면서 각 유전자 집합에 대해 **누적합(running
 sum)** 을 계산합니다.
 
-![](/assets/img/part3//W10_ES.png)
+![순위 목록을 따라가며 경로 유전자를 만나면 누적합이 오르고, 그 외 유전자에서는 내려간다. ES는 누적합이 0에서 가장 멀리 벗어난 값이다 (설명용 가상 자료).](/assets/img/part3/W10_ES.png){fig-align="center"}
 
 ```         
 순위 1번부터 N번까지 모든 유전자를 훑으면서:
@@ -75,7 +77,7 @@ ES = 누적합이 0에서 가장 크게 벗어난 값 (KS 통계량)
 
 **ES의 패턴:**
 
-![](/assets/img/part3//W10_pattern.png){fig-align="center" width="413"}
+![경로 유전자가 순위의 어디에 몰려 있는지에 따라 누적합 모양이 달라진다: 위쪽에서 정점, 0 근처에서 진동, 아래쪽에서 정점 (설명용 가상 자료).](/assets/img/part3/W10_pattern.png){fig-align="center"}
 
 ```         
 발현이 증가한 경로:   ^^^^^^^\_____  → 위쪽에서 정점
@@ -87,7 +89,7 @@ ES = 누적합이 0에서 가장 크게 벗어난 값 (KS 통계량)
 
 ### 3) 통계적 유의성: 순열 검정 (Permutation Test)
 
-![](/assets/img/part3//W10_permutation.png){fig-align="center"}
+![시료 라벨을 1,000번 섞어 무작위 ES 1,000개로 귀무분포를 만들고, 관측 ES가 그 분포의 어디에 있는지 본다 (모의실험).](/assets/img/part3/W10_permutation.png){fig-align="center"}
 
 ```         
 1. 실제 데이터에서 ES를 계산

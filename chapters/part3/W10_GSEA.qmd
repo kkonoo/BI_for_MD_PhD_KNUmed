@@ -19,6 +19,8 @@ editor:
 | Direction ignored | Information about up- vs. down-regulation is discarded |
 | Boundary problem | If all genes in an important pathway have p~adj~=0.06, ORA misses it entirely |
 
+![ORA keeps only the DEG list cut at a threshold, so a pathway whose genes all sit just above the cutoff is lost. GSEA walks the whole ranked list, and the running sum still peaks (illustrative data).](/assets/img/part3/W10_threshold_en.png){fig-align="center"}
+
 **✅ Solution: GSEA**
 
 -   Uses **all genes**, ranked by a continuous metric
@@ -31,7 +33,7 @@ editor:
 
 ### 1) Input: Ranked Gene List
 
-![](/assets/img/part3//W10_ranked_genes.png){fig-align="center"
+![](/assets/img/part3/W10_ranked_genes.png){fig-align="center"
 width="639"}
 
 **Ranking metric options:**
@@ -60,7 +62,7 @@ All three metrics are highly correlated (r \> 0.9), but in general:
 A **running sum** is calculated for each gene set as you walk through
 the ranked list:
 
-![](/assets/img/part3//W10_ES.png)
+![Walking down the ranked list, the running sum goes up at each pathway gene and down at every other gene. ES is the largest distance of the running sum from zero (illustrative data).](/assets/img/part3/W10_ES_en.png){fig-align="center"}
 
 ```         
 Walk through all genes from rank 1 to N:
@@ -72,7 +74,7 @@ ES = maximum deviation of the running sum from zero (KS statistic)
 
 **Patterns of ES:**
 
-![](/assets/img/part3//W10_pattern.png){fig-align="center" width="413"}
+![Where the pathway genes sit in the ranking sets the shape of the running sum: a peak near the top, fluctuation around zero, or a peak near the bottom (illustrative data).](/assets/img/part3/W10_pattern_en.png){fig-align="center"}
 
 ```         
 Up-regulated pathway:   ^^^^^^^\_____  → peak near the top
@@ -84,7 +86,7 @@ Down-regulated pathway: _______/^^^^^  → peak near the bottom
 
 ### 3) Statistical Significance: Permutation Test
 
-![](/assets/img/part3//W10_permutation.png){fig-align="center"}
+![Shuffling the sample labels 1,000 times gives 1,000 random ES values, the null distribution. The observed ES is then judged by where it falls in that distribution (simulated).](/assets/img/part3/W10_permutation_en.png){fig-align="center"}
 
 ```         
 1. Calculate ES from the actual data
