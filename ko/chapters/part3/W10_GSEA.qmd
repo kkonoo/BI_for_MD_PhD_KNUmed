@@ -60,7 +60,7 @@ width="639"}
 
 ### 2) 농축 점수 (Enrichment Score, ES) 계산
 
-순위 목록을 따라 걸어가면서 각 유전자 집합에 대해 **누적합(running
+순위 목록을 따라 걸어가면서 유전자 집합마다 **누적합(running
 sum)** 을 계산합니다.
 
 ![](/assets/img/part3//W10_ES.png)
