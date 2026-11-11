@@ -180,7 +180,7 @@ ggplot(vol_data, aes(x = log2FoldChange, y = -log10(padj),
 
 ![](/assets/img/part3/W8_heatmap.png){fig-align="center"}
 
--   상위 유의 유전자들의 발현 패턴을 시각화
+-   유의한 상위 유전자의 발현 패턴을 시각화
 -   Case/Control 간 패턴을 살피고 이상치 시료를 찾아냄
 -   **vst/rlog 변환 → z-score 스케일링** 적용
 
@@ -220,7 +220,7 @@ pheatmap(mat,
 -   단순 모형 (`~ condition`): 약 17,000개 DEG
 -   짝지은 모형 (`~ patient + condition`): 약 15,700개 DEG
 
-**분산 분해 관점에서 보면**: 짝지은 모형은 환자 효과를 따로 설명하므로, 단순 모형에서 condition의 몫으로 잘못 돌아갔던 환자 간 분산이 분리됩니다. 그 결과 일부 유전자는 유의성을 잃지만, 남은 DEG는 진짜 생물학적 신호를 반영할 가능성이 더 높습니다.
+**분산 분해 관점에서 보면**: 짝지은 모형은 환자 효과를 따로 설명합니다. 그래서 단순 모형에서 condition의 몫으로 잘못 돌아갔던 환자 간 분산이 분리됩니다. 그 결과 일부 유전자는 유의성을 잃지만, 남은 DEG는 진짜 생물학적 신호를 반영할 가능성이 더 높습니다.
 
 #### 2. Gold Standard 유전자
 
