@@ -45,7 +45,7 @@ RNA-seq 분석의 전반적인 workflow는 다음과 같습니다 (Conesa et al.
 
 ## 1) 리드 다듬기 (Read Trimming): [TrimGalore](https://github.com/FelixKrueger/TrimGalore)
 
-![](/assets/img/part2/W6_trim.png){fig-align="center" width="398"}
+![TrimGalore는 리드 끝의 저품질 염기와 어댑터를 잘라내고, 너무 짧아진 리드는 버린다.](/assets/img/part2/W6_trim.png){fig-align="center"}
 
 ``` bash
 # TrimGalore의 주요 기능
@@ -63,7 +63,7 @@ RNA-seq 분석의 전반적인 workflow는 다음과 같습니다 (Conesa et al.
     -   splice junction을 인식 → 엑손에만 매핑
     -   RAM이 많이 필요함 (\>30GB)
 
-![](/assets/img/part2/W6_star.png){fig-align="center" width="303"}
+![splice junction에 걸친 리드를 두 조각(seed)으로 나눠 각 엑손에 붙이고, 사이의 인트론은 건너뛰어 이어 붙인다.](/assets/img/part2/W6_star.png){fig-align="center" width="310"}
 
 -   **QC 기준 (일반적으로)**: %Uniquely mapped reads \> 80%, #mapped reads \> 20M
 -   **결과 형식**: SAM (텍스트) 또는 [BAM (바이너리)]{.underline}
@@ -77,14 +77,14 @@ RNA-seq 분석의 전반적인 workflow는 다음과 같습니다 (Conesa et al.
 
 ### 정렬 기반 (STAR + featureCounts)
 
-![](/assets/img/part2/W5_STAR.gif){fig-align="center" width="590"}
+![STAR는 리드 앞부분에서 참조에 그대로 맞는 가장 긴 조각(MMP 1)을 찾고, 남은 부분(MMP 2)을 다시 찾아 다음 엑손에 붙인다.](/assets/img/part2/W5_STAR.png){fig-align="center"}
 
 -   전통적인 방식: 위치 인덱싱 → 참조 유전체에 매핑
 -   BAM 파일이 필요하고 계산량이 많음
 
 ### 정렬 없이 / 유사 정렬 ([Salmon](https://salmon.readthedocs.io/en/latest/salmon.html), Kallisto)
 
-![](/assets/img/part2/W5_salmon.png){fig-align="center" width="333"}
+![Salmon은 transcript로 k-mer 인덱스를 만들고, 리드는 k-mer 일치만 확인한 뒤 EM 알고리즘으로 isoform에 나눈다. BAM 파일이 필요 없다.](/assets/img/part2/W5_salmon.png){fig-align="center"}
 
 -   리드 전체를 매핑하는 대신 짧은 **k-mer (k=31)** 의 일치 여부를 확인
 
@@ -123,11 +123,11 @@ RNA-seq 분석의 전반적인 workflow는 다음과 같습니다 (Conesa et al.
 
 -   **라이브러리 크기 (시퀀싱 깊이, depth)**: 깊이가 클수록 count가 커짐
 
-![](/assets/img/part2/W5_library.png){fig-align="center" width="689"}
+![단순 count는 B가 높지만, 총 리드 수로 나눈 비율은 A가 더 높다. 숫자는 설명용 가상 자료.](/assets/img/part2/W5_library.png){fig-align="center"}
 
 -   유전자 길이: 긴 유전자일수록 count가 커짐
 
-![](/assets/img/part2/W5_depth.jpg){fig-align="center" width="519"}
+![실제 발현량이 같아도 긴 유전자에 리드가 더 많이 붙고, 길이로 나누면 같아진다. 숫자는 설명용 가상 자료.](/assets/img/part2/W5_depth.png){fig-align="center"}
 
 ------------------------------------------------------------------------
 

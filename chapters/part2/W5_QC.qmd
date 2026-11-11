@@ -41,7 +41,7 @@ The overall workflow of RNA-seq analysis is as follows (Conesa et al., *Genome B
 
 ## 1) Read Trimming: [TrimGalore](https://github.com/FelixKrueger/TrimGalore)
 
-![](/assets/img/part2/W6_trim.png){fig-align="center" width="398"}
+![TrimGalore cuts low-quality ends and adapter sequence, then drops reads that are left too short.](/assets/img/part2/W6_trim_en.png){fig-align="center"}
 
 ``` bash
 # TrimGalore key functions
@@ -59,7 +59,7 @@ The overall workflow of RNA-seq analysis is as follows (Conesa et al., *Genome B
     -   Recognizes splice junctions → maps to exons only
     -   Requires high RAM (\>30GB)
 
-![](/assets/img/part2/W6_star.png){fig-align="center" width="303"}
+![STAR splits a read that spans a splice junction into two seeds, maps each to its exon, and stitches them across the intron.](/assets/img/part2/W6_star_en.png){fig-align="center" width="310"}
 
 -   **QC criterion (general)**: %Uniquely mapped reads \> 80%, #mapped reads \> 20M
 -   **Output format**: SAM (text) or [BAM (binary)]{.underline}
@@ -73,14 +73,14 @@ The overall workflow of RNA-seq analysis is as follows (Conesa et al., *Genome B
 
 ### Alignment-based (STAR + featureCounts)
 
-![](/assets/img/part2/W5_STAR.gif){fig-align="center" width="590"}
+![STAR finds the longest piece from the start of the read that matches the reference (MMP 1), then searches again with the rest (MMP 2), which lands on the next exon.](/assets/img/part2/W5_STAR_en.png){fig-align="center"}
 
 -   Traditional approach: position indexing → mapping to reference
 -   Requires BAM files; computationally intensive
 
 ### Alignment-free / Pseudo-alignment ([Salmon](https://salmon.readthedocs.io/en/latest/salmon.html), Kallisto)
 
-![](/assets/img/part2/W5_salmon.png){fig-align="center" width="333"}
+![Salmon builds a k-mer index from transcripts, checks only k-mer matches for each read, and splits multi-mapping reads among isoforms with the EM algorithm. No BAM file is needed.](/assets/img/part2/W5_salmon_en.png){fig-align="center"}
 
 -   Uses short **k-mer (k=31)** compatibility checks instead of full read mapping
 
@@ -119,11 +119,11 @@ The overall workflow of RNA-seq analysis is as follows (Conesa et al., *Genome B
 
 -   **Library size (depth)**: higher sequencing depth → higher counts
 
-![](/assets/img/part2/W5_library.png){fig-align="center" width="689"}
+![B has the higher raw count, but A has the higher ratio once you divide by total reads. Numbers are illustrative data.](/assets/img/part2/W5_library_en.png){fig-align="center"}
 
 -   Gene length: longer genes → higher counts
 
-![](/assets/img/part2/W5_depth.jpg){fig-align="center" width="519"}
+![With the same true expression, a longer gene collects more reads; dividing by length makes them equal. Numbers are illustrative data.](/assets/img/part2/W5_depth_en.png){fig-align="center"}
 
 ------------------------------------------------------------------------
 
