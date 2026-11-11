@@ -1080,7 +1080,7 @@ tapply(iris$Sepal.Width, iris$Species, median)
 
 ## 4. 패키지 (Package)
 
-미리 만들어 둔 함수들을 모아 놓은 꾸러미
+미리 만들어 둔 함수를 모아 놓은 꾸러미
 
 ### CRAN (공식 앱스토어)
 

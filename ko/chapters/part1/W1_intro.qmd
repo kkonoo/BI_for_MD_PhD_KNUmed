@@ -22,7 +22,7 @@ execute:
 
     ![](/assets/img/part1/Bioinformatics.png)
 
-    Bio ➡️ 사람의 시료 (특정 표현형을 가진)
+    Bio ➡️ 사람의 시료 (특정 표현형을 보이는)
 
     Information ➡️ 데이터 (오믹스, Omics)
 
@@ -84,7 +84,7 @@ execute:
 
 -   **scRNA-seq 표준:** 10x Genomics Chromium은 3' kit를 표준으로 사용
 -   비용 효율적이고 처리량이 높음
--   유전자 발현량 정량에 충분함
+-   유전자 발현량을 정량하기에 충분함
 -   poly-A tail을 표적하므로 mRNA 포집 효율이 높음
 
 **5' kit를 쓰는 경우:**

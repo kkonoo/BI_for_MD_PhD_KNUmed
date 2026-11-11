@@ -202,7 +202,7 @@ res <- results(dds, contrast = c("condition", "Tumor", "Normal"))
 
 #### 1. 잡음 시각화: Dispersion Plot
 
--   두 모형 모두에 대해 plotDispEsts() 로 dispersion plot을 그려 보세요.
+-   두 모형 모두 plotDispEsts() 로 dispersion plot을 그려 보세요.
 -   파란 점(Final)과 파란 원(Outliers)의 분포를 관찰하세요.
 
 #### 2. Design Matrix (이론)
