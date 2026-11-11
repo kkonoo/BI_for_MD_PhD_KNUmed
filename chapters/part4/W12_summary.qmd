@@ -11,7 +11,7 @@ execute:
 
 ## Complete Analysis Pipeline
 
-![](/assets/img/part4/W12_summary.png){fig-align="center"}
+![The eight steps of the pipeline, each with the file or result it produces and the points to check before moving on.](/assets/img/part4/W12_summary_en.png){fig-align="center"}
 
 | Analysis Step | Key Functions | Checkpoints |
 |--------------------|------------------------|----------------------------|
