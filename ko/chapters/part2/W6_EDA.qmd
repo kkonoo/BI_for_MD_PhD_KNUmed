@@ -26,7 +26,7 @@ execute:
 
 통계 분석을 위해 RNA-seq 데이터를 변환해 주어야 합니다.
 
-![](/assets/img/part2/W6_hetero.png){fig-align="center" width="692"}
+![이상적인 자료는 발현량과 관계없이 고르게 퍼지지만, RNA-seq 자료는 발현량이 클수록 더 넓게 퍼진다(모의실험).](/assets/img/part2/W6_hetero.png){fig-align="center"}
 
 ::: callout-caution
 vst/rlog로 변환한 값은 **시각화 전용**입니다. 차등 발현 분석에는 반드시 raw count를 사용하세요!
@@ -44,7 +44,7 @@ vst/rlog로 변환한 값은 **시각화 전용**입니다. 차등 발현 분석
 :::
 
 ::: {.column width="50%"}
-![](/assets/img/part2/W6_vst.png){fig-align="center"}
+![vst 전에는 발현량이 클수록 퍼짐이 커지고, vst 후에는 고르게 된다(모의실험).](/assets/img/part2/W6_vst.png){fig-align="center"}
 :::
 :::::
 
@@ -60,7 +60,7 @@ vst/rlog로 변환한 값은 **시각화 전용**입니다. 차등 발현 분석
 :::
 
 ::: {.column width="50%"}
-![](/assets/img/part2/W6_rlog.png){fig-align="center" width="478"}
+![rlog shrinkage 후 count가 낮은 유전자의 log fold change 잡음이 줄어든다(모의실험).](/assets/img/part2/W6_rlog.png){fig-align="center"}
 :::
 
 ------------------------------------------------------------------------
@@ -255,7 +255,7 @@ ggplot(pca_coords, aes(x = PC1, y = PC2)) +
 
 ### PCA vs. MDS
 
-![](/assets/img/part2/W6_PCA_theory.png){fig-align="center"}
+![고차원 자료를 분산이 가장 큰 방향(PC1)과 그다음 방향(PC2)에 투영하면 두 축만으로 Normal과 Tumor가 갈라진다. 점은 설명용 가상 자료.](/assets/img/part2/W6_PCA_theory.png){fig-align="center"}
 
 | | PCA | MDS |
 |--------|--------------------------------|-------------------------------------|

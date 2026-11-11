@@ -89,6 +89,7 @@ format:
     toc-depth: 4
     toc-title: "Contents"
     toc-float: true
+    lightbox: auto
     page-layout: full
 
     code-fold: false  

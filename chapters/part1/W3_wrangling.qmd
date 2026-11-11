@@ -94,7 +94,7 @@ patients %>% head()
 
 #### select(): select columns
 
-![](/assets/img/part1/W3_select.png){fig-align="center" width="164"}
+![select() keeps only the chosen columns.](/assets/img/part1/W3_select.png){fig-align="center" width="199"}
 
 ```{r}
 patients %>% select(pt_id, disease)
@@ -102,7 +102,7 @@ patients %>% select(pt_id, disease)
 
 #### filter(): filter rows
 
-![](/assets/img/part1/W3_fjilter.png){fig-align="center" width="180"}
+![filter() keeps only the rows that meet the condition.](/assets/img/part1/W3_fjilter.png){fig-align="center" width="225"}
 
 ```{r}
 patients %>% filter(disease == "Diabetes")
@@ -110,7 +110,7 @@ patients %>% filter(disease == "Diabetes")
 
 #### mutate(): create new columns
 
-![](/assets/img/part1/W3_mutate.png){fig-align="center" width="211"}
+![mutate() adds a new column computed from the existing ones.](/assets/img/part1/W3_mutate.png){fig-align="center" width="252"}
 
 ```{r}
 patients %>% mutate(bmi = round(weight / (height / 100)^2, 1))
@@ -118,7 +118,7 @@ patients %>% mutate(bmi = round(weight / (height / 100)^2, 1))
 
 #### arrange(): sort rows
 
-![](/assets/img/part1/W3_arrange.png){fig-align="center" width="204"}
+![arrange(desc()) sorts the rows by the key column; a darker cell is a larger value.](/assets/img/part1/W3_arrange.png){fig-align="center" width="225"}
 
 ```{r}
 patients %>% arrange(desc(weight))
@@ -126,7 +126,7 @@ patients %>% arrange(desc(weight))
 
 #### group_by() & summarise(): group-wise summary
 
-![](/assets/img/part1/W3_group_by.png){fig-align="center" width="258"}
+![group_by() splits the rows into groups; summarise() returns one row per group.](/assets/img/part1/W3_group_by.png){fig-align="center" width="326"}
 
 ```{r}
 patients %>%
@@ -140,7 +140,7 @@ patients %>%
 
 ### join: combining datasets
 
-![](/assets/img/part1/W3_join.png){fig-align="center" width="251"}
+![x and y are joined by their shared columns A and B. Grey values come from x, orange values from y.](/assets/img/part1/W3_join.png){fig-align="center" width="310"}
 
 ```{r}
 # lab results — some patients missing, one external patient included
@@ -150,7 +150,7 @@ lab_results <- tibble(
 )
 ```
 
-![](/assets/img/part1/W3_left.png){fig-align="center"}
+![left_join(x, y) keeps every row of x; a row with no match in y gets NA.](/assets/img/part1/W3_left.png){fig-align="center" width="166"}
 
 ```{r}
 # left_join: keep all patients in the cohort
@@ -159,7 +159,7 @@ patients %>%
   left_join(lab_results, by = "pt_id")
 ```
 
-![](/assets/img/part1/W3_right.png){fig-align="center" width="112"}
+![right_join(x, y) keeps every row of y; a row with no match in x gets NA.](/assets/img/part1/W3_right.png){fig-align="center" width="166"}
 
 ```{r}
 # right_join: based on lab results
@@ -168,7 +168,7 @@ patients %>%
   right_join(lab_results, by = "pt_id")
 ```
 
-![](/assets/img/part1/W3_inner.png){fig-align="center" width="123"}
+![inner_join(x, y) keeps only the rows found in both tables.](/assets/img/part1/W3_inner.png){fig-align="center" width="166"}
 
 ```{r}
 # inner_join: intersection (only patients with lab results)
@@ -177,7 +177,7 @@ patients %>%
   inner_join(lab_results, by = "pt_id")
 ```
 
-![](/assets/img/part1/W3_full.png){fig-align="center"}
+![full_join(x, y) keeps every row of both tables; missing cells become NA.](/assets/img/part1/W3_full.png){fig-align="center" width="166"}
 
 ```{r}
 # full_join: merge all data
@@ -190,7 +190,7 @@ patients %>%
 
 #### pivot_longer(): Wide → Long
 
-![](/assets/img/part1/W3_pivet_long.png){fig-align="center" width="390"}
+![pivot_longer(): the column names (1999, 2000) become values of the year column, and the cell values gather in the cases column.](/assets/img/part1/W3_pivet_long.png){fig-align="center" width="473"}
 
 ```{r}
 bp_wide <- tibble(
@@ -214,7 +214,7 @@ bp_long
 
 #### pivot_wider(): Long → Wide
 
-![](/assets/img/part1/W3_pivot_wider.png){fig-align="center"}
+![pivot_wider(): the values of type (cases, pop) become new column names, filled with the matching count values.](/assets/img/part1/W3_pivot_wider.png){fig-align="center"}
 
 ```{r}
 bp_long %>%
@@ -226,7 +226,7 @@ bp_long %>%
 
 #### separate(): split a column
 
-![](/assets/img/part1/W3_separate.png){fig-align="center" width="482"}
+![separate() splits the rate column at "/" into two columns, cases and pop.](/assets/img/part1/W3_separate.png){fig-align="center"}
 
 ```{r}
 bp_raw <- tibble(
@@ -240,7 +240,7 @@ bp_raw %>%
 
 #### unite(): merge columns
 
-![](/assets/img/part1/W3_unite.png){fig-align="center" width="351"}
+![unite() joins the century and year columns into one year column.](/assets/img/part1/W3_unite.png){fig-align="center" width="405"}
 
 ```{r}
 dates <- tibble(

@@ -242,7 +242,7 @@ patients %>% head()
 
 #### select(): 열 선택
 
-![](/assets/img/part1/W3_select.png){fig-align="center" width="164"}
+![select()는 고른 열만 남긴다.](/assets/img/part1/W3_select.png){fig-align="center" width="199"}
 
 ::: {.cell}
 
@@ -275,7 +275,7 @@ patients %>% select(pt_id, disease)
 
 #### filter(): 행 필터링
 
-![](/assets/img/part1/W3_fjilter.png){fig-align="center" width="180"}
+![filter()는 조건에 맞는 행만 남긴다.](/assets/img/part1/W3_fjilter.png){fig-align="center" width="225"}
 
 ::: {.cell}
 
@@ -310,7 +310,7 @@ patients %>% filter(disease == "Diabetes")
 
 #### mutate(): 새 열 만들기
 
-![](/assets/img/part1/W3_mutate.png){fig-align="center" width="211"}
+![mutate()는 기존 열로 계산한 새 열을 붙인다.](/assets/img/part1/W3_mutate.png){fig-align="center" width="252"}
 
 ::: {.cell}
 
@@ -343,7 +343,7 @@ patients %>% mutate(bmi = round(weight / (height / 100)^2, 1))
 
 #### arrange(): 행 정렬
 
-![](/assets/img/part1/W3_arrange.png){fig-align="center" width="204"}
+![arrange(desc())는 기준 열 값이 큰 행부터 정렬한다. 색이 진할수록 큰 값이다.](/assets/img/part1/W3_arrange.png){fig-align="center" width="225"}
 
 ::: {.cell}
 
@@ -376,7 +376,7 @@ patients %>% arrange(desc(weight))
 
 #### group_by() & summarise(): 그룹별 요약
 
-![](/assets/img/part1/W3_group_by.png){fig-align="center" width="258"}
+![group_by()로 행을 그룹별로 나누고, summarise()로 그룹마다 한 행씩 요약한다.](/assets/img/part1/W3_group_by.png){fig-align="center" width="326"}
 
 ::: {.cell}
 
@@ -407,7 +407,7 @@ patients %>%
 
 ### join: 데이터 합치기
 
-![](/assets/img/part1/W3_join.png){fig-align="center" width="251"}
+![x와 y는 공통 열 A, B를 기준으로 합친다. 회색은 x, 주황색은 y에서 온 값이다.](/assets/img/part1/W3_join.png){fig-align="center" width="310"}
 
 ::: {.cell}
 
@@ -420,7 +420,7 @@ lab_results <- tibble(
 ```
 :::
 
-![](/assets/img/part1/W3_left.png){fig-align="center"}
+![left_join(x, y)은 x의 행을 모두 남기고, y에 짝이 없는 칸은 NA가 된다.](/assets/img/part1/W3_left.png){fig-align="center" width="166"}
 
 ::: {.cell}
 
@@ -454,7 +454,7 @@ patients %>%
 :::
 :::
 
-![](/assets/img/part1/W3_right.png){fig-align="center" width="112"}
+![right_join(x, y)은 y의 행을 모두 남기고, x에 짝이 없는 칸은 NA가 된다.](/assets/img/part1/W3_right.png){fig-align="center" width="166"}
 
 ::: {.cell}
 
@@ -481,7 +481,7 @@ patients %>%
 :::
 :::
 
-![](/assets/img/part1/W3_inner.png){fig-align="center" width="123"}
+![inner_join(x, y)은 양쪽 표에 모두 있는 행만 남긴다.](/assets/img/part1/W3_inner.png){fig-align="center" width="166"}
 
 ::: {.cell}
 
@@ -507,7 +507,7 @@ patients %>%
 :::
 :::
 
-![](/assets/img/part1/W3_full.png){fig-align="center"}
+![full_join(x, y)은 양쪽 표의 행을 모두 남기고, 비는 칸은 NA가 된다.](/assets/img/part1/W3_full.png){fig-align="center" width="166"}
 
 ::: {.cell}
 
@@ -545,7 +545,7 @@ patients %>%
 
 #### pivot_longer(): Wide → Long
 
-![](/assets/img/part1/W3_pivet_long.png){fig-align="center" width="390"}
+![pivot_longer(): 열 이름(1999, 2000)은 year 열의 값이 되고, 칸의 값은 cases 열로 모인다.](/assets/img/part1/W3_pivet_long.png){fig-align="center" width="473"}
 
 ::: {.cell}
 
@@ -608,7 +608,7 @@ bp_long
 
 #### pivot_wider(): Long → Wide
 
-![](/assets/img/part1/W3_pivot_wider.png){fig-align="center"}
+![pivot_wider(): type 열의 값(cases, pop)이 새 열 이름이 되고, 그 열에 count 값이 들어간다.](/assets/img/part1/W3_pivot_wider.png){fig-align="center"}
 
 ::: {.cell}
 
@@ -637,7 +637,7 @@ bp_long %>%
 
 #### separate(): 열 나누기
 
-![](/assets/img/part1/W3_separate.png){fig-align="center" width="482"}
+![separate()는 rate 열을 "/" 기준으로 cases와 pop 두 열로 나눈다.](/assets/img/part1/W3_separate.png){fig-align="center"}
 
 ::: {.cell}
 
@@ -667,7 +667,7 @@ bp_raw %>%
 
 #### unite(): 열 합치기
 
-![](/assets/img/part1/W3_unite.png){fig-align="center" width="351"}
+![unite()는 century와 year 두 열을 붙여 하나의 year 열로 만든다.](/assets/img/part1/W3_unite.png){fig-align="center" width="405"}
 
 ::: {.cell}
 

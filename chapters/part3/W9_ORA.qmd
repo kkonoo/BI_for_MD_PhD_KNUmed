@@ -58,7 +58,7 @@ Before running ORA, you need to understand the **databases** that link genes to 
 
 > **Q:** Does my DEG list contain **more** genes from the "Inflammation" pathway **than expected by chance**?
 
-![](/assets/img/part3/W9_urn.png){fig-align="center"}
+![The urn holds 20,000 background genes, 1,000 of them red (in the pathway). Drawing my 500 DEGs gives 100 red: is that more than chance would give? The ball counts show proportions only.](/assets/img/part3/W9_urn_en.png){fig-align="center"}
 
 ### 2×2 Contingency Table
 

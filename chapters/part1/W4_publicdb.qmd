@@ -28,14 +28,14 @@ Public databases are used for pilot studies or external validation.
 ::: callout-tip
 You can find GSE/SRA accession numbers in the **Data Availability** section of publications.
 
-![](/assets/img/part1//W4_data.png){fig-align="center" width="593"}
+![](/assets/img/part1/W4_data.png){fig-align="center" width="593"}
 :::
 
 #### Where we start
 
 GEO and TCGA provide [preprocessed]{.underline} **count matrices**, so you can skip the FASTQ → alignment step.
 
-![](/assets/img/part1//W4_geo.png){fig-align="center" width="699"}
+![Alignment from FASTQ to a count matrix has already been done on a server, so we start from the count matrix.](/assets/img/part1/W4_geo_en.png){fig-align="center"}
 
 ------------------------------------------------------------------------
 
@@ -51,7 +51,7 @@ GEO and TCGA provide [preprocessed]{.underline} **count matrices**, so you can s
 
 ② **MeSH Terms**: "Lung Neoplasms"**`[MeSH Terms]`**
 
-![](/assets/img/part1//W4_geo_search.png){fig-align="center"}
+![](/assets/img/part1/W4_geo_search.png){fig-align="center"}
 
 ------------------------------------------------------------------------
 
@@ -172,19 +172,19 @@ write.table(raw_counts, file = 'examples/analysis/part1/raw_counts.txt',
 
 #### ① Projects: browse by project (e.g., TCGA-LUAD)
 
-![](/assets/img/part1//W4_TCGA_check.png){fig-align="center" width="847"}
+![](/assets/img/part1/W4_TCGA_check.png){fig-align="center" width="847"}
 
 ------------------------------------------------------------------------
 
 #### ② Cohort Builder: build cohorts based on clinical variables
 
-![](/assets/img/part1//W4_cohort.png){fig-align="center" width="488"}
+![](/assets/img/part1/W4_cohort.png){fig-align="center" width="488"}
 
 ------------------------------------------------------------------------
 
 #### ③ Analysis Center: survival analysis, clinical data visualization
 
-![](/assets/img/part1//W4_analysis.png){fig-align="center" width="474"}
+![](/assets/img/part1/W4_analysis.png){fig-align="center" width="474"}
 
 ------------------------------------------------------------------------
 

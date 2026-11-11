@@ -16,7 +16,7 @@ execute:
 
 -   Bio + information
 
-    ![](/assets/img/part1/Bioinformatics.png)
+    ![Bioinformatics combines biology, computer science and statistics. Human samples (Bio) become omics data (Information), which we analyze for biological meaning.](/assets/img/part1/Bioinformatics_en.png)
 
     Bio ➡️ Human samples (with certain phenotypes)
 
@@ -32,27 +32,27 @@ What is difference between **Sanger Sequencing** and **Next-Generation Sequencin
 
 -   Sanger sequencing ... **ddNTP with flourchromes**
 
-![](/assets/img/part1/sanger_seq.png){fig-align="center" width="709"}
+![A ddNTP lacks the 3′-OH, so synthesis stops where it is added. Reading the fluorescent end of each fragment in order of length gives the sequence.](/assets/img/part1/sanger_seq_en.png){fig-align="center"}
 
 ------------------------------------------------------------------------
 
 -   **NGS**: library preparation + sequencing by synthesis
 
-    ![](/assets/img/part1/RNA_seq.png){fig-align="center" width="497"}
+    ![Library preparation steps of the Illumina Stranded mRNA Prep. Steps 1–2 work on RNA, steps 3–7 on cDNA.](/assets/img/part1/RNA_seq_en.png){fig-align="center" width="352"}
 
 ------------------------------------------------------------------------
 
 -   Library prep & bridge amplification
 
-    ![](/assets/img/part1/library_prep.png){plot-algin="center"}
+    ![DNA is fragmented, adapters are ligated to both ends, and the strands are separated. On the flow cell, repeated bridge copying builds a cluster of identical strands.](/assets/img/part1/library_prep_en.png){fig-align="center"}
 
 ------------------------------------------------------------------------
 
 -   sequencing by synthesis (SBS)
 
-    ![](/assets/img/part1/SBS0.png){plot-algin="center" width="111"} ![](/assets/img/part1/SBS1.png){plot-algin="center" width="100"} ![](/assets/img/part1/SBS00.jpg){plot-algin="center" width="144"} ![](/assets/img/part1/SBS2.png){plot-algin="center" width="287"}
+    ![In each cycle one fluorescent dNTP is added, imaged to read its color, then its dye and blocker are removed. Repeating the cycle reads the strand one base at a time.](/assets/img/part1/SBS_cycle_en.png){fig-align="center"}
 
-    ![](/assets/img/part1/SBS3.png){plot-algin="center" width="233"} ![](/assets/img/part1/SBS5.png){plot-algin="center" width="393"}
+    ![](/assets/img/part1/SBS3.png){fig-align="center" width="233"} ![](/assets/img/part1/SBS5.png){fig-align="center" width="393"}
 
 ------------------------------------------------------------------------
 
@@ -62,19 +62,19 @@ What is difference between **Sanger Sequencing** and **Next-Generation Sequencin
     -   Index (Sample identifier, 6-12nt, multiplexing)
     -   Primer (e.g., PolyA for mRNA, 6-mer for total RNAs)
 
-    ![](/assets/img/part1/RNA_seq_library_prep.png){fig-align="center" width="672"}
+    ![One library molecule ready for sequencing: the cDNA insert flanked by adapters made of P5/P7, index and primer sites.](/assets/img/part1/RNA_seq_library_prep_en.png){fig-align="center"}
 
 ------------------------------------------------------------------------
 
 #### Single-end vs. Paired-end Sequencing
 
-![](/assets/img/part1/paired_end.png)
+![Single-end reads one end of each fragment; paired-end reads both ends.](/assets/img/part1/paired_end_en.png)
 
 ------------------------------------------------------------------------
 
 #### 3' kit vs. 5' kit (for mRNA capture)
 
-![](/assets/img/part1/3_5_kit.png){fig-align="center" width="696"}
+![A 3′ kit reads the 3′ end next to the poly-A tail; a 5′ kit reads the 5′ end. Which end is read decides what the kit is used for.](/assets/img/part1/3_5_kit_en.png){fig-align="center"}
 
 **Why 3' is commonly used:**
 
@@ -124,7 +124,7 @@ $Q = -10 \log_{10} P$
 
 ### Central Dogma
 
-![](/assets/img/part1/Central_dogma.png)
+![Each layer of DNA → RNA → protein has its own omics field and question. This course works with RNA (the transcriptome).](/assets/img/part1/Central_dogma_en.png)
 
 > We will focus on [transcriptomes]{.underline} (RNA-seq data)
 
@@ -144,7 +144,7 @@ $Q = -10 \log_{10} P$
 
 technology that measures the **average** gene-expression levels across millions of cells within a tissue
 
-![](/assets/img/part1/RNA-seq.png)
+![Bulk RNA-seq goes from sample to RNA extraction, cDNA conversion and sequencing. Sequencing all samples in a single batch is best.](/assets/img/part1/RNA-seq_en.png)
 
 ------------------------------------------------------------------------
 

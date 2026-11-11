@@ -15,7 +15,7 @@ execute:
 
 #### DEG 분석과 다중검정 문제
 
-![](/assets/img/part3/W8_multiple.png){fig-align="center"}
+![p-value는 귀무분포에서 관측값보다 더 극단적인 꼬리의 넓이다. p < 0.05로 검정하면 귀무가설 유전자 100개당 약 5개가 우연히 유의해지므로, 1만 개를 검정하면 위양성이 약 500개 나온다.](/assets/img/part3/W8_multiple.png){fig-align="center"}
 
 -   **p-value**: 귀무가설(H₀: 그룹 간 차이 없음) 하에서 그 결과가 [우연히]{.underline} 관찰될 확률
 -   **다중검정 문제 (Multiple testing problem)**: 유전자 1만 개를 p \< 0.05로 검정하면 우연히 유의해지는 결과가 약 500개 → 위양성(false positive)이 급격히 증가
@@ -25,7 +25,7 @@ execute:
 -   **Bonferroni**: $\alpha / n_{total}$ → 지나치게 보수적
 -   **FDR (거짓 발견율, False Discovery Rate)**: $FDR = \frac{FP}{FP + TP}$
 
-![](/assets/img/part3/W8_FDR.png){fig-align="center"}
+![신호가 없으면 p-value가 고르게 퍼져 5%가 우연히 0.05 아래로 떨어지고, 실제 DEG는 0 근처에 쌓인다. α로 자르면 유전자가 FP·TP·FN·TN으로 나뉜다 (모의실험).](/assets/img/part3/W8_FDR.png){fig-align="center"}
 
 #### Benjamini-Hochberg (BH) 절차
 
@@ -42,6 +42,8 @@ $$
 -   **보정된 p-value (padj) …** (누적 최솟값을 적용) $$
     p \times \frac{n_{total}}{i} 
     $$
+
+![아래 코드의 p-value 5개를 순위 i대로 놓고 기준선 (i/m)·α (m = 5, α = 0.05)와 비교했다. 순위 1–2는 선 아래에 있어 통과하고, 3–5는 탈락한다.](/assets/img/part3/W8_BH.png){fig-align="center"}
 
 ::: {.cell}
 

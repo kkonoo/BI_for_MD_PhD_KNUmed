@@ -23,7 +23,7 @@ Visualize data [before statistical analysis]{.underline} to **understand its ove
 
 we need to transform our data (RNA-seq data) for statistic analyses
 
-![](/assets/img/part2/W6_hetero.png){fig-align="center" width="692"}
+![Ideal data spread evenly at every expression level; RNA-seq data spread wider as expression rises (simulated).](/assets/img/part2/W6_hetero_en.png){fig-align="center"}
 
 ::: callout-caution
 vst/rlog transformed values are **for visualization only**; raw counts must be used for differential analysis!
@@ -41,7 +41,7 @@ vst/rlog transformed values are **for visualization only**; raw counts must be u
 :::
 
 ::: {.column width="50%"}
-![](/assets/img/part2/W6_vst.png){fig-align="center"}
+![Before vst the spread grows with expression; after vst it is even (simulated).](/assets/img/part2/W6_vst_en.png){fig-align="center"}
 :::
 :::::
 
@@ -57,7 +57,7 @@ vst/rlog transformed values are **for visualization only**; raw counts must be u
 :::
 
 ::: {.column width="50%"}
-![](/assets/img/part2/W6_rlog.png){fig-align="center" width="478"}
+![rlog shrinkage suppresses the noisy log fold changes of low-count genes (simulated).](/assets/img/part2/W6_rlog_en.png){fig-align="center"}
 :::
 
 ------------------------------------------------------------------------
@@ -250,7 +250,7 @@ ggplot(pca_coords, aes(x = PC1, y = PC2)) +
 
 ### PCA vs. MDS
 
-![](/assets/img/part2/W6_PCA_theory.png){fig-align="center"}
+![Projecting high-dimensional data onto the direction of largest variance (PC1) and the next one (PC2) separates Normal and Tumor on just two axes. Points are illustrative data.](/assets/img/part2/W6_PCA_theory_en.png){fig-align="center"}
 
 +--------------+-------------------------------------+---------------------------------------------------------+
 |              | PCA                                 | MDS                                                     |

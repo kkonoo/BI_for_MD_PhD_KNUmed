@@ -12,7 +12,7 @@ execute:
 
 #### DEG analysis and the Multiple Testing Problem
 
-![](/assets/img/part3/W8_multiple.png){fig-align="center"}
+![A p-value is the tail area of the null distribution beyond the observed value. Testing at p < 0.05, about 5 in every 100 null genes pass by chance, so 10,000 tests give about 500 false positives.](/assets/img/part3/W8_multiple_en.png){fig-align="center"}
 
 -   **p-value**: the probability of observing the result [by chance]{.underline} under the null hypothesis (H₀: no difference between groups)
 -   **Multiple testing problem**: testing 10,000 genes at p \< 0.05 would yield \~500 spuriously significant results → dramatic increase in false positives
@@ -22,7 +22,7 @@ execute:
 -   **Bonferroni**: $\alpha / n_{total}$ → too conservative
 -   **FDR (False Discovery Rate)**: $FDR = \frac{FP}{FP + TP}$
 
-![](/assets/img/part3/W8_FDR.png){fig-align="center"}
+![With no signal, p-values spread evenly and 5% fall below 0.05 by chance; true DEGs pile up near 0. Cutting at α splits the genes into FP, TP, FN and TN (simulated).](/assets/img/part3/W8_FDR_en.png){fig-align="center"}
 
 #### Benjamini-Hochberg (BH) Procedure
 
@@ -39,6 +39,8 @@ $$
 -   **adjusted p-value (padj) ...** (with cumulative minimum applied) $$
     p \times \frac{n_{total}}{i} 
     $$
+
+![The five p-values from the code below, sorted by rank i and compared with the threshold (i/m)·α (m = 5, α = 0.05). Ranks 1–2 fall below the line and pass; ranks 3–5 fail.](/assets/img/part3/W8_BH_en.png){fig-align="center"}
 
 ```{r}
 ##| eval: true
